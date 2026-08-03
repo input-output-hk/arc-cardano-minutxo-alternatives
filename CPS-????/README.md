@@ -138,9 +138,9 @@ Babbage was activated on Cardano mainnet by the
 specifies that an output is valid only if it contains at least:
 
 ```math
-\operatorname{minUTxO}(o)
-= \left(160 + \operatorname{sizeInBytes}(\operatorname{TxOut}(o))\right)
-  \times \operatorname{coinsPerUTxOByte}
+\mathrm{minUTxO}(o)
+= \left(160 + \mathrm{sizeInBytes}(\mathrm{TxOut}(o))\right)
+  \times \mathrm{coinsPerUTxOByte}
 ```
 
 The formula has three terms:
@@ -165,7 +165,7 @@ Consequently, the maximum is indirect and depends on the rest of the transaction
 N_{\mathrm{outputs}}
 \le
 \left\lfloor
-\frac{\operatorname{maxTxSize} - B_{\mathrm{other}}}
+\frac{\mathrm{maxTxSize} - B_{\mathrm{other}}}
      {B_{\mathrm{output}}}
 \right\rfloor
 ```
@@ -200,11 +200,11 @@ Applying that `coinsPerUTxOByte` value gives:
 
 ```math
 \begin{aligned}
-\operatorname{minUTxO}(o)
-  &= \left(160 + \operatorname{sizeInBytes}(\operatorname{TxOut}(o))\right)
+\mathrm{minUTxO}(o)
+  &= \left(160 + \mathrm{sizeInBytes}(\mathrm{TxOut}(o))\right)
      \times 4{,}310\ \mathrm{lovelace} \\
   &= 689{,}600
-     + 4{,}310 \times \operatorname{sizeInBytes}(\operatorname{TxOut}(o))
+     + 4{,}310 \times \mathrm{sizeInBytes}(\mathrm{TxOut}(o))
      \ \mathrm{lovelace}
 \end{aligned}
 ```
@@ -213,7 +213,7 @@ For example, if a serialised output is 100 bytes, its billable size is 260 bytes
 its minimum is:
 
 ```math
-\operatorname{minUTxO}
+\mathrm{minUTxO}
 = (160 + 100) \times 4{,}310
 = 1{,}120{,}600\ \mathrm{lovelace}
 = 1.1206\ \mathrm{ada}
@@ -226,7 +226,7 @@ transition, [CIP-55 required](https://github.com/cardano-foundation/CIPs/tree/ma
 that value to be divided by eight and rounded down:
 
 ```math
-\operatorname{coinsPerUTxOByte}
+\mathrm{coinsPerUTxOByte}
 = \left\lfloor \frac{34{,}482}{8} \right\rfloor
 = 4{,}310\ \text{lovelace per byte}
 ```
@@ -533,12 +533,12 @@ finite economic ceiling is not by itself a safe resource target.
 
 #### 2.2.6 How should `coinsPerUTxOByte` be adjusted?
 
-Changing $p = \operatorname{coinsPerUTxOByte}$ tunes one trade-off: a higher value
+Changing $p = \mathrm{coinsPerUTxOByte}$ tunes one trade-off: a higher value
 makes UTxO growth more expensive for attackers and legitimate users alike. For an
 output with billable size $b$ and an ada budget $A$:
 
 ```math
-\operatorname{minUTxO}=p b
+\mathrm{minUTxO}=p b
 \qquad\text{and}\qquad
 N_{\max}=\left\lfloor\frac{A}{p b}\right\rfloor
 ```
