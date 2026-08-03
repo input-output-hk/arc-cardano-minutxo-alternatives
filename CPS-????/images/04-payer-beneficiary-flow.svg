@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="470" viewBox="0 0 1200 470" role="img" aria-labelledby="title desc">
+  <title id="title">Who funds and who recovers minimum ada</title>
+  <desc id="desc">Alice creates an output for Bob containing a native asset and m ada. Bob then owns the output and controls the m ada when the output is spent.</desc>
+  <defs>
+    <style>
+      .bg{fill:#fbfcfa}.panel{fill:#fff;stroke:#c9cec6;stroke-width:2}.alice{fill:#f6f2ea;stroke:#8f6410;stroke-width:2}.bob{fill:#e2e7f6;stroke:#23439e;stroke-width:2}.ink{fill:#12171a;font:600 22px system-ui,sans-serif}.body{fill:#5a6560;font:18px system-ui,sans-serif}.mono{fill:#23439e;font:600 18px ui-monospace,monospace}.label{fill:#8b948e;font:600 15px ui-monospace,monospace;letter-spacing:1px}.ochre{fill:#8f6410}.blue{fill:#23439e}.rule{stroke:#5a6560;stroke-width:2;fill:none}.dash{stroke-dasharray:7 7}
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5 0 10z" fill="#5a6560"/></marker>
+  </defs>
+  <rect class="bg" width="1200" height="470" rx="8"/>
+  <text class="label" x="48" y="48">1 · OUTPUT CREATION</text>
+  <rect class="alice" x="48" y="76" width="250" height="126" rx="8"/>
+  <text class="ink" x="78" y="116">Alice funds</text>
+  <text class="body" x="78" y="154">native asset</text>
+  <text class="mono ochre" x="78" y="181">+ m ADA</text>
+  <line class="rule" x1="320" y1="139" x2="422" y2="139" marker-end="url(#arrow)"/>
+  <rect class="bob" x="444" y="76" width="314" height="126" rx="8"/>
+  <text class="ink" x="474" y="116">Bob's new output</text>
+  <text class="body" x="474" y="154">native asset</text>
+  <text class="mono blue" x="474" y="181">+ m ADA</text>
+  <text class="body" x="792" y="116">The deposit travels</text>
+  <text class="body" x="792" y="144">inside the payment.</text>
+  <text class="body" x="792" y="180">Alice retains no claim.</text>
+  <line class="rule dash" x1="601" y1="220" x2="601" y2="286" marker-end="url(#arrow)"/>
+  <text class="label" x="48" y="278">2 · LATER, WHEN BOB SPENDS</text>
+  <rect class="bob" x="444" y="304" width="314" height="110" rx="8"/>
+  <text class="ink" x="474" y="348">Bob consumes output</text>
+  <text class="mono blue" x="474" y="383">Bob directs the m ADA</text>
+  <line class="rule" x1="780" y1="359" x2="874" y2="359" marker-end="url(#arrow)"/>
+  <rect class="panel" x="896" y="304" width="256" height="110" rx="8"/>
+  <text class="ink" x="926" y="348">Bob's transaction</text>
+  <text class="body" x="926" y="383">Alice is not refunded.</text>
+  <rect class="panel" x="48" y="322" width="296" height="76" rx="8"/>
+  <text class="label ochre" x="72" y="352">CONVENTIONAL DEPOSIT</text>
+  <text class="body" x="72" y="380">would return to its funder.</text>
+</svg>

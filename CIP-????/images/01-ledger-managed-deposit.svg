@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
+  <title id="title">Ledger-managed UTxO state deposits</title>
+  <desc id="desc">A transaction that creates more deposit liability than it consumes lodges the difference in a ledger reserve. A transaction that reduces liability receives a release credit.</desc>
+  <defs>
+    <style>
+      .bg{fill:#fbfcfa}.panel{fill:#fff;stroke:#c9cec6;stroke-width:2}.grow{fill:#f6f2ea;stroke:#8f6410;stroke-width:2}.shrink{fill:#e2e7f6;stroke:#23439e;stroke-width:2}.reserve{fill:#fff;stroke:#12171a;stroke-width:3}.ink{fill:#12171a;font:600 22px system-ui,sans-serif}.body{fill:#5a6560;font:18px system-ui,sans-serif}.mono{fill:#23439e;font:600 18px ui-monospace,monospace}.label{fill:#8b948e;font:600 15px ui-monospace,monospace;letter-spacing:1px}.ochre{fill:#8f6410}.blue{fill:#23439e}.rule{stroke:#5a6560;stroke-width:2;fill:none}
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5 0 10z" fill="#5a6560"/></marker>
+  </defs>
+  <rect class="bg" width="1200" height="560" rx="8"/>
+  <text class="label" x="48" y="48">TRANSACTION A · NET STATE GROWTH</text>
+  <rect class="grow" x="48" y="76" width="310" height="144" rx="8"/>
+  <text class="ink" x="78" y="116">Consumes deposits</text>
+  <text class="mono ochre" x="78" y="151">D_consumed = 3 ADA</text>
+  <text class="ink" x="78" y="190">Creates deposits</text>
+  <text class="mono ochre" x="78" y="215">D_created = 5 ADA</text>
+  <line class="rule" x1="380" y1="148" x2="488" y2="148" marker-end="url(#arrow)"/>
+  <rect class="panel" x="510" y="94" width="260" height="108" rx="8"/>
+  <text class="ink" x="540" y="134">Delta = +2 ADA</text>
+  <text class="body" x="540" y="172">Transaction lodges 2.</text>
+  <line class="rule" x1="792" y1="148" x2="900" y2="148" marker-end="url(#arrow)"/>
+  <rect class="reserve" x="922" y="76" width="230" height="388" rx="8"/>
+  <text class="label" x="962" y="119">LEDGER RESERVE</text>
+  <text class="ink" x="964" y="166">Backs live</text>
+  <text class="ink" x="964" y="194">UTxO state</text>
+  <line x1="954" y1="229" x2="1120" y2="229" stroke="#c9cec6" stroke-width="2"/>
+  <text class="mono ochre" x="964" y="276">+ 2 ADA</text>
+  <text class="body" x="964" y="309">from growth</text>
+  <line x1="954" y1="342" x2="1120" y2="342" stroke="#c9cec6" stroke-width="2"/>
+  <text class="mono blue" x="964" y="389">− 3 ADA</text>
+  <text class="body" x="964" y="422">for cleanup</text>
+  <text class="label" x="48" y="304">TRANSACTION B · NET STATE REDUCTION</text>
+  <rect class="shrink" x="48" y="332" width="310" height="144" rx="8"/>
+  <text class="ink" x="78" y="372">Consumes deposits</text>
+  <text class="mono blue" x="78" y="407">D_consumed = 5 ADA</text>
+  <text class="ink" x="78" y="446">Creates deposits</text>
+  <text class="mono blue" x="78" y="471">D_created = 2 ADA</text>
+  <line class="rule" x1="380" y1="404" x2="488" y2="404" marker-end="url(#arrow)"/>
+  <rect class="panel" x="510" y="350" width="260" height="108" rx="8"/>
+  <text class="ink" x="540" y="390">Delta = −3 ADA</text>
+  <text class="body" x="540" y="428">Transaction receives 3.</text>
+  <line class="rule" x1="900" y1="404" x2="792" y2="404" marker-end="url(#arrow)"/>
+  <text class="body" x="48" y="526">Outputs carry application value. The reserve carries the ada that backs persistent UTxO entries.</text>
+</svg>

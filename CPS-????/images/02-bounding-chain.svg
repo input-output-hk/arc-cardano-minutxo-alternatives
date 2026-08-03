@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
+  <title id="title">How minimum ada bounds the UTxO set</title>
+  <desc id="desc">Finite ada supply divided by the minimum ada reserved in each output yields a maximum theoretical number of outputs and thus a bound on UTxO entry count.</desc>
+  <defs>
+    <style>
+      .bg{fill:#fbfcfa}.box{fill:#fff;stroke:#c9cec6;stroke-width:2}.result{fill:#e2e7f6;stroke:#23439e;stroke-width:3}.ink{fill:#12171a;font:600 22px system-ui,sans-serif}.body{fill:#5a6560;font:18px system-ui,sans-serif}.mono{fill:#23439e;font:600 21px ui-monospace,monospace}.label{fill:#8b948e;font:600 15px ui-monospace,monospace;letter-spacing:1px}.rule{stroke:#5a6560;stroke-width:2;fill:none}
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5 0 10z" fill="#5a6560"/></marker>
+  </defs>
+  <rect class="bg" width="1200" height="360" rx="8"/>
+  <text class="label" x="48" y="48">THE SECURITY ARGUMENT</text>
+  <rect class="box" x="48" y="76" width="280" height="124" rx="8"/>
+  <text class="ink" x="78" y="119">Finite ada supply</text>
+  <text class="body" x="78" y="157">Only a bounded quantity</text><text class="body" x="78" y="181">can be reserved.</text>
+  <text class="mono" x="362" y="147">÷</text>
+  <rect class="box" x="410" y="76" width="320" height="124" rx="8"/>
+  <text class="ink" x="440" y="119">Minimum per output</text>
+  <text class="body" x="440" y="157">Every entry must lock</text><text class="body" x="440" y="181">some ada.</text>
+  <line class="rule" x1="758" y1="138" x2="842" y2="138" marker-end="url(#arrow)"/>
+  <rect class="result" x="866" y="76" width="286" height="124" rx="8"/>
+  <text class="ink" x="896" y="119">Bounded entry count</text>
+  <text class="body" x="896" y="157">Therefore bounded</text><text class="body" x="896" y="181">UTxO-set cardinality.</text>
+  <rect class="box" x="214" y="244" width="772" height="72" rx="8"/>
+  <text class="mono" x="268" y="288">max UTxOs ≤ available ada ÷ minimum ada per UTxO</text>
+  <line class="rule" x1="1008" y1="202" x2="940" y2="242" marker-end="url(#arrow)"/>
+</svg>

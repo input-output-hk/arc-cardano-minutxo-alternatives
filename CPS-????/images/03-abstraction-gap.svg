@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="980" viewBox="0 0 1400 980" role="img" aria-labelledby="title desc">
+  <title id="title">From an essential state bound to accidental ecosystem complexity</title>
+  <desc id="desc">Cardano must bound persistent state. The current design makes each output carry a required amount of ada, exposing a node resource constraint to wallets, applications, and users. This abstraction leak creates five direct ecosystem consequences.</desc>
+  <defs>
+    <style>
+      .bg{fill:#f8faf8}.panel{fill:#fff;stroke:#d9ded9;stroke-width:1.5}.essential{fill:#edf4ef;stroke:#678170;stroke-width:2}.mechanism{fill:#edf1fb;stroke:#294aa5;stroke-width:2}.leak{fill:#fff7e8;stroke:#a66b08;stroke-width:2}.card{fill:#fff;stroke:#d9ded9;stroke-width:1.5}.ink{fill:#17201d}.muted{fill:#5d6964}.green{fill:#476252}.blue{fill:#294aa5}.ochre{fill:#955f05}.title{font:700 31px system-ui,sans-serif}.subtitle{font:18px system-ui,sans-serif}.eyebrow{font:700 15px ui-monospace,monospace;letter-spacing:1.4px}.heading{font:700 23px system-ui,sans-serif}.body{font:18px system-ui,sans-serif}.small{font:16px system-ui,sans-serif}.mono{font:600 18px ui-monospace,monospace}.math{fill:#294aa5;font:italic 21px Georgia,"Times New Roman",serif}.mathop{font-style:normal;font-weight:600}.number{font:700 16px ui-monospace,monospace}.leakword{font:800 19px system-ui,sans-serif;letter-spacing:1px}.boundary{stroke:#a66b08;stroke-width:2;stroke-dasharray:7 7}.arrow{stroke:#69736f;stroke-width:2;fill:none}.rule{stroke:#d9ded9;stroke-width:1.5}.pill{fill:#fff;stroke:#d8b677;stroke-width:1.5}
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5 0 10z" fill="#69736f"/></marker>
+  </defs>
+
+  <rect class="bg" width="1400" height="980" rx="12"/>
+
+  <text class="eyebrow green" x="64" y="55">THE CORE PROBLEM</text>
+  <text class="title ink" x="64" y="94">A necessary state bound becomes accidental ecosystem complexity</text>
+  <text class="subtitle muted" x="64" y="124">The constraint is essential. Exposing it inside every transfer is a design choice.</text>
+
+  <!-- Causal chain -->
+  <rect class="essential" x="64" y="172" width="330" height="220" rx="14"/>
+  <text class="eyebrow green" x="92" y="205">01 · ESSENTIAL COMPLEXITY</text>
+  <text class="heading ink" x="92" y="245">Bound persistent state</text>
+  <text class="body muted" x="92" y="280">Every node must store and serve</text>
+  <text class="body muted" x="92" y="305">the live UTxO set using finite</text>
+  <text class="body muted" x="92" y="330">memory, disk, and I/O.</text>
+  <rect x="92" y="350" width="238" height="25" rx="12.5" fill="#fff" opacity=".85"/>
+  <text class="small green" x="211" y="368" text-anchor="middle">A safe protocol must solve this</text>
+
+  <path class="arrow" d="M394 282H480" marker-end="url(#arrow)"/>
+  <text class="small muted" x="437" y="255" text-anchor="middle">choice</text>
+
+  <rect class="mechanism" x="480" y="172" width="390" height="220" rx="14"/>
+  <text class="eyebrow blue" x="508" y="205">02 · IMPLEMENTATION CHOICE</text>
+  <text class="heading ink" x="508" y="245">Put required ada in each output</text>
+  <rect x="508" y="264" width="334" height="72" rx="9" fill="#fff" opacity=".9"/>
+  <text class="math" x="675" y="291" text-anchor="middle"><tspan class="mathop">minUTxO</tspan><tspan>(o) =</tspan></text>
+  <text class="math" x="675" y="320" text-anchor="middle"><tspan>(160 + |</tspan><tspan class="mathop">TxOut</tspan><tspan>(o)|</tspan><tspan font-size="13" baseline-shift="sub">bytes</tspan><tspan baseline-shift="baseline">) × p</tspan></text>
+  <text class="body muted" x="508" y="361">The state bound travels inside value.</text>
+
+  <!-- Abstraction boundary -->
+  <text class="small muted" x="905" y="148" text-anchor="end">ledger</text>
+  <text class="small muted" x="935" y="148">ecosystem</text>
+  <line class="boundary" x1="920" y1="158" x2="920" y2="414"/>
+  <circle cx="920" cy="282" r="6" fill="#a66b08"/>
+  <rect class="pill" x="810" y="414" width="220" height="38" rx="19"/>
+  <text class="leakword ochre" x="920" y="440" text-anchor="middle">ABSTRACTION LEAK</text>
+
+  <path class="arrow" d="M870 282H908" marker-end="url(#arrow)"/>
+  <path class="arrow" d="M932 282H972" marker-end="url(#arrow)"/>
+
+  <rect class="leak" x="972" y="172" width="364" height="220" rx="14"/>
+  <text class="eyebrow ochre" x="1000" y="205">03 · ACCIDENTAL COMPLEXITY</text>
+  <text class="heading ink" x="1000" y="240">The constraint reaches</text>
+  <text class="heading ink" x="1000" y="266">upper layers</text>
+  <text class="body muted" x="1000" y="300">Wallets must source extra ada.</text>
+  <text class="body muted" x="1000" y="323">Builders must rebalance outputs.</text>
+  <text class="body muted" x="1000" y="346">Applications must redesign flows.</text>
+  <text class="body muted" x="1000" y="369">Users must understand the side effects.</text>
+
+  <line class="rule" x1="64" y1="466" x2="1336" y2="466"/>
+  <text class="eyebrow muted" x="64" y="504">FIVE DIRECT CONSEQUENCES OF THE LEAK</text>
+
+  <!-- Consequence cards -->
+  <rect class="card" x="64" y="530" width="620" height="124" rx="12"/>
+  <circle cx="96" cy="563" r="17" fill="#edf1fb"/>
+  <text class="number blue" x="96" y="569" text-anchor="middle">1</text>
+  <text class="heading ink" x="126" y="570">Ada coupling of native assets</text>
+  <text class="body muted" x="92" y="608">A native-asset transfer cannot be represented without also</text>
+  <text class="body muted" x="92" y="634">adding sufficient ada to the output.</text>
+
+  <rect class="card" x="716" y="530" width="620" height="124" rx="12"/>
+  <circle cx="748" cy="563" r="17" fill="#edf1fb"/>
+  <text class="number blue" x="748" y="569" text-anchor="middle">2</text>
+  <text class="heading ink" x="780" y="570">No refund claim for the funder</text>
+  <text class="body muted" x="744" y="608">The ada remains value, but ownership follows the output rather</text>
+  <text class="body muted" x="744" y="634">than returning to the party that supplied it.</text>
+
+  <rect class="card" x="64" y="676" width="620" height="124" rx="12"/>
+  <circle cx="96" cy="709" r="17" fill="#edf1fb"/>
+  <text class="number blue" x="96" y="715" text-anchor="middle">3</text>
+  <text class="heading ink" x="128" y="716">Fixed ada amount, floating real value</text>
+  <text class="body muted" x="92" y="754">The policy can change, while ada-price volatility continuously</text>
+  <text class="body muted" x="92" y="780">reprices the capital committed by every historical output.</text>
+
+  <rect class="card" x="716" y="676" width="620" height="124" rx="12"/>
+  <circle cx="748" cy="709" r="17" fill="#fff7e8"/>
+  <text class="number ochre" x="748" y="715" text-anchor="middle">4</text>
+  <text class="heading ink" x="780" y="716">A second cost concept reaches users</text>
+  <text class="body muted" x="744" y="754">Beyond one transaction fee, builders must source and attach</text>
+  <text class="body muted" x="744" y="780">a separate amount of ada to every output.</text>
+
+  <rect class="card" x="390" y="822" width="620" height="124" rx="12"/>
+  <circle cx="422" cy="855" r="17" fill="#fff7e8"/>
+  <text class="number ochre" x="422" y="861" text-anchor="middle">5</text>
+  <text class="heading ink" x="454" y="862">Reduced liquid reusability</text>
+  <text class="body muted" x="418" y="900">Ada remains owned and potentially staked, but cannot be</text>
+  <text class="body muted" x="418" y="926">redeployed independently while preserving an equivalent output.</text>
+</svg>

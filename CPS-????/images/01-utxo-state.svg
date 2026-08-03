@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="500" viewBox="0 0 1200 500" role="img" aria-labelledby="title desc">
+  <title id="title">How a transaction changes the UTxO set</title>
+  <desc id="desc">Two existing outputs are consumed by a transaction, three new outputs are created, and the UTxO set grows by one persistent entry.</desc>
+  <defs>
+    <style>
+      .bg{fill:#fbfcfa}.panel{fill:#fff;stroke:#c9cec6;stroke-width:2}.old{fill:#f6f2ea;stroke:#8f6410;stroke-width:2}.new{fill:#e2e7f6;stroke:#23439e;stroke-width:2}.tx{fill:#fff;stroke:#23439e;stroke-width:3}.rule{stroke:#5a6560;stroke-width:2;fill:none}.ink{fill:#12171a;font:600 22px system-ui,sans-serif}.body{fill:#5a6560;font:18px system-ui,sans-serif}.mono{fill:#5a6560;font:17px ui-monospace,monospace}.label{fill:#8b948e;font:600 16px ui-monospace,monospace;letter-spacing:1px}.blue{fill:#23439e}.ochre{fill:#8f6410}.dash{stroke-dasharray:8 8}
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5 0 10z" fill="#5a6560"/></marker>
+  </defs>
+  <rect class="bg" width="1200" height="500" rx="8"/>
+  <text class="label" x="48" y="50">EXISTING UTxOs</text>
+  <rect class="old" x="48" y="78" width="260" height="76" rx="6"/>
+  <text class="mono" x="70" y="109">(a4f3…9c, 0)</text><text class="ink" x="70" y="139">120 ADA</text>
+  <rect class="old" x="48" y="176" width="260" height="76" rx="6"/>
+  <text class="mono" x="70" y="207">(7b21…04, 1)</text><text class="ink" x="70" y="237">35 ADA</text>
+  <line class="rule" x1="320" y1="116" x2="426" y2="150" marker-end="url(#arrow)"/>
+  <line class="rule" x1="320" y1="214" x2="426" y2="180" marker-end="url(#arrow)"/>
+  <rect class="tx" x="444" y="81" width="240" height="174" rx="8"/>
+  <text class="label blue" x="499" y="143">TRANSACTION</text>
+  <text class="body" x="488" y="181">consumes 2 · creates 3</text>
+  <text class="body" x="520" y="213">Δ entries = +1</text>
+  <text class="mono" x="501" y="239">fee = 0.17 ADA</text>
+  <line class="rule" x1="700" y1="145" x2="806" y2="102" marker-end="url(#arrow)"/>
+  <line class="rule" x1="700" y1="165" x2="806" y2="186" marker-end="url(#arrow)"/>
+  <line class="rule" x1="700" y1="185" x2="806" y2="270" marker-end="url(#arrow)"/>
+  <text class="label" x="824" y="50">NEW UTxOs</text>
+  <rect class="new" x="824" y="70" width="328" height="64" rx="6"/>
+  <text class="mono" x="846" y="96">(e0c8…1f, 0)</text><text class="ink" x="846" y="124">50 ADA · recipient A</text>
+  <rect class="new" x="824" y="154" width="328" height="64" rx="6"/>
+  <text class="mono" x="846" y="180">(e0c8…1f, 1)</text><text class="ink" x="846" y="208">50 ADA · recipient B</text>
+  <rect class="new" x="824" y="238" width="328" height="64" rx="6"/>
+  <text class="mono" x="846" y="264">(e0c8…1f, 2)</text><text class="ink" x="846" y="292">54.83 ADA · change</text>
+  <line class="rule dash" x1="988" y1="312" x2="988" y2="358" marker-end="url(#arrow)"/>
+  <rect class="panel" x="250" y="370" width="900" height="84" rx="8"/>
+  <text class="label" x="282" y="403">GLOBAL UTxO SET · THE LIVE FRONTIER</text>
+  <text class="body" x="282" y="437">Three entries are added after two are removed: persistent state grows by one.</text>
+  <text class="ink ochre" x="48" y="404">No expiry</text>
+  <text class="body" x="48" y="436">Persistence may be</text><text class="body" x="48" y="460">indefinite.</text>
+</svg>
