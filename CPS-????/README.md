@@ -4,60 +4,60 @@ Title: Per-output minimum ada and its abstraction leak
 Category: Ledger
 Status: Open
 Authors:
-    - Nicolas Henin <nicolas.henin@iohk.io>
+  - Nicolas Henin <nicolas.henin@iohk.io>
 Proposed Solutions: []
-Discussions:
-    - "Original PR: https://github.com/cardano-foundation/CIPs/pull/?"
+Discussions: []
 Created: 2026-07-28
 License: CC-BY-4.0
 ---
 
 > **DRAFT — not for submission.** Items marked `TODO` require a decision or a
-> verified figure before this goes anywhere near a PR. See `NOTES.md`.
+> verified figure before this goes anywhere near a PR. See the
+> [draft notes](../NOTES.md).
 
 ## Table of Contents
 
-1. [Abstract](#1-abstract)
-2. [Problem](#2-problem)
-   1. [How transactions grow the UTxO set](#21-how-transactions-grow-the-utxo-set)
-   2. [How Cardano bounds UTxO-set growth](#22-how-cardano-bounds-utxo-set-growth)
-      1. [Formula and fixed overhead](#221-formula-and-fixed-overhead)
-      2. [Mainnet parameters](#222-mainnet-parameters)
-      3. [How the mechanism evolved](#223-how-the-mechanism-evolved)
-      4. [Why it bounds entry count](#224-why-it-bounds-entry-count)
-      5. [A hierarchy of theoretical bounds](#225-a-hierarchy-of-theoretical-bounds)
-         1. [Ledger compartments](#2251-ledger-compartments)
-         2. [Maximum-supply ceiling](#2252-maximum-supply-ceiling)
-         3. [Issued-supply ceiling](#2253-issued-supply-ceiling)
-         4. [UTxO-resident-ada ceiling](#2254-utxo-resident-ada-ceiling)
-         5. [How reserve depletion moves the ceiling](#2255-how-reserve-depletion-moves-the-ceiling)
-      6. [How should `coinsPerUTxOByte` be adjusted?](#226-how-should-coinsperutxobyte-be-adjusted)
-         1. [Current rules](#2261-current-rules)
-         2. [Calibration test](#2262-calibration-test)
-         3. [Limits of the pricing model](#2263-limits-of-the-pricing-model)
-         4. [Required evidence](#2264-required-evidence)
-   3. [The core problem: accidental complexity from an abstraction leak](#23-the-core-problem-accidental-complexity-from-an-abstraction-leak)
-      1. [Ada coupling of native-asset transfers](#231-ada-coupling-of-native-asset-transfers)
-      2. [No refund claim for the funder](#232-no-refund-claim-for-the-funder)
-      3. [The output fixes an ada amount while its real value floats](#233-the-output-fixes-an-ada-amount-while-its-real-value-floats)
-      4. [A second transaction-cost concept leaks into the user model](#234-a-second-transaction-cost-concept-leaks-into-the-user-model)
-      5. [Reduced liquid reusability](#235-reduced-liquid-reusability)
-3. [Use Cases](#3-use-cases)
-   1. [Mass distribution and airdrops](#31-mass-distribution-and-airdrops)
-   2. [Micropayments and stablecoin transfers](#32-micropayments-and-stablecoin-transfers)
-   3. [NFT and creator workflows](#33-nft-and-creator-workflows)
-   4. [Application state](#34-application-state)
-   5. [Economically stranded dust](#35-economically-stranded-dust)
-   6. [Unsolicited outputs](#36-unsolicited-outputs)
-4. [Goals and Non-goals](#4-goals-and-non-goals)
-   1. [Required outcomes](#41-required-outcomes)
-   2. [Non-goals](#42-non-goals)
-5. [Open Questions](#5-open-questions)
-   1. [Measurement and evidence](#51-measurement-and-evidence)
-   2. [Mechanism design](#52-mechanism-design)
-   3. [Migration and governance](#53-migration-and-governance)
-6. [References](#6-references)
-7. [Copyright](#7-copyright)
+- [1. Abstract](#1-abstract)
+- [2. Problem](#2-problem)
+  - [2.1 How transactions grow the UTxO set](#21-how-transactions-grow-the-utxo-set)
+  - [2.2 How Cardano bounds UTxO-set growth](#22-how-cardano-bounds-utxo-set-growth)
+    - [2.2.1 Formula and fixed overhead](#221-formula-and-fixed-overhead)
+    - [2.2.2 Mainnet parameters](#222-mainnet-parameters)
+    - [2.2.3 How the mechanism evolved](#223-how-the-mechanism-evolved)
+    - [2.2.4 Why it bounds entry count](#224-why-it-bounds-entry-count)
+    - [2.2.5 A hierarchy of theoretical bounds](#225-a-hierarchy-of-theoretical-bounds)
+      - [2.2.5.1 Ledger compartments](#2251-ledger-compartments)
+      - [2.2.5.2 Maximum-supply ceiling](#2252-maximum-supply-ceiling)
+      - [2.2.5.3 Issued-supply ceiling](#2253-issued-supply-ceiling)
+      - [2.2.5.4 UTxO-resident-ada ceiling](#2254-utxo-resident-ada-ceiling)
+      - [2.2.5.5 How reserve depletion moves the ceiling](#2255-how-reserve-depletion-moves-the-ceiling)
+    - [2.2.6 How should `coinsPerUTxOByte` be adjusted?](#226-how-should-coinsperutxobyte-be-adjusted)
+      - [2.2.6.1 Current rules](#2261-current-rules)
+      - [2.2.6.2 Calibration test](#2262-calibration-test)
+      - [2.2.6.3 Limits of the pricing model](#2263-limits-of-the-pricing-model)
+      - [2.2.6.4 Required evidence](#2264-required-evidence)
+  - [2.3 The core problem: accidental complexity from an abstraction leak](#23-the-core-problem-accidental-complexity-from-an-abstraction-leak)
+    - [2.3.1 Ada coupling of native-asset transfers](#231-ada-coupling-of-native-asset-transfers)
+    - [2.3.2 No refund claim for the funder](#232-no-refund-claim-for-the-funder)
+    - [2.3.3 The output fixes an ada amount while its real value floats](#233-the-output-fixes-an-ada-amount-while-its-real-value-floats)
+    - [2.3.4 A second transaction-cost concept leaks into the user model](#234-a-second-transaction-cost-concept-leaks-into-the-user-model)
+    - [2.3.5 Reduced liquid reusability](#235-reduced-liquid-reusability)
+- [3. Use Cases](#3-use-cases)
+  - [3.1 Mass distribution and airdrops](#31-mass-distribution-and-airdrops)
+  - [3.2 Micropayments and stablecoin transfers](#32-micropayments-and-stablecoin-transfers)
+  - [3.3 NFT and creator workflows](#33-nft-and-creator-workflows)
+  - [3.4 Application state](#34-application-state)
+  - [3.5 Economically stranded dust](#35-economically-stranded-dust)
+  - [3.6 Unsolicited outputs](#36-unsolicited-outputs)
+- [4. Goals and Non-goals](#4-goals-and-non-goals)
+  - [4.1 Required outcomes](#41-required-outcomes)
+  - [4.2 Non-goals](#42-non-goals)
+- [5. Open Questions](#5-open-questions)
+  - [5.1 Measurement and evidence](#51-measurement-and-evidence)
+  - [5.2 Mechanism design](#52-mechanism-design)
+  - [5.3 Migration and governance](#53-migration-and-governance)
+- [6. References](#6-references)
+- [7. Copyright](#7-copyright)
 
 ## 1. Abstract
 
