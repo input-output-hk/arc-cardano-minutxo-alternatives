@@ -690,127 +690,84 @@ node-state constraint in order to use the value-transfer interface correctly.
 The objection is therefore not that the constraint exists. It is that the constraint
 crosses the ledger boundary in a form that every upper layer must model.
 
-Naming the leak is not yet identifying the defects. Stated precisely, the mechanism
-is a single output-level validity rule,
+The resource concern originates in node operation, but its practical management is
+exported to transaction construction. The parties involved therefore carry different
+parts of the mechanism:
+
+| Layer | Responsibility under the current design |
+|---|---|
+| Node operators | Store, index, and serve the live UTxO set |
+| Protocol and governance | Define the pricing rule and validate each output |
+| Transaction builders | Calculate the requirement, source ada, allocate it to every output, and rebalance the transaction |
+| Transaction creator | Fund the additional ada |
+| Output controller | Control that ada once the output has been created |
+
+Requiring a transaction that creates persistent state to fund its contribution is
+not itself an abstraction leak. Transaction fees already establish a familiar
+boundary: a builder calculates and funds a protocol cost, while the ledger owns its
+accounting, collection, and subsequent treatment. The builder funds the mechanism;
+it does not implement the mechanism's accounting lifecycle.
+
+Minimum ada crosses that boundary. For every output, the ledger enforces:
 
 ```math
-\forall\, o \in \operatorname{outputs}(tx):\quad
-\operatorname{coin}(o) \geq M(o,p)
+\forall o \in \mathrm{outputs}(tx), \qquad
+\mathrm{coin}(o) \geq M(o,p)
 ```
 
-checked once at creation and recorded nowhere. That one rule makes five distinct
-design commitments, in two families: the deposit it collects is **invisible** —
-never represented, so it has neither identity (D1) nor attribution (D2) — and the
-requirement it imposes is **rigid** — a single global parameter and no other degree
-of freedom, unable to flex across a transaction (D3), across time (D4), or against
-the real cost of the resource it prices (D5).
+The ledger does not, however, represent the required amount as a separate protocol
+charge or deposit. It only verifies that sufficient ada is present in `TxOut.Value`.
+Once the output is created, the ada that satisfied the rule is indistinguishable
+from the application value carried by the output.
 
-| Family | Defect | Design commitment | Trigger | Symptoms |
-|---|---|---|---|---|
-| **Invisible deposit** | **D1** · no identity | An operational concern is blended with application value | every output | underlies all five |
-| | **D2** · no attribution | Custody follows the output's spending condition | funder ≠ controller | [2.3.2](#232-no-refund-claim-for-the-funder) |
-| **Rigid requirement** | **D3** · across the transaction | Each output is checked in isolation | intended `coin(o) < M(o)` | [2.3.1](#231-ada-coupling-of-native-asset-transfers), [2.3.4](#234-a-second-transaction-cost-concept-leaks-into-the-user-model) |
-| | **D4** · across time | The policy is an immutable snapshot | any change of `p` | [2.3.3](#233-the-output-fixes-an-ada-amount-while-its-real-value-floats), [2.3.5](#235-reduced-liquid-reusability) |
-| | **D5** · against real cost | The price has no calibration function | every market move | [2.3.3](#233-the-output-fixes-an-ada-amount-while-its-real-value-floats) |
+Two concerns that belong to different layers are therefore blended:
 
-Each defect is attributable to a specific design choice and can be repaired — or
-retained — independently by a candidate solution. Sections 2.3.1–2.3.5 document the
-observable symptoms; the defects below are the causal layer beneath them.
+- an **operational concern**: node operators must retain and serve persistent state;
+  and
+- an **application concern**: wallets and applications create outputs to transfer
+  assets or represent application state.
 
----
+The operational concern is not merely funded by the application layer. Its funding
+mechanism is materialised through application outputs. Builders must calculate the
+requirement, source the ada, distribute it between outputs, rebalance change, and
+preserve sufficient ada through later state transitions.
 
-**The deposit is invisible.** The rule enforces a deposit that the ledger never
-records as such: it travels as application value.
+> **The abstraction leak:** an operational resource constraint borne by node
+> operators, including SPOs, becomes a per-output funding mechanism that transaction
+> builders must implement inside application value. Upper layers should fund the
+> state obligation determined by the ledger, not implement its accounting.
 
-**D1 — No identity: an operational concern is blended with application value**
+This produces two related leaks:
 
-The deposit serves an operational concern — bounding the state that nodes must hold
-— while the output's `Value` carries application value: what the user or the
-application means to transfer. The mechanism merges the two. The
-[validation rule](https://github.com/IntersectMBO/cardano-ledger/blob/b7bec217307c43c18e2fa65cd626d92fffcae317/eras/babbage/impl/src/Cardano/Ledger/Babbage/Rules/Utxo.hs#L383-L385)
-compares an output's ada against the formula, admits or rejects, and records
-nothing; from that point on the deposit is commingled with the application value,
-indistinguishable from what the user meant to send. No field, type, or ledger
-entry states that an output carries a deposit, who supplied it, or at what price it
-was computed. A quantity the ledger does not represent cannot be refunded, repriced,
-released, or reported. Every defect below is made irreparable *within the current
-design* by this one.
+1. **Value leak.** The state obligation is represented as ordinary ada inside
+   `TxOut.Value`, blending infrastructure funding with transferred or application-
+   controlled value.
+2. **Accounting leak.** Wallets, transaction builders, protocols, and indexers must
+   manage the obligation's allocation and lifecycle instead of merely funding an
+   amount accounted for by the ledger.
 
-*Trigger — every output, unconditionally.*
+The distinction matters when evaluating alternatives. Removing required ada from
+`TxOut.Value` can repair the value leak while leaving the accounting leak intact if
+upper layers must still allocate, track, or reconcile replacement fields. A candidate
+mechanism should therefore answer both questions:
 
-**D2 — No attribution: custody follows the output's spending condition**
+1. Is the state obligation separated from application value?
+2. Does the transaction builder merely fund the obligation, or must it also
+   represent, allocate, track, and settle it?
 
-The rule admits exactly one placement for the required ada: inside the output's own
-`Value`, under the spending condition of its recipient. Whenever the funder is not
-the controller, the deposit transfers with the payment; the release on consumption
-accrues to whoever can spend the output — who is also the only party able to
-trigger it.
+The essential complexity is funding a defensible bound on persistent state. The
+accidental complexity is making every upper layer manage how that funding is embedded
+in outputs and carried through their lifecycle.
 
-*Trigger — funder ≠ controller · magnitude up to $M(o)$ per output · use cases 3.1,
-3.2, 3.3, 3.6.*
-
----
-
-**The requirement is rigid.** A single scalar, `coinsPerUTxOByte`, is the
-mechanism's only degree of freedom; everything else is fixed by construction.
-
-**D3 — Rigid across the transaction: each output is checked in isolation**
-
-The rule is evaluated output by output, blind to the rest of the transaction. The
-only ada that can satisfy output $o$'s requirement is the ada inside $o$ itself: no
-pooling within the transaction, no credit for consumed entries, no other structure
-to bear the requirement. Concretely, a transaction whose change output holds 100
-ada still cannot create a token output holding zero ada — those 100 ada are
-invisible to the check on the token output.
-
-*Trigger — intended $\operatorname{coin}(o) < M(o)$ · severity
-$M(o) - \operatorname{coin}(o)$.*
-
-**D4 — Rigid across time: the policy is an immutable snapshot**
-
-$p$ is read once, at creation; its product is fixed into the entry for the entry's
-whole lifetime. Governance changes bind only future outputs — the live set has no
-repricing path in either direction. Lowering $p$ strands the surplus until every
-owner re-spends at their own cost; raising it leaves historical outputs valid but
-under-funded relative to an equivalent replacement, stalling prescribed-form script
-state.
-
-*Trigger — any change of $p$; for the under-funding branch, an output funded at or
-near the old minimum.*
-
-**D5 — Rigid against real cost: the price has no calibration function**
-
-The protected resource is bytes of replicated node state, paid for by operators in
-hardware and fiat; the deterrent is denominated in ada; nothing connects the two.
-Section 2.2.2 traces the current value to a 2020 flat floor selected from a
-transaction-impact analysis and carried forward by unit conversion; section 2.2.6
-finds no published procedure mapping node costs to $p$. Every ada-price movement
-therefore changes both the user burden and the attack cost, with no automatic
-response — governance intervention is discrete, rare, and, by D4, prospective only.
-
-*Trigger — continuous, every market move · context §2.2.6.*
-
----
-
-Read as an evaluation grid: a candidate mechanism should state which of D1–D5 it
-removes, which it retains, and at what cost. The families are not symmetric. Within
-the first, D1 is pivotal: a deposit that exists as a ledger object is what makes
-attribution (D2), transaction-level aggregation (D3), and repricing (D4)
-expressible at all — representation is the precondition for removing rigidity.
-Within the second, D5 is the outlier: it concerns how the price is chosen rather
-than how the deposit is accounted, and it survives any accounting reform unchanged.
-
-Deliberately absent from this list is the lack of a duration component in the price.
-The mechanism's goal is a bound on UTxO entries, and a one-time deposit achieves that
-bound regardless of how long an entry lives; pricing occupancy over time would be a
-different mechanism, not a repair of this one. The observation is retained as a limit
-of the pricing model (section 2.2.6.3) and as an open question (section 5.2).
+The following sections describe five observable consequences of that boundary
+violation. The lack of a duration component remains a separate limitation of the
+pricing model, discussed in section 2.2.6.3 and as an open question in section 5.2.
 
 ![A necessary bound on persistent state becomes accidental ecosystem complexity when each output must carry required ada; the abstraction leak produces five direct consequences.](./images/03-abstraction-gap.svg)
 
 #### 2.3.1 Ada coupling of native-asset transfers
 
-*Root defects: D3 (each output checked in isolation) enabled by D1.*
+*Primary leak: application value must carry an output-local state obligation.*
 
 Cardano's native assets cannot be transferred independently of ada. An output whose
 intended value is entirely in another asset must still contain the ada returned by
@@ -831,7 +788,7 @@ that this price changes the value-transfer interface itself.
 
 #### 2.3.2 No refund claim for the funder
 
-*Root defects: D2 (custody follows the output) enabled by D1.*
+*Primary leak: the obligation is embedded in value without preserving attribution.*
 
 Consider Alice sending a native asset to Bob. Alice creates Bob's output and supplies
 the required *m* ada. Once the transaction is confirmed, both the asset and the *m*
@@ -854,8 +811,8 @@ unrelated recipients.
 
 #### 2.3.3 The output fixes an ada amount while its real value floats
 
-*Root defects: D4 (immutable snapshot) and D5 (no calibration function), enabled by
-D1.*
+*Primary leak: a global resource policy is materialised as a nominal ada amount in
+each historical output.*
 
 The current design evaluates `coinsPerUTxOByte` when an output is created and embeds
 the resulting ada requirement in that output's value. The parameter itself is not
@@ -939,8 +896,8 @@ script workflows that require a continuing output of a prescribed form.
 
 #### 2.3.4 A second transaction-cost concept leaks into the user model
 
-*Root defects: D3 (each output checked in isolation) and D1 (no representation to
-delegate to the ledger).*
+*Primary leak: builders must implement per-output resource accounting in addition to
+funding the transaction.*
 
 Users already have a simple model for the economic overhead of a transaction: they
 transfer value and pay a transaction fee. The transaction builder calculates that fee
@@ -973,7 +930,7 @@ it as a second, per-output economic concept throughout the user and application 
 
 #### 2.3.5 Reduced liquid reusability
 
-*Root defects: D1 (no representation) and D4 (immutable snapshot).*
+*Primary leak: state funding is fragmented across application-controlled outputs.*
 
 The ada required by the minimum-ada rule is better described as **committed to the output**
 than as universally locked. It remains spendable when the UTxO is consumed, but the
@@ -1062,7 +1019,7 @@ An output may remain valid yet become uneconomical to spend: an owner has no
 economic reason to consume `o` when
 
 ```math
-\operatorname{releasedValue}(o) < \operatorname{marginalConsumptionCost}(o)
+\mathrm{releasedValue}(o) < \mathrm{marginalConsumptionCost}(o)
 ```
 
 where the right-hand side is the incremental fee and operational cost of adding the
