@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
+  <title id="title">Variant C: the aggregate requirement is spread across the transaction's outputs</title>
+  <desc id="desc">The ledger computes one aggregate min-utxo delta for the transaction. The author distributes it across outputs through a signed per-output field; each output must carry at least its declared figure, and only the sum is checked.</desc>
+  <defs>
+    <style>
+      .bg{fill:#fbfcfa}.panel{fill:#fff;stroke:#c9cec6;stroke-width:2}.grow{fill:#f6f2ea;stroke:#8f6410;stroke-width:2}.shrink{fill:#e2e7f6;stroke:#23439e;stroke-width:2}.reserve{fill:#fff;stroke:#12171a;stroke-width:3}.ink{fill:#12171a;font:600 22px system-ui,sans-serif}.body{fill:#5a6560;font:18px system-ui,sans-serif}.mono{fill:#23439e;font:600 18px ui-monospace,monospace}.label{fill:#8b948e;font:600 15px ui-monospace,monospace;letter-spacing:1px}.ochre{fill:#8f6410}.blue{fill:#23439e}.rule{stroke:#5a6560;stroke-width:2;fill:none}
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5 0 10z" fill="#5a6560"/></marker>
+  </defs>
+  <rect class="bg" width="1200" height="560" rx="8"/>
+
+  <text class="label" x="48" y="48">THE LEDGER FIXES ONLY THE TOTAL</text>
+  <rect class="reserve" x="48" y="76" width="340" height="150" rx="8"/>
+  <text class="mono ochre" x="78" y="128">&#916; min-utxo = +1.8 ADA</text>
+  <text class="body" x="78" y="164">= space occupied &#8722; freed</text>
+  <text class="body" x="78" y="192">computed by the ledger</text>
+
+  <line class="rule" x1="410" y1="151" x2="486" y2="151" marker-end="url(#arrow)"/>
+
+  <text class="label" x="508" y="48">THE AUTHOR DISTRIBUTES IT</text>
+  <rect class="panel" x="508" y="76" width="380" height="360" rx="8"/>
+  <text class="label" x="538" y="110">TRANSACTION &#183; TWO OUTPUTS</text>
+  <rect class="grow" x="538" y="128" width="320" height="104" rx="8"/>
+  <text class="ink" x="558" y="160">&#10216;0.5 BTC, 0 ada&#10217;</text>
+  <text class="mono ochre" x="558" y="192">declares min-utxo: 0</text>
+  <text class="body" x="558" y="218">carries 0 &#8805; 0 &#10003;</text>
+  <rect class="shrink" x="538" y="252" width="320" height="104" rx="8"/>
+  <text class="ink" x="558" y="284">&#10216;5 ADA&#10217; change</text>
+  <text class="mono blue" x="558" y="316">declares min-utxo: 1.8</text>
+  <text class="body" x="558" y="342">carries 5 &#8805; 1.8 &#10003;</text>
+  <text class="body" x="538" y="410">the split is the author&#8217;s choice</text>
+
+  <line class="rule" x1="910" y1="256" x2="948" y2="256" marker-end="url(#arrow)"/>
+
+  <rect class="reserve" x="970" y="150" width="182" height="210" rx="8"/>
+  <text class="label" x="990" y="186">THE ONLY CHECK</text>
+  <text class="mono" x="990" y="228">&#931; = 0 + 1.8</text>
+  <text class="mono ochre" x="990" y="260">= 1.8 &#10003;</text>
+  <text class="body" x="990" y="300">no per-output</text>
+  <text class="body" x="990" y="326">floor</text>
+
+  <text class="body" x="48" y="482">Under the current rule each output is checked in isolation (defect D3): the token output alone would need 1.0 ADA inside it.</text>
+  <text class="body" x="48" y="528">Ada never leaves output value &#8212; the requirement becomes redistributable within the transaction. The field is a signed</text>
+  <text class="body" x="48" y="552">integer set at construction; an output may sit below its own M when a sibling bears the difference.</text>
+</svg>

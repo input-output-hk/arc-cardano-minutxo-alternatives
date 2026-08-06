@@ -5,6 +5,8 @@ Category: Ledger
 Status: Open
 Authors:
   - Nicolas Henin <nicolas.henin@iohk.io>
+  - Will Gould <will.gould@iohk.io>
+  - Polina Vinogradova <polina.vinogradova@iohk.io>
 Proposed Solutions: []
 Discussions: []
 Created: 2026-07-28
@@ -235,6 +237,20 @@ The Babbage value was therefore inherited by unit conversion from the Alonzo
 per-word parameter. It was not introduced as a new empirical estimate of the
 contemporary cost of RAM, storage, or I/O.
 
+The 1-ada base value this descends from was itself a policy choice rather than a
+resource measurement. Shelley set a flat `minUTxOValue` of 1 ada; the
+[Mary-era derivation](#ref-5) [[5]](#ref-5) then generalised it to a size-dependent
+floor by holding the ada-per-byte ratio of that 1 ada fixed against a 27-byte ada-only
+entry, so larger multi-asset entries scale proportionally. The derivation's stated aim
+is to keep the UTxO set servable by nodes meeting the recommended hardware
+specification; the specific 1-ada figure was chosen to bound worst-case growth while
+leaving the large majority of existing transactions unaffected, with dust accumulation
+observed on other UTXO chains [[2]](#ref-2) as the security concern it addresses. This
+lineage reinforces the point above: the number encodes a tolerance for UTxO growth and
+transaction impact, not a measured price of RAM, storage, or I/O. At the current
+parameter the floor is approximately 0.85 ada for a minimal ada-only output and rises
+with output size.
+
 Because this is an updatable protocol parameter, governance may change it. The
 [protocol-parameter guide](https://docs.cardano.org/about-cardano/explore-more/parameter-guide#types-of-protocol-parameters-on-cardano)
 explains that such parameters can evolve without changing the formula itself. A
@@ -245,13 +261,24 @@ dated mainnet value is therefore more precise than presenting `4,310` as a const
 The mechanism changed as outputs became more expressive. Each step refined how output
 size is measured, while preserving the same premise: every output must reserve ada.
 
-| Era | Mechanism | Rationale for the change |
-|---|---|---|
-| [Shelley](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0009) | `minUTxOValue`, a flat constant | Outputs were uniform in size |
-| [Mary](https://docs.cardano.org/developer-resources/native-tokens) | Size-dependent formula | Multi-asset outputs vary in size |
-| [Alonzo](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0028) | `coinsPerUTxOWord` (per 8-byte word) | `minUTxOValue` deprecated |
-| [Babbage](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0055) | `coinsPerUTxOByte` | Per-byte is simpler to reason about |
-| [Conway](https://docs.cardano.org/about-cardano/evolution/eras-and-phases#conway-era) | Unchanged, moved under governance | — |
+| Era | Mechanism | Value | Rationale for the change |
+|---|---|---|---|
+| [Shelley](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0009) | `minUTxOValue`, a flat constant | 1 ada | Outputs were uniform in size |
+| [Mary](https://docs.cardano.org/developer-resources/native-tokens) | Size-dependent formula derived from `minUTxOValue` [[5]](#ref-5) | 1 ada over a 27-unit ada-only entry | Multi-asset outputs vary in size |
+| [Alonzo](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0028) | `coinsPerUTxOWord` (per 8-byte word) | 34,482 | `minUTxOValue` deprecated |
+| [Babbage](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0055) | `coinsPerUTxOByte` | 4,310 = ⌊34,482 / 8⌋ | Per-byte is simpler to reason about |
+| [Conway](https://docs.cardano.org/about-cardano/evolution/eras-and-phases#conway-era) | Unchanged, moved under governance | 4,310 | — |
+
+Each step re-expressed the same underlying 1-ada floor in a finer unit. The Mary
+derivation [[5]](#ref-5) fixes the rate as `minUTxOValue` divided by the size of an
+ada-only entry, giving 37,037 per unit for the 1 ada / 27-unit pair it documents.
+Alonzo's genesis instead records 34,482, and Babbage divides that by eight.
+
+> **Verification required:** the Mary derivation's 37,037 and the Alonzo genesis
+> 34,482 are close but not equal, and the Mary document's `adaOnlyUTxOSize = 27` is
+> stated in bytes while the arithmetic `⌊1,000,000 / 27⌋ = 37,037` only yields a
+> per-word rate. Confirm the unit and the reason for the change from 37,037 to 34,482
+> before relying on this lineage in a submission.
 
 #### 2.2.4 Why it bounds entry count
 
@@ -628,6 +655,15 @@ The current value of 4,310 is inside the permitted range; that alone does not sh
 is calibrated. Calibration requires current measurements and explicit security and
 UX targets.
 
+No such calibration has been published for the current value. As section 2.2.2
+records, 4,310 descends by unit conversion from a 1-ada floor selected against a
+worst-case UTxO-growth bound and an assessment of how many transactions it would
+affect. That is a defensible basis for the original decision, but it fixes neither of
+the terms this section requires: it does not measure $H_B$, the state nodes can
+absorb, nor $C_{\min}$, the cost an attack must bear. Both were last argued against a
+memory-resident ledger, which is the assumption the UTxO-HD question above puts in
+doubt.
+
 This calibration analysis is necessary context, but it is not the core problem
 addressed by this CPS. Even a perfectly calibrated
 `coinsPerUTxOByte` would preserve the same interface: every output would still carry
@@ -654,13 +690,127 @@ node-state constraint in order to use the value-transfer interface correctly.
 The objection is therefore not that the constraint exists. It is that the constraint
 crosses the ledger boundary in a form that every upper layer must model.
 
-Exposing the constraint in this way creates five direct consequences. They concern
-the representation and ownership of the state guarantee, not whether additional
-ledger state should be bounded or priced.
+Naming the leak is not yet identifying the defects. Stated precisely, the mechanism
+is a single output-level validity rule,
+
+```math
+\forall\, o \in \operatorname{outputs}(tx):\quad
+\operatorname{coin}(o) \geq M(o,p)
+```
+
+checked once at creation and recorded nowhere. That one rule makes five distinct
+design commitments, in two families: the deposit it collects is **invisible** —
+never represented, so it has neither identity (D1) nor attribution (D2) — and the
+requirement it imposes is **rigid** — a single global parameter and no other degree
+of freedom, unable to flex across a transaction (D3), across time (D4), or against
+the real cost of the resource it prices (D5).
+
+| Family | Defect | Design commitment | Trigger | Symptoms |
+|---|---|---|---|---|
+| **Invisible deposit** | **D1** · no identity | An operational concern is blended with application value | every output | underlies all five |
+| | **D2** · no attribution | Custody follows the output's spending condition | funder ≠ controller | [2.3.2](#232-no-refund-claim-for-the-funder) |
+| **Rigid requirement** | **D3** · across the transaction | Each output is checked in isolation | intended `coin(o) < M(o)` | [2.3.1](#231-ada-coupling-of-native-asset-transfers), [2.3.4](#234-a-second-transaction-cost-concept-leaks-into-the-user-model) |
+| | **D4** · across time | The policy is an immutable snapshot | any change of `p` | [2.3.3](#233-the-output-fixes-an-ada-amount-while-its-real-value-floats), [2.3.5](#235-reduced-liquid-reusability) |
+| | **D5** · against real cost | The price has no calibration function | every market move | [2.3.3](#233-the-output-fixes-an-ada-amount-while-its-real-value-floats) |
+
+Each defect is attributable to a specific design choice and can be repaired — or
+retained — independently by a candidate solution. Sections 2.3.1–2.3.5 document the
+observable symptoms; the defects below are the causal layer beneath them.
+
+---
+
+**The deposit is invisible.** The rule enforces a deposit that the ledger never
+records as such: it travels as application value.
+
+**D1 — No identity: an operational concern is blended with application value**
+
+The deposit serves an operational concern — bounding the state that nodes must hold
+— while the output's `Value` carries application value: what the user or the
+application means to transfer. The mechanism merges the two. The
+[validation rule](https://github.com/IntersectMBO/cardano-ledger/blob/b7bec217307c43c18e2fa65cd626d92fffcae317/eras/babbage/impl/src/Cardano/Ledger/Babbage/Rules/Utxo.hs#L383-L385)
+compares an output's ada against the formula, admits or rejects, and records
+nothing; from that point on the deposit is commingled with the application value,
+indistinguishable from what the user meant to send. No field, type, or ledger
+entry states that an output carries a deposit, who supplied it, or at what price it
+was computed. A quantity the ledger does not represent cannot be refunded, repriced,
+released, or reported. Every defect below is made irreparable *within the current
+design* by this one.
+
+*Trigger — every output, unconditionally.*
+
+**D2 — No attribution: custody follows the output's spending condition**
+
+The rule admits exactly one placement for the required ada: inside the output's own
+`Value`, under the spending condition of its recipient. Whenever the funder is not
+the controller, the deposit transfers with the payment; the release on consumption
+accrues to whoever can spend the output — who is also the only party able to
+trigger it.
+
+*Trigger — funder ≠ controller · magnitude up to $M(o)$ per output · use cases 3.1,
+3.2, 3.3, 3.6.*
+
+---
+
+**The requirement is rigid.** A single scalar, `coinsPerUTxOByte`, is the
+mechanism's only degree of freedom; everything else is fixed by construction.
+
+**D3 — Rigid across the transaction: each output is checked in isolation**
+
+The rule is evaluated output by output, blind to the rest of the transaction. The
+only ada that can satisfy output $o$'s requirement is the ada inside $o$ itself: no
+pooling within the transaction, no credit for consumed entries, no other structure
+to bear the requirement. Concretely, a transaction whose change output holds 100
+ada still cannot create a token output holding zero ada — those 100 ada are
+invisible to the check on the token output.
+
+*Trigger — intended $\operatorname{coin}(o) < M(o)$ · severity
+$M(o) - \operatorname{coin}(o)$.*
+
+**D4 — Rigid across time: the policy is an immutable snapshot**
+
+$p$ is read once, at creation; its product is fixed into the entry for the entry's
+whole lifetime. Governance changes bind only future outputs — the live set has no
+repricing path in either direction. Lowering $p$ strands the surplus until every
+owner re-spends at their own cost; raising it leaves historical outputs valid but
+under-funded relative to an equivalent replacement, stalling prescribed-form script
+state.
+
+*Trigger — any change of $p$; for the under-funding branch, an output funded at or
+near the old minimum.*
+
+**D5 — Rigid against real cost: the price has no calibration function**
+
+The protected resource is bytes of replicated node state, paid for by operators in
+hardware and fiat; the deterrent is denominated in ada; nothing connects the two.
+Section 2.2.2 traces the current value to a 2020 flat floor selected from a
+transaction-impact analysis and carried forward by unit conversion; section 2.2.6
+finds no published procedure mapping node costs to $p$. Every ada-price movement
+therefore changes both the user burden and the attack cost, with no automatic
+response — governance intervention is discrete, rare, and, by D4, prospective only.
+
+*Trigger — continuous, every market move · context §2.2.6.*
+
+---
+
+Read as an evaluation grid: a candidate mechanism should state which of D1–D5 it
+removes, which it retains, and at what cost. The families are not symmetric. Within
+the first, D1 is pivotal: a deposit that exists as a ledger object is what makes
+attribution (D2), transaction-level aggregation (D3), and repricing (D4)
+expressible at all — representation is the precondition for removing rigidity.
+Within the second, D5 is the outlier: it concerns how the price is chosen rather
+than how the deposit is accounted, and it survives any accounting reform unchanged.
+
+Deliberately absent from this list is the lack of a duration component in the price.
+The mechanism's goal is a bound on UTxO entries, and a one-time deposit achieves that
+bound regardless of how long an entry lives; pricing occupancy over time would be a
+different mechanism, not a repair of this one. The observation is retained as a limit
+of the pricing model (section 2.2.6.3) and as an open question (section 5.2).
 
 ![A necessary bound on persistent state becomes accidental ecosystem complexity when each output must carry required ada; the abstraction leak produces five direct consequences.](./images/03-abstraction-gap.svg)
 
 #### 2.3.1 Ada coupling of native-asset transfers
+
+*Root defects: D3 (each output checked in isolation) enabled by D1.*
 
 Cardano's native assets cannot be transferred independently of ada. An output whose
 intended value is entirely in another asset must still contain the ada returned by
@@ -680,6 +830,8 @@ depend on bytes rather than the economic value transferred. The abstraction leak
 that this price changes the value-transfer interface itself.
 
 #### 2.3.2 No refund claim for the funder
+
+*Root defects: D2 (custody follows the output) enabled by D1.*
 
 Consider Alice sending a native asset to Bob. Alice creates Bob's output and supplies
 the required *m* ada. Once the transaction is confirmed, both the asset and the *m*
@@ -701,6 +853,9 @@ The distinction is especially material when one party creates outputs for many
 unrelated recipients.
 
 #### 2.3.3 The output fixes an ada amount while its real value floats
+
+*Root defects: D4 (immutable snapshot) and D5 (no calibration function), enabled by
+D1.*
 
 The current design evaluates `coinsPerUTxOByte` when an output is created and embeds
 the resulting ada requirement in that output's value. The parameter itself is not
@@ -784,6 +939,9 @@ script workflows that require a continuing output of a prescribed form.
 
 #### 2.3.4 A second transaction-cost concept leaks into the user model
 
+*Root defects: D3 (each output checked in isolation) and D1 (no representation to
+delegate to the ledger).*
+
 Users already have a simple model for the economic overhead of a transaction: they
 transfer value and pay a transaction fee. The transaction builder calculates that fee
 once for the transaction and the sender pays it.
@@ -814,6 +972,8 @@ into the transaction fee. It identifies the accidental complexity created by exp
 it as a second, per-output economic concept throughout the user and application model.
 
 #### 2.3.5 Reduced liquid reusability
+
+*Root defects: D1 (no representation) and D4 (immutable snapshot).*
 
 The ada required by the minimum-ada rule is better described as **committed to the output**
 than as universally locked. It remains spendable when the UTxO is consumed, but the
@@ -898,10 +1058,17 @@ the protocol user to supply additional ada before the state transition can proce
 
 ### 3.5 Economically stranded dust
 
-An output may remain valid yet become uneconomical to spend. When the net value
-released by consuming it approaches the incremental fee and operational cost, an
-owner has little economic reason to sweep it. The output can then remain in the UTxO
-set indefinitely despite the economic bound imposed at creation.
+An output may remain valid yet become uneconomical to spend: an owner has no
+economic reason to consume `o` when
+
+```math
+\operatorname{releasedValue}(o) < \operatorname{marginalConsumptionCost}(o)
+```
+
+where the right-hand side is the incremental fee and operational cost of adding the
+input. The output can then remain in the UTxO set indefinitely despite the economic
+bound imposed at creation. This condition is measurable per output, which makes the
+quantification below concrete rather than anecdotal.
 
 Empirical analysis of Bitcoin, Bitcoin Cash, and Litecoin found the same general
 recoverability condition: outputs can remain live because spending them costs more
@@ -1035,6 +1202,19 @@ Ranked by importance.
    Model*](https://plutus.cardano.intersectmbo.org/resources/eutxo-paper.pdf),
    2020. This paper provides the formal foundation for Cardano's EUTxO model; it
    supplies architectural context but does not analyse minimum ada or its UX effects.
+
+<a id="ref-5"></a>
+
+5. IntersectMBO, [*Min-Ada-Value Requirement (Mary
+   era)*](https://cardano-ledger.readthedocs.io/en/latest/explanations/min-utxo-mary.html).
+   The ledger documentation deriving the size-dependent minimum from the flat
+   `minUTxOValue`: it states the bound
+   `max UTxO size ≤ (max No. UTxOs) × (max UTxO entry size) + overhead`, holds the
+   ratio `minUTxOValue / adaOnlyUTxOSize` constant across entry sizes, and gives the
+   multi-asset case as
+   `minAda(u) = max(minUTxOValue, ⌊minUTxOValue / adaOnlyUTxOSize⌋ × (utxoEntrySizeWithoutVal + size B))`.
+   Its stated aim is to keep the ledger servable by nodes meeting the recommended
+   hardware specification.
 
 ## 7. Copyright
 

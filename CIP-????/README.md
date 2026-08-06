@@ -5,17 +5,23 @@ Category: Ledger
 Status: Proposed
 Authors:
     - Nicolas Henin <nicolas.henin@iohk.io>
+    - Will Gould <will.gould@iohk.io>
+    - Polina Vinogradova <polina.vinogradova@iohk.io>
 Implementors: []
 Discussions:
     - "Working draft: https://github.com/input-output-hk/arc-minutxo"
+    - "Ledger Working Group meeting, 2026-08-03"
 Created: 2026-08-03
 License: CC-BY-4.0
 ---
 
-> **DESIGN SKETCH — not for submission.** This document turns the current
-> `dust account` discussion into a concrete ledger model so that its invariants,
-> trade-offs, and unresolved choices can be reviewed. Text marked **OPEN** requires
-> a decision. It is not a claim of Working Group consensus.
+> **DESIGN SKETCH — not for submission.** This document turns the *implicit-minUTxO*
+> view sketched by Alexey Kuleshevich at the Ledger Working Group meeting of
+> 2026-08-03 into a concrete ledger model so that its invariants, trade-offs, and
+> unresolved choices can be reviewed. Two further variants proposed by Polina
+> Vinogradova are carried alongside it rather than discarded, and all three are
+> compared in [section 3.5](#35-where-the-deposit-is-held). Text marked **OPEN**
+> requires a decision. It is not a claim of Working Group consensus.
 
 ## Table of Contents
 
@@ -29,7 +35,8 @@ License: CC-BY-4.0
       1. [Net resource delta](#341-net-resource-delta)
       2. [Monetary settlement](#342-monetary-settlement)
       3. [Worked examples](#343-worked-examples)
-   5. [Ledger reserve](#35-ledger-reserve)
+      4. [The transaction view](#344-the-transaction-view)
+   5. [Where the deposit is held](#35-where-the-deposit-is-held)
    6. [Persisted metadata](#36-persisted-metadata)
    7. [Validation rules](#37-validation-rules)
    8. [Migration](#38-migration)
@@ -41,25 +48,38 @@ License: CC-BY-4.0
 
 ## 1. Abstract
 
-Cardano currently requires every transaction output to contain a minimum quantity
-of ada derived from the output's size. This proposal preserves that state-growth
-cost calculation but removes the requirement that the ada be carried inside the
-output itself.
+Cardano currently requires every transaction output to carry a minimum quantity of
+ada derived from the output's size (`minUTxO`). That ada is indistinguishable from
+the output's ordinary value, yet it behaves as a deposit: it is committed for as long
+as the entry lives and becomes freely spendable again only when the entry is consumed.
 
-Instead, the ledger accounts for UTxO state deposits separately. A transaction that
-creates more deposit liability than it consumes must lock the difference in a
-ledger-controlled reserve. A transaction that consumes more liability than it
-creates receives a corresponding release credit. Outputs carry their application
-value; the reserve carries the ada that backs persistent UTxO state.
+This proposal makes that implicit deposit **explicit**. The `minUTxO` calculation is
+left unchanged, so the state-growth bound and its security profile are preserved. What
+changes is where the ada is accounted for. Instead of being embedded in
+`TxOut.Value`, it is settled through two ledger-computed, transaction-level
+quantities — **`utxoDeposit`** (ada locked for the state the transaction creates) and
+**`utxoRefund`** (ada released for the state the transaction consumes) — in exactly
+the way the ledger already accounts for stake-key, pool, and governance deposits.
 
-The central accounting quantity is therefore the transaction's **net state delta**:
-billable state created minus billable state consumed. State-growing transactions pay
-the difference; state-reducing transactions release the difference.
+An output may then carry as little ada as its owner chooses, down to zero for a pure
+native-asset transfer. The ledger holds the difference between an output's `minUTxO`
+requirement and the ada it actually carries as a recorded, refundable state deposit.
+**Today's behaviour is the special case in which an output already carries at least
+its full requirement: its deposit is zero and nothing changes.** That property is what
+lets pre- and post-activation outputs coexist without a chain-wide migration.
 
-The intended security property remains: net growth of the UTxO set requires scarce
-ada to be made unavailable elsewhere. The intended UX improvement is that native
-assets, scripts, and application state no longer need an unrelated ada amount
-embedded in every output.
+The central accounting quantity is therefore the transaction's **net deposit delta**:
+deposits created minus deposits released. State-growing transactions fund the
+difference; state-reducing transactions are refunded it. Native assets, scripts, and
+application state no longer need an unrelated ada amount embedded in every output.
+
+This is the *implicit-minUTxO* view sketched by Alexey Kuleshevich at the Ledger
+Working Group (2026-08-03). Two further variants from Polina Vinogradova preserve the
+same aggregate accounting while changing where the ada ends up: holding the obligation
+in an account the funder controls — the only option that keeps the funder's claim on
+the deposit — or leaving the ada in outputs and letting the transaction redistribute
+the requirement across them. All three are compared in
+[section 3.5](#35-where-the-deposit-is-held).
 
 ## 2. Motivation: why is this CIP necessary?
 
@@ -79,75 +99,88 @@ This coupling creates the problems documented by the companion CPS:
 The proposal does **not** remove the cost of persistent state. It changes where that
 cost is accounted for.
 
-![Two transactions lodge and release UTxO state deposits through a ledger-controlled reserve.](./images/01-ledger-managed-deposit.svg)
+![Two transactions lock and refund UTxO state deposits held by the ledger.](./images/01-ledger-managed-deposit.svg)
 
 ## 3. Specification
 
 ### 3.1 Terminology
 
-- **State deposit:** ada locked by the ledger to back one new-style UTxO entry.
-- **Recorded deposit:** the exact state-deposit amount associated with a new-style
-  UTxO when it is created.
-- **Reserve:** ledger-controlled ada containing the aggregate state deposits for all
-  live new-style UTxOs.
-- **Lodged deposit:** state deposit added to the reserve by a transaction.
-- **Release credit:** state deposit removed from the reserve when the corresponding
-  UTxO is consumed.
-- **Billable state units:** the resource quantity priced by the state-deposit
-  formula. Under the initial formula, this is `160 + sizeInBytes(TxOut)` bytes.
-- **Net resource delta:** billable state units created by a transaction minus
-  billable state units released by its consumed inputs.
-- **Legacy output:** an output created before activation, whose minimum ada remains
-  embedded in its `Value`.
-- **New-style output:** an output created after activation, whose state deposit is
-  accounted for separately.
+- **minUTxO requirement, `M(o)`:** the ada an output must account for, computed from
+  its serialised size. Unchanged from the current mechanism.
+- **Carried ada, `adaIn(o)`:** the ada actually present in the output's `Value` and
+  controlled by its owner.
+- **State deposit, `d(o)`:** the part of an output's requirement that the ledger holds
+  outside the output value, `d(o) = max(0, M(o) - adaIn(o))`. When
+  `adaIn(o) \geq M(o)` the deposit is zero and the output behaves exactly as today.
+- **Recorded deposit:** the exact `d(o)` stored with the UTxO at creation; it fixes
+  the refund the UTxO produces when later consumed.
+- **`utxoDeposit` (transaction level):** the total state deposit a transaction locks
+  for the outputs it creates.
+- **`utxoRefund` (transaction level):** the total recorded deposit a transaction
+  releases for the inputs it consumes.
+- **Net deposit delta:** `utxoDeposit - utxoRefund`; positive locks ada, negative
+  refunds it. This mirrors how the ledger already nets certificate deposits and
+  refunds within a transaction.
+- **Billable state units:** the resource quantity priced by the requirement formula.
+  Under the initial formula this is `160 + sizeInBytes(TxOut)` bytes.
+
+This model needs **no separate "legacy" and "new-style" output types**: an output is
+"legacy-equivalent" precisely when `adaIn(o) \geq M(o)`, and every output already in
+the UTxO set at activation satisfies that by construction.
 
 ### 3.2 Core model
 
-The existing minimum-ada calculation is retained as the initial state-deposit
-calculation:
+The existing minimum-ada calculation is retained unchanged as the requirement:
 
 ```math
-\operatorname{stateDeposit}(o,p)
+M(o,p)
 = \left(160 + \operatorname{sizeInBytes}(o)\right)
   \times p.\operatorname{coinsPerUTxOByte}
 ```
 
-The validity condition changes from:
+The validity condition changes from an **output-level** rule that forces the ada into
+the output's value:
 
 ```math
-o.\operatorname{coin} \geq \operatorname{stateDeposit}(o,p)
+o.\operatorname{coin} \geq M(o,p)
 ```
 
-to a transaction-level reserve condition:
+to a **transaction-level** rule in which each output's requirement is met partly by
+the ada it carries and partly by an explicit ledger-held deposit:
 
-```text
-the transaction lodges enough ada to cover
-the net new state-deposit liability it creates
+```math
+d(o) = \max\!\left(0,\ M(o,p) - \operatorname{adaIn}(o)\right)
 ```
 
-No state deposit is added to the output's `Value`. A native-asset or script output
-may therefore contain less ada than its computed state deposit, subject to the
-non-empty-output rule in section 3.7.
+The transaction must then fund the net of the deposits it creates against the deposits
+it releases. No ada beyond the owner's chosen `adaIn(o)` is added to the output's
+`Value`; a native-asset or script output may carry zero ada, subject to the
+non-empty-output rule in [section 3.7](#37-validation-rules).
+
+Because `d(o) = 0` whenever `adaIn(o) \geq M(o,p)`, an output funded the way wallets
+fund outputs today produces no deposit and is indistinguishable from a current output.
 
 ### 3.3 Deposit calculation
 
-For each new-style output `o`, the ledger computes:
+For each output `o` the transaction creates, the ledger computes the deposit at the
+current price:
 
 ```math
 \operatorname{createdDeposit}(o)
-= \operatorname{stateDeposit}(o,p_{\mathrm{current}})
+= d(o, p_{\mathrm{current}})
+= \max\!\left(0,\ M(o,p_{\mathrm{current}}) - \operatorname{adaIn}(o)\right)
 ```
 
-For each consumed new-style input `i`, the ledger reads:
+For each input `i` the transaction consumes, the ledger reads the deposit recorded
+when that output was created:
 
 ```math
 \operatorname{releasedDeposit}(i) = i.\operatorname{recordedDeposit}
 ```
 
 The exact recorded amount is used at consumption time. Recomputing the deposit using
-current parameters would make reserve liabilities change when protocol parameters or
-serialization rules change.
+current parameters would make live liabilities change when protocol parameters or
+serialization rules change, breaking solvency.
 
 **OPEN:** the 160-byte overhead and the current formula are retained here to preserve
 the present growth bound for initial analysis. Their continued use is not endorsed by
@@ -157,12 +190,12 @@ this proposal and must be revalidated against the current node storage architect
 
 The ledger accounts for two related quantities. The **resource delta** measures how
 the transaction changes persistent UTxO state. The **monetary delta** determines how
-much ada enters or leaves the reserve. They are equal up to multiplication by the
+much ada enters or leaves the held deposits. They are equal up to multiplication by the
 price parameter only while that parameter and the deposit formula remain unchanged.
 
 #### 3.4.1 Net resource delta
 
-For each new-style output $o$, define its billable state units under the initial
+For each created output $o$, define its billable state units under the initial
 formula as:
 
 ```math
@@ -223,27 +256,38 @@ deposit recorded when consumed state was created. Consequently,
 $\Delta B_{\mathrm{state}}$ remains the resource measurement, while
 $\Delta_{\mathrm{deposit}}$ remains the authoritative settlement amount.
 
-If `Δdeposit(tx) > 0`, the transaction lodges `Δdeposit(tx)` ada in the reserve.
+The transaction exposes this settlement through two computed fields, in the same
+shape as existing certificate deposits and refunds:
 
-If `Δdeposit(tx) < 0`, the transaction receives a release credit of
-`abs(Δdeposit(tx))` ada from the reserve.
+```math
+\begin{aligned}
+\operatorname{utxoDeposit}(tx) &= D_{\mathrm{created}}(tx) \\
+\operatorname{utxoRefund}(tx)  &= D_{\mathrm{consumed}}(tx)
+\end{aligned}
+```
 
-If `Δdeposit(tx) = 0`, the reserve balance is unchanged.
+If `Δdeposit(tx) > 0`, the transaction locks `Δdeposit(tx)` ada as a state deposit.
 
-The value-conservation equation is extended conceptually as follows:
+If `Δdeposit(tx) < 0`, the transaction is refunded `abs(Δdeposit(tx))` ada.
+
+If `Δdeposit(tx) = 0`, the amount held as state deposits is unchanged.
+
+The value-conservation equation gains a `utxoRefund` term on the consumed side and a
+`utxoDeposit` term on the produced side, alongside the deposits Cardano already
+accounts for:
 
 ```math
 \begin{aligned}
 V_{\mathrm{consumed}} + V_{\mathrm{mint}} + V_{\mathrm{withdrawals}}
-  + V_{\mathrm{releasedDeposit}}
+  + V_{\mathrm{utxoRefund}} + V_{\mathrm{otherRefunds}}
 ={}& V_{\mathrm{produced}} + V_{\mathrm{fees}} \\
- &+ V_{\mathrm{otherProtocolDeposits}} + V_{\mathrm{lodgedDeposit}}
+ &+ V_{\mathrm{otherDeposits}} + V_{\mathrm{utxoDeposit}}
 \end{aligned}
 ```
 
-The ledger computes `releasedDeposit` and `lodgedDeposit`; they are not selected by
-the transaction author. Wallets still need to account for the resulting balance
-delta, but output recipients and application state no longer carry the deposit.
+The ledger computes `utxoRefund` and `utxoDeposit`; they are not selected by the
+transaction author. Wallets still need to balance the resulting delta, but output
+recipients and application state no longer carry the deposit.
 
 #### 3.4.3 Worked examples
 
@@ -264,7 +308,7 @@ outputs were recorded at the same price:
 = 1.293\ \mathrm{ada}
 ```
 
-The transaction increases persistent state and must lodge 1.293 ada.
+The transaction increases persistent state and must lock 1.293 ada as deposit.
 
 **Net state reduction in bytes.** A transaction releases 1,100 billable bytes and
 creates 500 billable bytes:
@@ -281,7 +325,7 @@ creates 500 billable bytes:
 \end{aligned}
 ```
 
-The transaction reduces persistent state and receives a 2.586 ada release credit.
+The transaction reduces persistent state and is refunded 2.586 ada.
 
 The following examples express the same rule directly in recorded deposit amounts.
 
@@ -292,7 +336,7 @@ and creates outputs requiring 5 ada:
 \Delta_{\mathrm{deposit}} = 5 - 3 = +2\ \mathrm{ada}
 ```
 
-The transaction must lodge 2 ada in the reserve.
+The transaction must lock 2 ada as deposit.
 
 **Net state reduction.** A transaction consumes inputs with 5 ada of recorded
 deposits and creates outputs requiring 2 ada:
@@ -301,39 +345,189 @@ deposits and creates outputs requiring 2 ada:
 \Delta_{\mathrm{deposit}} = 2 - 5 = -3\ \mathrm{ada}
 ```
 
-The transaction receives a 3 ada release credit.
+The transaction is refunded 3 ada.
 
-### 3.5 Ledger reserve
+#### 3.4.4 The transaction view
 
-The reserve is controlled by ledger rules, not by a payment credential. Users cannot
-deposit into or withdraw from it except through the transaction accounting defined
-above.
+The Ledger Working Group sketch expresses the same rule directly on the transaction,
+writing an output as `<assets, adaIn (M)>`: the ada the output carries, with its
+`minUTxO` requirement in parentheses. The deposit the ledger holds for that output is
+the shortfall `M - adaIn`. The examples below are internally balanced; they follow the
+whiteboard from the meeting, with figures adjusted so value conservation closes
+exactly.
 
-The target solvency invariant is:
+**Create — send a native asset in a zero-cost-to-recipient output.** The recipient's
+output carries only part of its own requirement; the ledger holds the rest:
 
-```math
-\operatorname{reserveBalance}
-= \sum_{u \in \operatorname{liveNewUTxOs}} \operatorname{recordedDeposit}(u)
+```text
+                          TxOut:<1BTC, 0.6ADA (1ADA)>
+                         /
+[ TxIn:<1BTC, 100ADA> ]
+                         \
+                          TxOut:<98.5ADA>
+  fee         = 0.5ADA
+  utxoRefund  = 0ADA
+  utxoDeposit = 0.4ADA          # = M − adaIn = 1.0 − 0.6, recorded on the 1BTC output
 ```
 
-Every transition must preserve:
+Conservation: `100 = 0.6 + 98.5 + 0.5 (fee) + 0.4 (deposit)`. The 1BTC output stores
+`recordedDeposit = 0.4`.
 
-```math
-\operatorname{reserveBalance} \geq 0
+**Spend — consume that output, create net new state.** The consumed output returns its
+recorded 0.4 ada; the two new outputs each lock their full requirement because they
+carry no ada:
+
+```text
+                                       TxOut:<0.5BTC, 0ADA (1ADA)>
+                                      /
+[ TxIn:<1BTC, 0.6ADA (rec 0.4ADA)>, TxIn:<1.3ADA> ]
+                                      \
+                                       TxOut:<0.5BTC, 0ADA (0.8ADA)>
+  fee         = 0.5ADA
+  utxoRefund  = 0.4ADA          # recorded deposit of the consumed 1BTC output
+  utxoDeposit = 1.8ADA          # = 1.0 + 0.8, recorded on the two new outputs
 ```
 
-and no transaction may release more than the recorded deposits of the new-style
-inputs it consumes.
+Conservation: `0.6 + 1.3 + 0.4 (refund) = 0 + 0 + 0.5 (fee) + 1.8 (deposit) = 2.3`.
+The net locked is `utxoDeposit − utxoRefund = 1.4` ada.
 
-**Relationship to CIP-0159.** CIP-0159 demonstrates account-like ledger state and
-transaction-level deposits and withdrawals. This proposal may reuse implementation
-patterns from that work, but a system-controlled reserve is not currently specified
-by CIP-0159. CIP-0159 is therefore related prior art, not yet a normative dependency.
+Had the second output instead carried `0.2ADA (0.8ADA)`, its deposit would fall to
+`0.6`, releasing `0.2` ada as ordinary change — showing that carried ada and held
+deposit are interchangeable ways to satisfy the same requirement.
+
+**OPEN — the offset convention.** These examples let an output's carried ada count
+toward its own requirement, so the deposit is `max(0, M − adaIn)`. An alternative
+convention always deposits the full `M` and treats carried ada as pure value. The two
+differ only for outputs funded above zero ada but below their requirement; the choice
+affects `recordedDeposit`, refund amounts, and whether "today's output" is bit-for-bit
+unchanged. The prototype (§6.2) should pin this down.
+
+**OPEN — who fixes each output's share.** A second, independent question is whether
+each output's figure is *derived* by the ledger at all. This specification computes
+`d(o)` from that output alone, so the per-output amounts are canonical and the
+transaction total is merely their sum. Variant C in
+[section 3.5](#35-where-the-deposit-is-held) inverts the direction: the ledger
+constrains only the aggregate and the transaction author distributes it across the
+outputs, with only the sum checked.
+
+| | Ledger-derived per output (this specification) | Author-distributed over the aggregate (variant C) |
+|---|---|---|
+| Per-output figure | derived from `o` alone | chosen by the author, signed |
+| Validity | each output satisfies its own share | only the total is constrained |
+| Determinism | one canonical value per output | many valid distributions per transaction |
+
+The consequence reaches beyond ergonomics. A canonical per-output figure is precisely
+what [section 3.6](#36-persisted-metadata) records and
+[section 3.3](#33-deposit-calculation) refunds; if the figure is author-chosen, the
+recorded amount can no longer be reconstructed from the output and must be stored.
+This must be settled before either section can be fixed.
+
+### 3.5 Where the deposit is held
+
+The state deposit is controlled by ledger rules, not by a payment credential. Users
+cannot add to or draw from it except through the transaction accounting defined above.
+Whatever structure holds it, the target solvency invariant is that the ada held equals
+the sum of the deposits recorded against live outputs:
+
+```math
+\operatorname{heldDeposits}
+= \sum_{u \in \operatorname{liveUTxOs}} \operatorname{recordedDeposit}(u)
+```
+
+Every transition must preserve `heldDeposits \geq 0`, and no transaction may refund
+more than the recorded deposits of the inputs it consumes.
+
+Three variants are on the table. All three keep that aggregate and the security
+argument behind it; they differ in **where the ada ends up** and therefore in **who
+owns it**:
+
+**A — Deposit held by the ledger (implicit-minUTxO, Alexey Kuleshevich).** The
+recorded deposit travels as a field on each UTxO and the netted
+`utxoDeposit`/`utxoRefund` is absorbed by the ledger's existing protocol-deposit
+accounting, exactly as it already does for stake-key, pool, and governance deposits.
+No new account abstraction is introduced. This is the view specified above.
+
+**B — Obligation held in the funder's own accounts (Polina Vinogradova).** The
+per-output requirement is removed and each *account* carries a min-ada obligation
+instead. Writing `mu` for the summed obligation of the accounts a transaction touches
+and `utxo-mu` for the change in required min-ada implied by the UTxO space it frees
+minus the space it occupies, the transaction updates those obligations to some
+`utxo-mu'` subject to `utxo-mu' \geq mu + utxo-mu`. A transaction may only raise or
+lower the obligation of accounts it holds keys for, and each account's obligation then
+moves again with any change in its own size. CIP-0159's account-balance intervals can
+express this directly: the `inclusive_lower_bound` the transaction sets on an account
+*is* the obligation, so no new account field is required.
+
+![Variant B: the deposit is a floor on an account the funder controls — raised while UTxO space is occupied, lowered when it is freed; the ada never moves.](./images/02-variant-b-account-obligation.svg)
+
+**C — Requirement redistributed across the transaction's outputs (Polina
+Vinogradova).** The per-output requirement is removed, the ledger fixes only the
+aggregate, and a new signed per-output `min-utxo` field lets the author spread that
+aggregate across the outputs the transaction creates. Each output must carry at least
+its own declared figure, but only the sum is checked, so a native-asset output may
+carry no ada at all provided a sibling output absorbs its share. Unlike A and B, the
+ada is **not** moved outside output value: it stays in outputs, and what changes is
+that the floor is redistributable rather than fixed per output.
+
+![Variant C: the ledger fixes only the aggregate requirement; the author distributes it across the outputs through a signed per-output field, and only the sum is checked.](./images/03-variant-c-output-spread.svg)
+
+The distinction that matters for this proposal's goals is ownership:
+
+| | Ada leaves `TxOut.Value` | Who holds it while the entry lives | Funder keeps a claim | New structure |
+|---|---|---|---|---|
+| **A** ledger-held | yes | protocol deposit pot | no — refund accrues to whoever consumes the output | recorded deposit per UTxO |
+| **B** account-held | yes | an account the funder chooses | **yes** | reuses CIP-0159 intervals |
+| **C** output-spread | **no** | the recipients of the outputs | no — same as today | signed field per output |
+
+This is where the variants stop being interchangeable. Variant B is the only one that
+resolves the payer/beneficiary mismatch that
+[section 4.2](#42-restoring-the-output-abstraction) leaves open and that the companion
+CPS lists as a required outcome: the ada is immobilised while the UTxO space is
+occupied and becomes spendable again when that space shrinks, but it never leaves an
+account the funder controls, so no explicit attribution reference is needed. Its cost
+is that the obligation must be re-derived and re-checked across every account a
+transaction touches, and that the rule interacts with the signing requirements of
+accounts the transaction does not control.
+
+Variant C is the cheapest to reason about and directly fixes the ada-coupling of
+native-asset transfers, but it leaves the deposit inside transferred value: the funder
+still hands the ada to the recipient. It therefore addresses the CPS's first
+consequence without addressing its second.
+
+**OPEN:** variants B and C remove the per-output requirement without giving each
+output a canonical recorded deposit. Determine whether the solvency invariant above
+still has a per-UTxO right-hand side under them, or whether it must be restated — over
+account obligations for B, and over author-declared figures for C — and, for B, what
+reconstructs a UTxO's contribution when it is consumed by someone other than its
+funder.
+
+**Relationship to CIP-0159.** CIP-0159 ("Account Address Enhancement", merged as
+[PR #1061](https://github.com/cardano-foundation/CIPs/pull/1061) on 20 January 2026)
+supplies account-like ledger state, a `direct_deposits` transaction field, and
+**account balance intervals** — an `inclusive_lower_bound` and optional
+`exclusive_upper_bound` a transaction asserts on an account, which preserve local
+determinism because scripts observe only whether the constraint holds, not the exact
+balance. It is delivered in two phases: phase 1 is ada-only, with multi-asset support
+deferred precisely because forced token deposits would open a dust vector.
+
+The three variants depend on it very differently. Variant B uses its interval
+mechanism as the obligation itself and is the most tightly coupled; variants A and C
+do not need it at all, A netting the deposit into the existing protocol-deposit
+accounting and C leaving the ada in outputs. CIP-0159's ada-only phase 1 is sufficient
+wherever it is used, since the deposit is denominated in ada. Its rule that total withdrawals across sub-transactions may not
+exceed the pre-transaction balance is the same class of constraint as the solvency
+condition above and should be checked for consistency.
+
+> **Note (Robertino Martinez, 2026-08-04).** Even in variant A this is *not* purely "a
+> different view": each UTxO gains fields that transaction builders, indexers, and
+> explorers must account for, and existing protocols made assumptions about ada
+> accounting for `minUTxO`. The compatibility surface in
+> [section 3.9](#39-plutus-and-tooling) is real under every variant.
 
 ### 3.6 Persisted metadata
 
-Each live new-style UTxO must retain enough information to determine both its
-resource contribution and its release credit exactly. The preferred initial
+Each live UTxO carrying a deposit must retain enough information to determine both its
+resource contribution and its refund exactly. The preferred initial
 representation is:
 
 ```math
@@ -359,15 +553,18 @@ itself be priced or avoided through a more compact derivation scheme.
 
 A valid post-activation transaction must satisfy all of the following:
 
-1. Every new-style output has a deterministic `createdDeposit`.
-2. Every consumed new-style input has exactly one `recordedStateUnits` and one
-   `recordedDeposit` value, or an equivalent canonical derivation.
-3. The ledger computes a deterministic net resource delta.
-4. The transaction balance includes the computed monetary deposit delta.
-5. The reserve remains solvent after the transition.
-6. A release credit can arise only from consumed new-style inputs.
-7. Legacy inputs do not generate a release credit; their ada is already present in
-   their consumed `Value`.
+1. Every created output has a deterministic `createdDeposit = max(0, M − adaIn)`.
+2. Every consumed input has exactly one `recordedDeposit` value (zero for outputs
+   created carrying at least their requirement), or an equivalent canonical
+   derivation.
+3. The ledger computes a deterministic net deposit delta.
+4. The transaction balance includes the computed `utxoDeposit` and `utxoRefund`.
+5. The held-deposit total remains solvent after the transition.
+6. A refund can arise only from consumed inputs, and never exceeds their recorded
+   deposits.
+7. An output created before activation carries its requirement in its `Value`, so its
+   recorded deposit is zero and consuming it produces no refund — the general rule
+   applied to `adaIn \geq M`, not a special case.
 8. An output cannot be empty. **OPEN:** define whether zero-ada native-asset outputs,
    zero-ada script outputs, and ada-only outputs below a separate minimum are valid.
 9. Existing maximum transaction-size, execution, and value-size rules continue to
@@ -375,21 +572,23 @@ A valid post-activation transaction must satisfy all of the following:
 
 ### 3.8 Migration
 
-Activation introduces new-style outputs without rewriting the existing UTxO set.
+Activation requires no rewrite of the existing UTxO set, because the mechanism treats
+current outputs as the `adaIn \geq M` case with a zero deposit:
 
-- Legacy outputs retain their embedded minimum ada.
-- Consuming a legacy output exposes that ada through ordinary input value and creates
-  no reserve release credit.
-- New-style outputs lodge their deposits in the reserve and retain
-  `recordedStateUnits` and `recordedDeposit`, or their canonical equivalents.
-- A single transaction may consume legacy and new-style inputs and create new-style
-  outputs.
+- Every pre-activation output already carries at least its requirement, so its
+  recorded deposit is zero and consuming it produces no refund — its ada is spent as
+  ordinary `Value`, exactly as today.
+- Post-activation outputs may carry less than their requirement; the ledger records
+  and later refunds the shortfall.
+- A single transaction may freely mix both: the deposit rule is uniform, so no output
+  needs a legacy/new flag.
 
-This avoids a chain-wide migration transaction and prevents the same legacy deposit
-from being credited twice.
+This avoids a chain-wide migration transaction and cannot credit a pre-activation
+deposit twice, because that deposit is already in the output's own `Value`.
 
-**OPEN:** decide whether users may explicitly create legacy-style outputs for a
-transition period or whether all post-activation outputs are new-style.
+**OPEN:** confirm that the `max(0, M − adaIn)` rule, applied uniformly, is sufficient
+to distinguish pre- and post-activation outputs without an explicit era flag on each
+UTxO.
 
 ### 3.9 Plutus and tooling
 
@@ -416,9 +615,9 @@ semantic change, or both.
 ### 4.1 Preserving the growth bound
 
 Net UTxO growth still requires ada to be locked. An attacker creating many live
-entries must increase the reserve by the same deposit calculation used by the current
-mechanism. The proposal changes custody and accounting, not the initial price of
-growth.
+entries must fund `utxoDeposit` from the same requirement calculation used by the
+current mechanism. The proposal changes custody and accounting, not the initial price
+of growth: an output carrying zero ada still costs its full `M` as a locked deposit.
 
 ### 4.2 Restoring the output abstraction
 
@@ -427,7 +626,7 @@ deposit is held separately by the ledger and no longer appears as part of the
 recipient's output value.
 
 This separation does not by itself resolve deposit attribution. Under the current
-strawman, the transaction consuming the output receives the release credit. The
+strawman, the transaction consuming the output receives the refund. The
 economic benefit can therefore still move from the party that funded state creation
 to the party able to consume the output; it happens at consumption rather than at
 creation. Returning value to the original funder would require an attribution model
@@ -465,31 +664,43 @@ transaction and credits liability removed.
 
 The following questions should be resolved before this becomes a submission:
 
-1. **Release beneficiary.** Should the release credit belong to the transaction that
-   consumes an output, the original funder, the output owner, or a global pool? This
-   sketch uses the consuming transaction because it requires no additional ownership
+1. **Refund beneficiary.** Should the refund belong to the transaction that consumes
+   an output, the original funder, the output owner, or a global pool? This sketch
+   gives it to the consuming transaction because it requires no additional ownership
    reference and directly rewards cleanup.
-2. **Reserve scope.** Is there one global reserve, one reserve per credential, or a
-   different ledger structure?
-3. **Persisted information.** Store the exact deposit amount, a historical rate, an
+2. **Which variant.** A, ledger-held per-UTxO deposit; B, an obligation on accounts
+   the funder controls; or C, the requirement redistributed across the transaction's
+   outputs? Only B keeps the funder's claim, so this decides decision 1 with it; only
+   C leaves the ada inside output value. See
+   [section 3.5](#35-where-the-deposit-is-held).
+3. **Offset convention.** Does an output's carried ada count toward its own
+   requirement (`d = max(0, M − adaIn)`), or is the full `M` always deposited with
+   carried ada treated as pure value? This decides whether a current output is
+   bit-for-bit unchanged. See [section 3.4.4](#344-the-transaction-view).
+4. **Per-output or per-transaction deposits.** Is `d(o)` derived canonically from each
+   output, or does the ledger fix only the transaction aggregate and let the author
+   distribute it across outputs through a signed field? This determines whether a
+   recorded deposit is reconstructible from the output itself. See
+   [section 3.4.4](#344-the-transaction-view).
+5. **Persisted information.** Store the exact deposit amount, a historical rate, an
    era identifier, or derive the amount from immutable history?
-4. **Formula.** Retain the current 160-byte calculation, price the current storage
+6. **Formula.** Retain the current 160-byte calculation, price the current storage
    architecture, or charge a different measure such as net cardinality?
-5. **Parameter changes.** Do they apply only to newly created UTxOs, or can existing
-   liabilities be repriced without breaking reserve solvency?
-6. **Empty and zero-ada outputs.** Which values remain invalid independently of the
+7. **Parameter changes.** Do they apply only to newly created UTxOs, or can existing
+   liabilities be repriced without breaking deposit solvency?
+8. **Empty and zero-ada outputs.** Which values remain invalid independently of the
    state-deposit mechanism?
-7. **Script compatibility.** Which existing script assumptions break when min-ada is
+9. **Script compatibility.** Which existing script assumptions break when min-ada is
    removed from `TxOut.Value`?
-8. **CIP-0159 dependency.** Is the account machinery reusable, or should the reserve
+10. **CIP-0159 dependency.** Is the account machinery reusable, or should the reserve
    be a dedicated ledger component?
-9. **Governance.** Which parameters control the mechanism, and which governance
+11. **Governance.** Which parameters control the mechanism, and which governance
    thresholds apply?
-10. **Accounting visibility.** Is the delta implicit, explicitly committed in the
+12. **Accounting visibility.** Is the delta implicit, explicitly committed in the
     transaction body, or both computed and asserted?
-11. **Failure and recovery.** What invariant or recovery path applies if an
-    implementation bug or migration error makes the reserve insolvent?
-12. **State overhead.** Does tracking the historical deposit materially increase the
+13. **Failure and recovery.** What invariant or recovery path applies if an
+    implementation bug or migration error makes the held deposits insolvent?
+14. **State overhead.** Does tracking the historical deposit materially increase the
     very state being priced?
 
 ## 6. Path to Active
@@ -497,25 +708,25 @@ The following questions should be resolved before this becomes a submission:
 ### 6.1 Acceptance Criteria
 
 - [ ] The companion CPS is accepted and linked from the preamble.
-- [ ] The Ledger Working Group agrees on the release beneficiary and reserve scope.
-- [ ] A formal ledger transition preserves value conservation and reserve solvency.
+- [ ] The Ledger Working Group agrees on the refund beneficiary and where the deposit is held.
+- [ ] A formal ledger transition preserves value conservation and deposit solvency.
 - [ ] Adversarial analysis shows that the UTxO-growth cost is no weaker than under
       the current mechanism.
 - [ ] Plutus, wallet, indexer, explorer, and hardware-wallet compatibility is
       documented.
 - [ ] Parameter-update and hard-fork behavior is specified.
-- [ ] Legacy/new-style coexistence is demonstrated on a testnet.
+- [ ] Pre- and post-activation output coexistence is demonstrated on a testnet.
 - [ ] Independent implementers confirm that the specification is deterministic.
 
 ### 6.2 Implementation Plan
 
 1. Prototype the accounting rule in the ledger transition.
-2. Add invariant and property tests for value conservation, reserve solvency, and
+2. Add invariant and property tests for value conservation, deposit solvency, and
    no-unbacked-state creation, including transactions whose entry-count delta and
    byte delta have opposite signs.
 3. Measure the extra state required for historical deposit metadata.
 4. Implement wallet and CLI support for deposit-delta balancing.
-5. Test legacy and new-style UTxO coexistence across a development hard fork.
+5. Test pre- and post-activation UTxO coexistence across a development hard fork.
 6. Publish migration guidance for protocols whose validators assume min-ada is part
    of output value.
 
