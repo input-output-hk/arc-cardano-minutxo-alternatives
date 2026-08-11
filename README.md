@@ -8,3 +8,6 @@ ARC workstream on the min-UTxO mechanism.
   It is discussion material for the Ledger Working Group, not yet a submission.
 - `docs/` -- internal background material. Not for submission.
 - `NOTES.md` -- open decisions and claims still to be verified.
+- `PROJECT_MEMORY.md` -- canonical cross-session handoff, decision record, and
+  biweekly-report ledger. Codex, Claude, and other contributors should read it before
+  material work and update it afterward.

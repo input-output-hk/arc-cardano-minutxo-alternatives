@@ -26,27 +26,36 @@ License: CC-BY-4.0
     - [2.2.1 Formula and fixed overhead](#221-formula-and-fixed-overhead)
     - [2.2.2 Mainnet parameters](#222-mainnet-parameters)
     - [2.2.3 How the mechanism evolved](#223-how-the-mechanism-evolved)
-    - [2.2.4 Why it bounds entry count](#224-why-it-bounds-entry-count)
-    - [2.2.5 A hierarchy of theoretical bounds](#225-a-hierarchy-of-theoretical-bounds)
-      - [2.2.5.1 Ledger compartments](#2251-ledger-compartments)
-      - [2.2.5.2 Maximum-supply ceiling](#2252-maximum-supply-ceiling)
-      - [2.2.5.3 Issued-supply ceiling](#2253-issued-supply-ceiling)
-      - [2.2.5.4 UTxO-resident-ada ceiling](#2254-utxo-resident-ada-ceiling)
-      - [2.2.5.5 How reserve depletion moves the ceiling](#2255-how-reserve-depletion-moves-the-ceiling)
-    - [2.2.6 How should `coinsPerUTxOByte` be adjusted?](#226-how-should-coinsperutxobyte-be-adjusted)
-      - [2.2.6.1 Current rules](#2261-current-rules)
-      - [2.2.6.2 Calibration test](#2262-calibration-test)
-      - [2.2.6.3 Limits of the pricing model](#2263-limits-of-the-pricing-model)
-      - [2.2.6.4 Required evidence](#2264-required-evidence)
-  - [2.3 The core problem: accidental complexity from an abstraction leak](#23-the-core-problem-accidental-complexity-from-an-abstraction-leak)
-    - [2.3.1 Ada coupling of native-asset transfers](#231-ada-coupling-of-native-asset-transfers)
-    - [2.3.2 Operational funding has no explicit settlement rule](#232-operational-funding-has-no-explicit-settlement-rule)
-    - [2.3.3 The output fixes an ada amount while its real value floats](#233-the-output-fixes-an-ada-amount-while-its-real-value-floats)
-    - [2.3.4 A second transaction-cost concept leaks into the user model](#234-a-second-transaction-cost-concept-leaks-into-the-user-model)
-    - [2.3.5 Reduced liquid reusability](#235-reduced-liquid-reusability)
-  - [2.4 The underlying operational logic](#24-the-underlying-operational-logic)
-    - [2.4.1 A UTxO consumes a box and the space inside it](#241-a-utxo-consumes-a-box-and-the-space-inside-it)
-    - [2.4.2 Price changes revalue capacity already allocated](#242-price-changes-revalue-capacity-already-allocated)
+    - [2.2.4 Why it creates a finite economic bound](#224-why-it-creates-a-finite-economic-bound)
+  - [2.3 The operational nature of UTxO capacity](#23-the-operational-nature-of-utxo-capacity)
+    - [2.3.1 The live set must remain inside a capacity envelope](#231-the-live-set-must-remain-inside-a-capacity-envelope)
+    - [2.3.2 A UTxO is a box containing an object](#232-a-utxo-is-a-box-containing-an-object)
+    - [2.3.3 Transactions allocate and release capacity](#233-transactions-allocate-and-release-capacity)
+    - [2.3.4 Price changes revalue live capacity](#234-price-changes-revalue-live-capacity)
+  - [2.4 Quantifying the bound: is current protection sufficient?](#24-quantifying-the-bound-is-current-protection-sufficient)
+    - [2.4.1 A hierarchy of theoretical bounds](#241-a-hierarchy-of-theoretical-bounds)
+      - [2.4.1.1 Ledger compartments](#2411-ledger-compartments)
+      - [2.4.1.2 Maximum-supply ceiling](#2412-maximum-supply-ceiling)
+      - [2.4.1.3 Issued-supply ceiling](#2413-issued-supply-ceiling)
+      - [2.4.1.4 UTxO-resident-ada ceiling](#2414-utxo-resident-ada-ceiling)
+      - [2.4.1.5 Ada-budget orders of magnitude](#2415-ada-budget-orders-of-magnitude)
+      - [2.4.1.6 How reserve depletion moves the ceiling](#2416-how-reserve-depletion-moves-the-ceiling)
+    - [2.4.2 Is current pricing calibrated?](#242-is-current-pricing-calibrated)
+      - [2.4.2.1 Current rules](#2421-current-rules)
+      - [2.4.2.2 Calibration test](#2422-calibration-test)
+      - [2.4.2.3 What standard SPO hardware establishes](#2423-what-standard-spo-hardware-establishes)
+      - [2.4.2.4 Limits of the pricing model](#2424-limits-of-the-pricing-model)
+      - [2.4.2.5 Required evidence](#2425-required-evidence)
+  - [2.5 The core problem: accidental complexity from an abstraction leak](#25-the-core-problem-accidental-complexity-from-an-abstraction-leak)
+    - [2.5.1 Ada coupling of native-asset transfers](#251-ada-coupling-of-native-asset-transfers)
+    - [2.5.2 Operational funding has no explicit settlement rule](#252-operational-funding-has-no-explicit-settlement-rule)
+    - [2.5.3 The output fixes an ada amount while its real value floats](#253-the-output-fixes-an-ada-amount-while-its-real-value-floats)
+    - [2.5.4 A second transaction-cost concept leaks into the user model](#254-a-second-transaction-cost-concept-leaks-into-the-user-model)
+    - [2.5.5 Reduced liquid reusability](#255-reduced-liquid-reusability)
+  - [2.6 Accounting implications for alternatives](#26-accounting-implications-for-alternatives)
+    - [2.6.1 Transaction-level funding](#261-transaction-level-funding)
+    - [2.6.2 Conservation and reserve solvency](#262-conservation-and-reserve-solvency)
+    - [2.6.3 Revaluation requires a counterparty](#263-revaluation-requires-a-counterparty)
 - [3. Use Cases](#3-use-cases)
   - [3.1 Mass distribution and airdrops](#31-mass-distribution-and-airdrops)
   - [3.2 Micropayments and stablecoin transfers](#32-micropayments-and-stablecoin-transfers)
@@ -75,8 +84,9 @@ creating new outputs while preserving the graph-based properties of UTxO account
 would create an unbounded resource requirement.
 
 Cardano limits that growth by requiring every output to contain a minimum quantity
-of ada based on its serialised size. Because the ada supply is finite, this creates
-a finite economic ceiling on the number of UTxO entries.
+of ada based on a fixed per-entry overhead and its serialised size. Because the ada
+supply is finite, this creates a finite economic ceiling on a weighted combination
+of UTxO count and aggregate output size—and therefore also on UTxO count alone.
 
 This CPS accepts the need for a bound. It identifies a narrower problem: the chosen
 mechanism exposes a node-level resource constraint directly through Cardano's
@@ -197,9 +207,9 @@ transaction builder must satisfy.
 
 #### 2.2.2 Mainnet parameters
 
-At mainnet epoch 647, current on 3 August 2026, `coinsPerUTxOByte` is
+At mainnet epoch 648, current on 11 August 2026, `coinsPerUTxOByte` is
 **4,310 lovelace per byte**. The pinned
-[epoch-647 parameter response](https://api.koios.rest/api/v1/epoch_params?_epoch_no=647)
+[epoch-648 parameter response](https://api.koios.rest/api/v1/epoch_params?_epoch_no=648)
 reports this as `coins_per_utxo_size` and also reports `max_tx_size = 16,384` bytes.
 Applying that `coinsPerUTxOByte` value gives:
 
@@ -283,32 +293,329 @@ Alonzo's genesis instead records 34,482, and Babbage divides that by eight.
 > per-word rate. Confirm the unit and the reason for the change from 37,037 to 34,482
 > before relying on this lineage in a submission.
 
-#### 2.2.4 Why it bounds entry count
+#### 2.2.4 Why it creates a finite economic bound
 
 The intended protection follows a simple chain:
 
-![Finite ada supply combined with a minimum ada requirement creates an upper bound on the number of UTxOs.](./images/02-bounding-chain.svg)
+![Finite ada supply combined with a minimum ada requirement creates an upper bound on priced UTxO capacity.](./images/02-bounding-chain.svg)
 
 The bound ultimately relies on ada having a
 [finite maximum supply](https://docs.cardano.org/about-cardano/explore-more/monetary-policy).
-This produces a worst-case bound on the *number of entries*. It does not directly
-price the marginal RAM, disk space, or I/O consumed by an entry. Instead, it makes
-every output reserve part of a scarce asset. Because the ada remains spendable with
-the output, its economic function resembles a deposit rather than a fee. It is not,
-however, represented as a separate deposit in ledger state.
+Because each output has both a positive fixed overhead and a non-negative serialised
+size, finite ada bounds the aggregate quantity priced by the formula. A finite bound
+on that quantity necessarily implies a worst-case bound on entry count. It does not,
+however, establish that the formula's fixed weight and byte price correspond to the
+marginal RAM, disk, lookup, or I/O costs borne by nodes. Instead, every output reserves
+part of a scarce asset. Because the ada remains spendable with the output, its
+economic function resembles a deposit rather than a fee. It is not represented as a
+separate deposit in ledger state.
 
-#### 2.2.5 A hierarchy of theoretical bounds
+### 2.3 The operational nature of UTxO capacity
 
-The word *size* can mean either the number of live UTxOs or the physical resources
-used by nodes. The current mechanism gives a theoretical bound on the former. It
-does not provide a direct bound on RAM, disk footprint, or I/O.
+The preceding sections described the current implementation: Cardano places an ada
+floor inside every created `TxOut.Value`. This section temporarily abstracts from that
+representation. It identifies the resource lifecycle that any mechanism protecting
+the live UTxO set must account for. It does not claim that the current ledger contains
+explicit capacity allocations, deposits, or counters.
 
-##### 2.2.5.1 Ledger compartments
+#### 2.3.1 The live set must remain inside a capacity envelope
+
+The operational objective is not merely to assign a cost to outputs. It is to keep
+the aggregate live set within a resource envelope that nodes are expected to retain
+and serve. Let $N_{\max}$ be a defensible limit on the number of live entries and
+$S_{\max}$ a defensible limit on their total billable size. The analytical target is:
+
+```math
+N(t) \leq N_{\max}
+\qquad\text{and}\qquad
+S(t) \leq S_{\max}
+```
+
+Equivalently, define the live-capacity vector and its envelope as:
+
+```math
+C(t)=(N(t),S(t))
+\qquad\text{and}\qquad
+C_{\max}=(N_{\max},S_{\max})
+```
+
+with component-wise ordering:
+
+```math
+C(t) \preceq C_{\max}
+```
+
+An allocation mechanism must preserve this invariant under adversarial transaction
+sequences. In an explicit-capacity design, a transaction whose post-state would exceed
+the envelope cannot allocate the requested capacity. A pricing mechanism can instead
+enforce an economic bound by making allocations consume a scarce funding resource.
+Cardano follows the latter approach: positive minimum ada combined with finite ada
+supply creates an indirect ceiling rather than explicit `Nmax` and `Smax` protocol
+counters.
+
+The distinction matters. The **capacity envelope** states the security property the
+system needs. The **deposit and pricing rule** is the mechanism chosen to ration access
+to that envelope. Changing the representation of the deposit is acceptable only if
+the alternative preserves a defensible bound.
+
+The remainder of this section describes what consumes that capacity and how the live
+allocation changes.
+
+#### 2.3.2 A UTxO is a box containing an object
+
+Every live UTxO consumes at least two operational resource dimensions:
+
+1. one distinct entry in the global set — the **box**; and
+2. the variable serialised representation stored inside it — the **object**.
+
+For analysis, represent the capacity occupied by output $o$ as:
+
+```math
+c(o) = (1, s(o))
+```
+
+where $s(o)$ is its billable serialised size. Across the live set:
+
+```math
+N(t) = |\mathrm{UTxO}(t)|
+\qquad\text{and}\qquad
+S(t) = \sum_{o\in\mathrm{UTxO}(t)}s(o)
+```
+
+These dimensions proxy different performance concerns:
+
+| Dimension | Primary node concern | Adversarial shape |
+|---|---|---|
+| Entry count, $N(t)$ | Per-entry indexing, keys, lookups, database rows, cache locality, and bookkeeping | Many minimal outputs maximize cardinality while keeping average output size low |
+| Content size, $S(t)$ | Disk footprint, read/write bandwidth, serialization, snapshots, and state synchronization | Fewer large outputs increase total bytes without maximizing entry count |
+
+The dimensions are related but not interchangeable. Every entry contributes bytes,
+and a fixed overhead can translate some per-entry cost into an equivalent byte count.
+That translation nevertheless assumes a stable exchange rate between cardinality-
+sensitive work and byte-sensitive work. Their real costs may evolve differently as
+storage architecture, indexing, caching, and synchronization mechanisms change.
+
+The fixed component matters even for a minimal output: nodes must retain, index,
+locate, and serve a distinct entry. Addresses, multi-assets, datums, and reference
+scripts increase the variable component. Cardano's current formula already combines
+a fixed overhead with variable serialised size, but prices both through one
+`coinsPerUTxOByte` coefficient. This is equivalent to choosing one fixed conversion
+between the two performance concerns.
+
+More precisely, the current formula converts the entry-count dimension into
+byte-denominated accounting units. Each output contributes 160 fixed units in addition
+to its billable serialised size:
+
+```math
+u(o)=160+s(o)
+```
+
+Across the live set, the total priced quantity is therefore:
+
+```math
+U(t)
+=
+\sum_{o\in\mathrm{UTxO}(t)}(160+s(o))
+=
+160N(t)+S(t)
+```
+
+This is a scalar projection of the two-dimensional capacity vector
+$(N(t),S(t))$. It implicitly sets:
+
+```math
+p_{\mathrm{box}}(t)=160p(t)
+\qquad\text{and}\qquad
+p_{\mathrm{byte}}(t)=p(t)
+```
+
+where $p(t)$ is `coinsPerUTxOByte`. The model consequently treats one additional
+UTxO entry as operationally equivalent to 160 additional bytes of content.
+
+For example, one output carrying 100 bytes of content contributes:
+
+```math
+160+100=260
+```
+
+priced units. Splitting the same 100 content bytes between two 50-byte outputs
+contributes:
+
+```math
+(160+50)+(160+50)=420
+```
+
+priced units. The additional 160 units represent the second box, even though total
+content size is unchanged. Conversely, adding 160 bytes to an existing output has the
+same weight as creating one additional output with no change in aggregate content.
+
+The resulting economic ceiling applies to the weighted sum:
+
+```math
+160N(t)+S(t)\leq U_{\max}
+```
+
+The notation distinguishes two different bounds. $C_{\max}=(N_{\max},S_{\max})$ is
+the two-dimensional resource envelope introduced in section 2.3.1. $U_{\max}$ is the
+maximum number of scalar accounting units admitted by the current weighted model.
+Using the weight vector $w=(160,1)$:
+
+```math
+U(t)=w\cdot C(t)=160N(t)+S(t)
+```
+
+The current mechanism economically constrains $U(t)$, not the two components of
+$C(t)$ against independently calibrated limits. Writing $C_{\max}$ on the right-hand
+side would therefore conflate the desired multidimensional safety envelope with the
+scalar ceiling implemented by the present formula.
+
+The scalar ceiling does imply loose component bounds, such as
+$N(t)\leq U_{\max}/160$ and $S(t)\leq U_{\max}$, but it permits the two dimensions to
+trade against one another at the fixed rate of one entry to 160 bytes. This makes
+validation and governance simpler while preventing entry pressure and byte pressure
+from being calibrated or repriced independently.
+
+The dimensions are nevertheless not unconstrained relative to one another. Cardano
+has no single explicit `maxTxOutSize` parameter, but every output is part of a
+transaction bounded by `maxTxSize`—16,384 bytes at epoch 648. In addition,
+`maxValueSize` limits the serialised `Value` inside each output to 5,000 bytes
+[[6]](#ref-6). If $s_{\max}^{\mathrm{out}}$ denotes the largest complete output that
+can fit inside the smallest otherwise-valid transaction, then every reachable live
+set also satisfies:
+
+```math
+S(t)\leq N(t)s_{\max}^{\mathrm{out}}
+```
+
+$s_{\max}^{\mathrm{out}}$ is an indirect era- and transaction-dependent ceiling,
+not the `maxValueSize` parameter: the latter covers only `Value`, while addresses,
+datum, reference scripts, and encoding overhead contribute to the complete `TxOut`.
+This coupling rules out the literal $N=0,S>0$ axis, but it does not remove the need
+for an aggregate $S_{\max}$. Billions of individually valid outputs can still exceed
+a safe total state footprint.
+
+Every live UTxO occupies these resources, including a large-ada input. Its operational
+role may be economically hidden because its value already exceeds the minimum, but
+the entry and its contents still impose the same categories of node burden.
+
+![One transaction consumes a UTxO and creates two; all three hide an operational obligation inside application value, while a conceptual decomposition exposes the independent application and operational transitions.](./images/06-hidden-operational-cost.svg)
+
+#### 2.3.3 Transactions allocate and release capacity
+
+An output determines the resources occupied while it remains live. It does not itself
+perform the transition that changes the live set. Only a transaction does that: it
+atomically consumes one set of entries and creates another.
+
+For the fixed-entry dimension:
+
+```math
+\Delta_N(tx) =
+|\mathrm{outputs}(tx)|-|\mathrm{inputs}(tx)|
+```
+
+For the variable-size dimension:
+
+```math
+\Delta_S(tx) =
+\sum_{o\in\mathrm{outputs}(tx)}s(o)
+-
+\sum_{i\in\mathrm{inputs}(tx)}s(i)
+```
+
+The transaction's operational effect is therefore:
+
+```math
+\Delta_C(tx)=(\Delta_N(tx),\Delta_S(tx))
+```
+
+> **Outputs are the persistent objects being retained. Transactions are the
+> operations that allocate and release retention capacity.**
+
+Per-output measurement remains necessary to determine the resources occupied. It
+does not follow that the application must implement the funding lifecycle separately
+inside every output.
+
+#### 2.3.4 Price changes revalue live capacity
+
+Capacity allocation and capacity pricing are different transitions. A transaction
+changes $N(t)$ and $S(t)$. Governance may change the economic price of those resources
+while the existing allocations remain live.
+
+Using the analytical price vector:
+
+```math
+p(t)=(p_{\mathrm{box}}(t),p_{\mathrm{byte}}(t))
+```
+
+the operational valuation of the live set is:
+
+```math
+V(t)=
+N(t)p_{\mathrm{box}}(t)
++
+S(t)p_{\mathrm{byte}}(t)
+```
+
+A price change revalues capacity already allocated by:
+
+```math
+\Delta_P=
+N(t)\Delta p_{\mathrm{box}}
++
+S(t)\Delta p_{\mathrm{byte}}
+```
+
+No application transaction created or removed capacity in this transition. Any
+mechanism that applies new prices to live allocations must therefore identify who
+funds an increase, who receives a decrease, and what invariant keeps the resulting
+accounting solvent.
+
+This operational model now provides the basis for evaluating Cardano's chosen
+representation.
+
+### 2.4 Quantifying the bound: is current protection sufficient?
+
+Section 2.3 provides the formal quantities needed to evaluate the current mechanism.
+The first question is mathematical: what ceilings follow from finite ada and the
+weighted quantity $U(t)=160N(t)+S(t)$? The second is empirical: are those ceilings,
+the current price, and the implied attack cost compatible with measured node limits?
+A finite ceiling is necessary, but finiteness alone does not establish that the bound
+is operationally safe.
+
+#### 2.4.1 A hierarchy of theoretical bounds
+
+The word *size* can mean the number of live UTxOs, their aggregate serialised size,
+the weighted accounting quantity $U(t)=160N(t)+S(t)$, or the physical resources used
+by nodes. The current mechanism places an economic ceiling on the weighted quantity.
+That ceiling implies extreme one-dimensional ceilings for $N(t)$ and $S(t)$, but it
+does not independently constrain those dimensions or directly bound RAM, disk
+footprint, lookup cost, or I/O. The hierarchy below therefore establishes what is
+mathematically unreachable; calibration must still establish whether the reachable
+region is operationally safe.
+
+For any ada budget $A$ available to fund live outputs, the minimum-ada rule implies:
+
+```math
+p\,U(t)=p\left(160N(t)+S(t)\right)\leq A
+```
+
+and therefore:
+
+```math
+U(t)\leq U_{\max}(A,p)=\left\lfloor\frac{A}{p}\right\rfloor
+```
+
+The following hierarchy progressively tightens $A$. It then projects the resulting
+weighted ceiling onto the entry-count axis by using the deliberately loose case
+$S(t)=0$. These are consequently entry-count projections of the current scalar
+model—not independently chosen operational values of $N_{\max}$.
+
+##### 2.4.1.1 Ledger compartments
 
 There is no single useful ceiling. A progressively tighter argument must account for
 which ada can actually reside in transaction outputs at a given point in time. Let:
 
-- $S_{\max}$ be the maximum supply;
+- $A_{\max}$ be the maximum ada supply;
 - $R(t)$ be ada that remains in the monetary reserves;
 - $T(t)$ be the treasury balance;
 - $W(t)$ be aggregate reward-account balances;
@@ -320,10 +627,10 @@ At a simplified whole-ledger level, these compartments give:
 
 ```math
 \begin{aligned}
-S_{\mathrm{issued}}(t)
-  &= S_{\max} - R(t) \\
+A_{\mathrm{issued}}(t)
+  &= A_{\max} - R(t) \\
 A_{\mathrm{UTxO}}(t)
-  &= S_{\mathrm{issued}}(t)
+  &= A_{\mathrm{issued}}(t)
      - T(t) - W(t) - D(t) - F(t)
 \end{aligned}
 ```
@@ -333,47 +640,47 @@ era boundary. The important point is structural: ada outside transaction outputs
 cannot fund minimum ada inside those outputs.
 
 For a concrete application, the
-[mainnet totals at epoch 647](https://api.koios.rest/api/v1/totals?_epoch_no=647) report the
+[mainnet totals at epoch 648](https://api.koios.rest/api/v1/totals?_epoch_no=648) report the
 following ledger compartments (rounded to three decimal places):
 
-| Compartment | Epoch-647 balance |
+| Compartment | Epoch-648 balance |
 |---|---:|
-| Maximum supply, $S_{\max}$ | 45.000 billion ada |
-| Reserves, $R$ | 6.206 billion ada |
-| Treasury, $T$ | 1.446 billion ada |
-| Reward accounts, $W$ | 0.832 billion ada |
-| Protocol deposits, $D$ | 0.00584 billion ada |
-| Fee pot, $F$ | 0.000031 billion ada |
+| Maximum supply, $A_{\max}$ | 45.000 billion ada |
+| Reserves, $R$ | 6.196 billion ada |
+| Treasury, $T$ | 1.450 billion ada |
+| Reward accounts, $W$ | 0.798 billion ada |
+| Protocol deposits, $D$ | 0.00543 billion ada |
+| Fee pot, $F$ | 0.000029 billion ada |
 
 Applying the accounting identity gives:
 
 ```math
 \begin{aligned}
-S_{\mathrm{issued}}
-  &= 45.000 - 6.206 \\
-  &= 38.794\ \text{billion ada} \\
+A_{\mathrm{issued}}
+  &= 45.000 - 6.196 \\
+  &= 38.804\ \text{billion ada} \\
 A_{\mathrm{UTxO}}
-  &= 38.794 - 1.446 - 0.832 - 0.00584 - 0.000031 \\
-  &= 36.509\ \text{billion ada}
+  &= 38.804 - 1.450 - 0.798 - 0.00543 - 0.000029 \\
+  &= 36.550\ \text{billion ada}
 \end{aligned}
 ```
 
-Approximately **8.491 billion ada**, or **18.9% of maximum supply**, therefore
+Approximately **8.450 billion ada**, or **18.8% of maximum supply**, therefore
 cannot back transaction outputs at that snapshot. The reserve alone contributes
-6.206 billion ada—approximately **73.1% of that exclusion**.
+6.196 billion ada—approximately **73.3% of that exclusion**.
 
 Delegated ada is **not** subtracted. Cardano delegation does not transfer the ada
 into a staking contract or separate staking account; the delegated value remains in
 the owner's UTxOs. Likewise, ada controlled by a script still belongs to the UTxO
 set. Economic illiquidity and absence from the UTxO set are different concepts.
 
-##### 2.2.5.2 Maximum-supply ceiling
+##### 2.4.1.2 Maximum-supply ceiling
 
 The [mainnet Shelley genesis configuration](https://github.com/input-output-hk/cardano-configurations/blob/master/network/mainnet/genesis/shelley.json#L60)
 caps the ada supply at 45 quadrillion lovelace, or 45 billion ada:
 
 ```math
-S_{\max} = 45{,}000{,}000{,}000{,}000{,}000\ \mathrm{lovelace}
+A_{\max} = 45{,}000{,}000{,}000{,}000{,}000\ \mathrm{lovelace}
 ```
 
 Let $p = 4{,}310\ \mathrm{lovelace/byte}$ and let
@@ -382,9 +689,9 @@ the non-zero serialised size of an output gives the loosest possible entry-count
 ceiling:
 
 ```math
-N_{\max}^{\mathrm{absolute}}
+N_{\mathrm{ceiling}}^{\mathrm{absolute}}
 \leq
-\left\lfloor \frac{S_{\max}}{p h} \right\rfloor
+\left\lfloor \frac{A_{\max}}{p h} \right\rfloor
 = 65{,}255{,}220{,}417
 ```
 
@@ -393,30 +700,30 @@ all future reserve distributions, but assumes that every lovelace—including ad
 yet issued—is available to fund outputs. It is therefore mathematically valid and
 operationally remote.
 
-##### 2.2.5.3 Issued-supply ceiling
+##### 2.4.1.3 Issued-supply ceiling
 
 At time $t$, reserves have not yet entered circulation and cannot back UTxOs. A
 tighter time-dependent ceiling is therefore:
 
 ```math
-N_{\max}^{\mathrm{issued}}(t)
+N_{\mathrm{ceiling}}^{\mathrm{issued}}(t)
 \leq
 \left\lfloor
-  \frac{S_{\max}-R(t)}{p h}
+  \frac{A_{\max}-R(t)}{p h}
 \right\rfloor
 ```
 
-At epoch 647 this becomes:
+At epoch 648 this becomes:
 
 ```math
 \begin{aligned}
-N_{\max}^{\mathrm{issued}}
+N_{\mathrm{ceiling}}^{\mathrm{issued}}
 &\leq
 \left\lfloor
-  \frac{38{,}793{,}748{,}392.725155\ \mathrm{ada}}
+  \frac{38{,}803{,}572{,}882.173527\ \mathrm{ada}}
        {0.6896\ \mathrm{ada/UTxO}}
 \right\rfloor \\
-&= 56{,}255{,}435{,}604\ \mathrm{UTxOs}
+&= 56{,}269{,}682{,}253\ \mathrm{UTxOs}
 \end{aligned}
 ```
 
@@ -424,36 +731,36 @@ This removes ada that does not yet exist as ledger value outside the reserve pot
 still overstates the amount available to outputs because issued ada is also held in
 non-UTxO ledger compartments.
 
-##### 2.2.5.4 UTxO-resident-ada ceiling
+##### 2.4.1.4 UTxO-resident-ada ceiling
 
 At a fixed ledger snapshot, the number of live outputs is bounded by the ada currently
 resident in those outputs. The tighter instantaneous ceiling is consequently:
 
 ```math
 \begin{aligned}
-N_{\max}^{\mathrm{UTxO}}(t)
+N_{\mathrm{ceiling}}^{\mathrm{UTxO}}(t)
 &\leq
 \left\lfloor
   \frac{A_{\mathrm{UTxO}}(t)}{p h}
 \right\rfloor \\
 &=
 \left\lfloor
-  \frac{S_{\max}-R(t)-T(t)-W(t)-D(t)-F(t)}{p h}
+  \frac{A_{\max}-R(t)-T(t)-W(t)-D(t)-F(t)}{p h}
 \right\rfloor
 \end{aligned}
 ```
 
-Using the epoch-647 UTxO-resident balance gives:
+Using the epoch-648 UTxO-resident balance gives:
 
 ```math
 \begin{aligned}
-N_{\max}^{\mathrm{UTxO}}
+N_{\mathrm{ceiling}}^{\mathrm{UTxO}}
 &\leq
 \left\lfloor
-  \frac{36{,}509{,}015{,}447.189975\ \mathrm{ada}}
+  \frac{36{,}550{,}320{,}207.145109\ \mathrm{ada}}
        {0.6896\ \mathrm{ada/UTxO}}
 \right\rfloor \\
-&= 52{,}942{,}307{,}783\ \mathrm{UTxOs}
+&= 53{,}002{,}204{,}476\ \mathrm{UTxOs}
 \end{aligned}
 ```
 
@@ -462,7 +769,7 @@ Every valid `TxOut` has a non-zero serialised size. If $q_{\min}$ is the smalles
 serialised output admitted by the current era, the stronger form is:
 
 ```math
-N_{\max}^{\mathrm{valid}}(t)
+N_{\mathrm{ceiling}}^{\mathrm{valid}}(t)
 \leq
 \left\lfloor
   \frac{A_{\mathrm{UTxO}}(t)}
@@ -487,9 +794,9 @@ scenario rather than a claimed minimum. Its required ada is 1.1206 ada, giving:
 N_{100\mathrm{B}}
 &\leq
 \left\lfloor
-  \frac{36{,}509{,}015{,}447.189975}{1.1206}
+  \frac{36{,}550{,}320{,}207.145109}{1.1206}
 \right\rfloor \\
-&= 32{,}579{,}881{,}712\ \mathrm{UTxOs}
+&= 32{,}616{,}741{,}216\ \mathrm{UTxOs}
 \end{aligned}
 ```
 
@@ -498,21 +805,55 @@ The successive refinements therefore change the headline number materially:
 | Bound | Available ada | Maximum entry count |
 |---|---:|---:|
 | Maximum supply; 160-byte overhead only | 45.000B | 65.255B |
-| Issued supply; 160-byte overhead only | 38.794B | 56.255B |
-| UTxO-resident ada; 160-byte overhead only | 36.509B | 52.942B |
-| UTxO-resident ada; illustrative 100-byte output | 36.509B | 32.580B |
+| Issued supply; 160-byte overhead only | 38.804B | 56.270B |
+| UTxO-resident ada; 160-byte overhead only | 36.550B | 53.002B |
+| UTxO-resident ada; illustrative 100-byte output | 36.550B | 32.617B |
 
 The hierarchy can be summarised as:
 
 ```math
 N_{\mathrm{actual}}(t)
-\leq N_{\max}^{\mathrm{valid}}(t)
-\leq N_{\max}^{\mathrm{UTxO}}(t)
-\leq N_{\max}^{\mathrm{issued}}(t)
-\leq N_{\max}^{\mathrm{absolute}}
+\leq N_{\mathrm{ceiling}}^{\mathrm{valid}}(t)
+\leq N_{\mathrm{ceiling}}^{\mathrm{UTxO}}(t)
+\leq N_{\mathrm{ceiling}}^{\mathrm{issued}}(t)
+\leq N_{\mathrm{ceiling}}^{\mathrm{absolute}}
 ```
 
-##### 2.2.5.5 How reserve depletion moves the ceiling
+##### 2.4.1.5 Ada-budget orders of magnitude
+
+The ada order of magnitude is easier to see by writing the current price directly in
+ada. At $p=4{,}310$ lovelace per unit:
+
+```math
+D(N,S)=0.6896N+0.00431S_{\mathrm{bytes}}\quad\text{ada}
+```
+
+One additional box therefore accounts for 0.6896 ada before its serialised content;
+each additional content byte accounts for 0.00431 ada. For illustrative 100-byte
+outputs, each complete allocation requires 1.1206 ada:
+
+| Illustrative live outputs | Capacity backing | Percentage of 45B ada maximum supply |
+|---:|---:|---:|
+| 1 million | 1.121 million ada | 0.0025% |
+| 10 million | 11.206 million ada | 0.0249% |
+| 100 million | 112.060 million ada | 0.2490% |
+| 1 billion | 1.121 billion ada | 2.4902% |
+| 10 billion | 11.206 billion ada | 24.9022% |
+
+Viewed on the size axis alone, one decimal gigabyte accounts for 4.31 million ada,
+100 GB for 431 million ada, and one TB for 4.31 billion ada—respectively 0.0096%,
+0.9578%, and 9.5778% of maximum supply. The epoch-648 UTxO-resident numerator of
+36.550 billion ada is 81.22% of maximum supply and corresponds to 8.480 trillion
+priced units, or 8.480 TB on the scalar size axis.
+
+These figures are economic ceilings, not measured safety limits. In particular,
+$A_{\mathrm{UTxO}}$ is not a protocol-owned capacity reserve: it is ordinary
+application value already resident in outputs. The current rule treats it as the
+potential funding numerator because owners can consume and rearrange those outputs.
+It does not identify how much ada is presently serving only the minimum-ada role;
+that quantity requires a census of the live set.
+
+##### 2.4.1.6 How reserve depletion moves the ceiling
 
 The reserve is not a static subtraction. Cardano's monetary expansion parameter
 $\rho$ determines the maximum fraction of the remaining reserve that can enter the
@@ -528,17 +869,17 @@ R_n = R_0(1-\rho)^n
 Substituting this trajectory into the issued-supply ceiling gives:
 
 ```math
-N_{\max}^{\mathrm{issued}}(n)
+N_{\mathrm{ceiling}}^{\mathrm{issued}}(n)
 \leq
 \left\lfloor
-  \frac{S_{\max}-R_0(1-\rho)^n}{p h}
+  \frac{A_{\max}-R_0(1-\rho)^n}{p h}
 \right\rfloor
 ```
 
 This function rises asymptotically: reserve depletion relaxes the economic ceiling
 on UTxO count, but can never raise it above the maximum-supply ceiling. Using the
-epoch-647 reserve balance of **6.206 billion ada** reported by the live
-[mainnet ledger totals](https://api.koios.rest/api/v1/totals?_epoch_no=647) as $R_0$, and retaining
+epoch-648 reserve balance of **6.196 billion ada** reported by the live
+[mainnet ledger totals](https://api.koios.rest/api/v1/totals?_epoch_no=648) as $R_0$, and retaining
 the deliberately loose 160-byte denominator, the issued-supply ceiling begins at
 approximately **56.3 billion UTxOs** and approaches **65.3 billion**.
 
@@ -561,7 +902,7 @@ refining the denominator accounts for the smallest valid output. Neither refinem
 shows that nodes could safely serve a UTxO set approaching the resulting bound. A
 finite economic ceiling is not by itself a safe resource target.
 
-#### 2.2.6 How should `coinsPerUTxOByte` be adjusted?
+#### 2.4.2 Is current pricing calibrated?
 
 Changing $p = \mathrm{coinsPerUTxOByte}$ tunes one trade-off: a higher value
 makes UTxO growth more expensive for attackers and legitimate users alike. For an
@@ -570,14 +911,14 @@ output with billable size $b$ and an ada budget $A$:
 ```math
 \mathrm{minUTxO}=p b
 \qquad\text{and}\qquad
-N_{\max}=\left\lfloor\frac{A}{p b}\right\rfloor
+N_b(A,p)=\left\lfloor\frac{A}{p b}\right\rfloor
 ```
 
 For the 260 billable-byte example used above, the minimum is 0.78 ada at $p=3{,}000$,
 1.1206 ada at the current $p=4{,}310$, and 1.69 ada at $p=6{,}500$. Parameter tuning
 changes incidence and attack cost; it does not fix the abstraction leak.
 
-##### 2.2.6.1 Current rules
+##### 2.4.2.1 Current rules
 
 The Constitution classifies `utxoCostPerByte`—the governance name for this
 parameter—as [critical to blockchain operation](https://cardano.org/constitution/#2-1-critical-protocol-parameters).
@@ -602,16 +943,29 @@ These are criteria, not a formula. In 2024, the Parameter Committee therefore
 it expected the parameter eventually to fall, but deferred calibration until on-disk
 UTxO storage provided a clearer resource model.
 
-##### 2.2.6.2 Calibration test
+##### 2.4.2.2 Calibration test
 
-Let $H_B$ be the additional billable UTxO state nodes can safely absorb, derived from
-benchmarked RAM, disk, and I/O headroom. Let $C_{\min}$ be the minimum ada an attack
-must immobilise, $L_{\max}$ the largest acceptable deposit for a representative
-output of size $b_{\mathrm{ref}}$, and $g_B$ the maximum state-growth rate per epoch.
+Calibration must first test whether the current scalar model protects the
+two-dimensional envelope from section 2.3.1. The reachable region
+$160N+S\leq U_{\max}$ remains inside $C_{\max}=(N_{\max},S_{\max})$ only if:
+
+```math
+U_{\max}\leq\min\left(160N_{\max},S_{\max}\right)
+```
+
+If independently benchmarked limits do not support that containment at the fixed
+160-to-1 exchange rate, changing $p$ cannot make the weighting itself correct; the
+two resource dimensions must be priced or bounded separately.
+
+Within the current scalar model, let $H_U$ be the additional weighted capacity units
+that nodes can safely absorb after translating benchmarked RAM, disk, lookup, and I/O
+headroom into $U$ units. Let $C_{\min}$ be the minimum ada an attack must immobilise,
+$L_{\max}$ the largest acceptable deposit for a representative output of billable
+size $b_{\mathrm{ref}}$, and $g_U$ the maximum growth in weighted capacity per epoch.
 The admissible interval is:
 
 ```math
-\max\left(3{,}000,\frac{C_{\min}}{H_B}\right)
+\max\left(3{,}000,\frac{C_{\min}}{H_U}\right)
 \leq p \leq
 \min\left(6{,}500,\frac{L_{\max}}{b_{\mathrm{ref}}}\right)
 ```
@@ -619,7 +973,7 @@ The admissible interval is:
 The associated fastest exhaustion time is:
 
 ```math
-T_{\mathrm{fill}}=\frac{H_B}{g_B}
+T_{\mathrm{fill}}=\frac{H_U}{g_U}
 ```
 
 Governance must choose the security and UX targets; benchmarks supply the remaining
@@ -628,7 +982,61 @@ objectives and the mechanism itself must change. Ada's fiat price belongs in the
 sensitivity analysis, not as the sole input, because node-resource prices do not
 track it.
 
-##### 2.2.6.3 Limits of the pricing model
+##### 2.4.2.3 What standard SPO hardware establishes
+
+The current mainnet guidance recommends at least two CPU cores, 24 GB of RAM for the
+`InMemory` backend, 8 GB for the `OnDisk` backend—with that figure still marked as
+pending confirmation—and 250 GB of free storage, with 350 GB recommended for future
+growth [[7]](#ref-7). These figures define the machine against which $N_{\max}$ and
+$S_{\max}$ must be measured. They do not themselves state either limit.
+
+Simple fit calculations can locate a benchmark search range, but cannot substitute
+for latency measurements. A representative 100-byte output contributes 260 priced
+units. Treating those units as bytes, allocating all 24 GB to the UTxO set would give
+an optimistic 92-million-entry fit; reserving half the RAM for the rest of the node
+would give approximately 46 million. Both figures ignore Haskell object overhead,
+garbage collection, caches, rollback states, and other ledger structures. They support
+only an order-of-magnitude hypothesis of $10^7$–$10^8$ entries for `InMemory`, not a
+defensible $N_{\max}$.
+
+For an on-disk design, the UTxO-HD storage analysis estimates that a write-optimised
+LSM representation may occupy 1.3–1.4 times its logical table size and uses a table of
+100 million 100-byte entries in its cost model [[8]](#ref-8). If the full recommended
+350 GB disk were dedicated to such a table, division by 1.4 would leave approximately
+250 GB of logical data, or 2.5 billion 100-byte entries. That is also an optimistic
+fit bound: the same disk must retain the chain database and other state, preserve free
+space for compaction and growth, and meet lookup, rollback, and synchronisation
+deadlines. A benchmark search range of $10^8$–$10^9$ entries is therefore useful for
+`OnDisk`; it is not a measured safety guarantee.
+
+The same analysis evaluates I/O throughput rather than a maximum table size. For a
+write-optimised design it estimates approximately 5.7k IOPS for a threshold scenario
+of 20 TPS and 100-times synchronisation, 14.6k IOPS for 50 TPS at the same sync rate,
+and 571k IOPS for a 200-TPS, 1,000-times-sync stretch scenario. It treats roughly 10k
+serial or 100k parallel IOPS as minimum-SSD capability and concludes that stretch
+targets require higher-performance hardware. Current UTxO-HD documentation also
+states that the existing on-disk backend incurs a performance regression and is not
+yet the optimised LSM design [[9]](#ref-9).
+
+The contrast with the economic extremes is material. The epoch-648 scalar ceiling is
+8.480 trillion priced units: approximately 353 times 24 GB and 24 times the 350-GB
+storage recommendation if priced units are used only as an accounting-size proxy.
+Its count-axis projection is 53.0 billion entries. Because `160` is a historical
+resource approximation rather than a measurement of the current physical layout,
+these ratios do not predict exact node consumption. They do establish that the
+supply-derived ceiling and the relevant hardware search ranges differ by orders of
+magnitude.
+
+| Dimension | Initial benchmark search range | Epoch-648 economic extreme | Approximate gap |
+|---|---:|---:|---:|
+| `InMemory` entry count | $10^7$–$10^8$ | $5.3\times10^{10}$ | 530–5,300× |
+| `OnDisk` entry count | $10^8$–$10^9$ | $5.3\times10^{10}$ | 53–530× |
+| Logical size | tens to a few hundreds of GB | 8.480 TB of priced units | at least tens of times |
+
+The first column is deliberately labelled a search range. Only benchmarks against
+explicit deadlines can promote any point in it to $N_{\max}$ or $S_{\max}$.
+
+##### 2.4.2.4 Limits of the pricing model
 
 Calibration cannot remove two structural limitations of the price itself. First,
 $p$ is denominated in ada while node memory, storage, and I/O are purchased in other
@@ -642,14 +1050,14 @@ five minutes or five years. A long-lived owner bears a greater opportunity cost,
 the protocol neither collects nor adjusts the deposit over time. Work on state-aware
 fee design argues that both additional bytes and their lifetime matter [[1]](#ref-1).
 
-These limitations concern how persistent state is priced. Section 2.3.3 shows how
-ada-price volatility reaches historical outputs; Section 2.3 addresses the broader
+These limitations concern how persistent state is priced. Section 2.5.3 shows how
+ada-price volatility reaches historical outputs; Section 2.5 addresses the broader
 architectural question of why that price is exposed inside every output.
 
-##### 2.2.6.4 Required evidence
+##### 2.4.2.5 Required evidence
 
 A proposal should publish the current UTxO footprint and growth rate, UTxO-size
-distribution, node RAM/disk/I/O benchmarks, the chosen $H_B$, $C_{\min}$ and
+distribution, node RAM/disk/I/O benchmarks, the chosen $H_U$, $C_{\min}$ and
 $L_{\max}$ targets, worst-case attack cost and fill time, and the change in deposits
 for representative transactions. It must also include the
 [monitoring and reversion plan required by the Constitution](https://cardano.org/constitution/#2-6-monitoring-and-reversion-of-parameter-changes).
@@ -662,22 +1070,18 @@ No such calibration has been published for the current value. As section 2.2.2
 records, 4,310 descends by unit conversion from a 1-ada floor selected against a
 worst-case UTxO-growth bound and an assessment of how many transactions it would
 affect. That is a defensible basis for the original decision, but it fixes neither of
-the terms this section requires: it does not measure $H_B$, the state nodes can
+the terms this section requires: it does not measure $H_U$, the weighted capacity nodes can
 absorb, nor $C_{\min}$, the cost an attack must bear. Both were last argued against a
 memory-resident ledger, which is the assumption the UTxO-HD question above puts in
 doubt.
 
-This calibration analysis is necessary context, but it is not the core problem
-addressed by this CPS. Even a perfectly calibrated
-`coinsPerUTxOByte` would preserve the same interface: every output would still carry
-its own state deposit, wallets and applications would still have to model it, and the
-reserved ada would still become value controlled through the output.
+These tests distinguish two questions. The current mechanism proves that the weighted
+quantity cannot grow without limit; measurement and calibration are required to show
+that its reachable region is operationally safe. Even a perfectly calibrated price,
+however, would preserve the same interface. Section 2.5 therefore turns from the
+quantity of protection to the abstraction through which that protection is exposed.
 
-The central problem is therefore the design of the mechanism and the side effects
-that this design propagates throughout the ecosystem. The next section describes
-this as an **abstraction leak**.
-
-### 2.3 The core problem: accidental complexity from an abstraction leak
+### 2.5 The core problem: accidental complexity from an abstraction leak
 
 This section states the core problem addressed by this CPS. Bounding persistent
 ledger state is
@@ -735,16 +1139,6 @@ mechanism is materialised through application outputs. Builders must calculate t
 requirement, source the ada, distribute it between outputs, rebalance change, and
 preserve sufficient ada through later state transitions.
 
-The obligation is present in every live UTxO, including those later consumed as
-transaction inputs. In the current representation it has no separate identity: the
-same `TxOut.Value` simultaneously carries application value and satisfies the
-operational requirement established when the UTxO was created. Consuming one UTxO
-and creating two therefore ends one operational obligation and begins two new ones,
-but the transaction builder experiences that lifecycle only as ada reallocation
-between application outputs.
-
-![One transaction consumes a UTxO and creates two; all three hide an operational obligation inside application value, while a conceptual decomposition exposes the independent application and operational transitions.](./images/06-hidden-operational-cost.svg)
-
 > **The abstraction leak:** an operational resource constraint borne by node
 > operators, including SPOs, becomes a per-output funding mechanism that transaction
 > builders must implement inside application value. Upper layers should fund the
@@ -774,11 +1168,11 @@ in outputs and carried through their lifecycle.
 
 The following sections describe five observable consequences of that boundary
 violation. The lack of a duration component remains a separate limitation of the
-pricing model, discussed in section 2.2.6.3 and as an open question in section 5.2.
+pricing model, discussed in section 2.4.2.4 and as an open question in section 5.2.
 
 ![A necessary bound on persistent state becomes accidental ecosystem complexity when each output must carry required ada; the abstraction leak produces five direct consequences.](./images/03-abstraction-gap.svg)
 
-#### 2.3.1 Ada coupling of native-asset transfers
+#### 2.5.1 Ada coupling of native-asset transfers
 
 *Primary leak: application value must carry an output-local state obligation.*
 
@@ -799,7 +1193,7 @@ This is more precise than calling the rule value-blind. A state price can legiti
 depend on bytes rather than the economic value transferred. The abstraction leak is
 that this price changes the value-transfer interface itself.
 
-#### 2.3.2 Operational funding has no explicit settlement rule
+#### 2.5.2 Operational funding has no explicit settlement rule
 
 *Primary leak: application-value ownership implicitly determines the treatment of an
 operational obligation.*
@@ -837,7 +1231,7 @@ independent of accidental application-value ownership. Keeping depositor identit
 of the base mechanism preserves flexibility for transactions, scripts, and higher-level
 protocols to decide how the benefit of a release is used.
 
-#### 2.3.3 The output fixes an ada amount while its real value floats
+#### 2.5.3 The output fixes an ada amount while its real value floats
 
 *Primary leak: a global resource policy is materialised as a nominal ada amount in
 each historical output.*
@@ -879,7 +1273,7 @@ by orders of magnitude:
 | `1 ada = $0.001` | 0.001 USD | The user burden falls, but so does the fiat-denominated cost of creating persistent state, even though node resource use is unchanged. |
 
 Neither price movement changes the output's size, its nominal minimum ada, or the
-finite-supply entry-count ceiling. It changes the economic incidence and the real
+finite-supply weighted-capacity ceiling. It changes the economic incidence and the real
 cost of attacking that ceiling. Governance can respond by adjusting
 `coinsPerUTxOByte`, but that intervention is discrete and prospective; market pricing
 is continuous, and historical outputs keep the ada amount already materialised in
@@ -922,7 +1316,7 @@ assets or application state can be **operationally stranded**: the intended stat
 transition cannot produce a valid replacement output. This is especially relevant to
 script workflows that require a continuing output of a prescribed form.
 
-#### 2.3.4 A second transaction-cost concept leaks into the user model
+#### 2.5.4 A second transaction-cost concept leaks into the user model
 
 *Primary leak: builders must implement per-output resource accounting in addition to
 funding the transaction.*
@@ -956,7 +1350,7 @@ This CPS does not assume that persistent-state protection should necessarily be 
 into the transaction fee. It identifies the accidental complexity created by exposing
 it as a second, per-output economic concept throughout the user and application model.
 
-#### 2.3.5 Reduced liquid reusability
+#### 2.5.5 Reduced liquid reusability
 
 *Primary leak: state funding is fragmented across application-controlled outputs.*
 
@@ -982,94 +1376,18 @@ delegated stake without being moved. An enterprise address has no staking creden
 and therefore no staking rights. The leak is reduced **liquid** reusability, not a
 universal loss of staking rewards.
 
-### 2.4 The underlying operational logic
+### 2.6 Accounting implications for alternatives
 
-The preceding sections describe a particular implementation: Cardano represents the
-state-growth constraint as a minimum amount of ada inside every `TxOut.Value`. This
-section abstracts away from that representation to identify the operational logic
-the mechanism is intended to realise. It is neither a description of additional
-current ledger state nor a proposed solution.
+The preceding analysis separates the operational lifecycle, the adequacy of its
+current economic bound, and the interface through which that bound is exposed. This
+section derives the accounting questions that alternatives must
+answer. The equations are an evaluation framework, not a proposal to add these exact
+fields or counters to the ledger.
 
-The distinction is between **representation** and **semantics**. Ada embedded in an
-output is the current representation. Allocating a finite resource, retaining that
-allocation while an output remains live, releasing it on consumption, and pricing
-the allocation through time are the underlying semantics. Any implementation of the
-same policy must account for those operations, even if it represents them differently.
+#### 2.6.1 Transaction-level funding
 
-#### 2.4.1 A UTxO consumes a box and the space inside it
-
-A scalar notion of capacity hides two distinct resource dimensions. Every live UTxO
-first consumes one entry in the global set: the **box**. Its serialized representation
-then consumes a variable amount of space: the **object inside the box**. The capacity
-of output $o$ can therefore be represented as a vector:
-
-```math
-c(o) = (1, s(o))
-```
-
-where the first component is one live UTxO entry and $s(o)$ is the billable size of
-its contents. The fixed component matters even for a minimal output: nodes must still
-index, locate, and serve a distinct entry. Addresses, multi-assets, datums, and
-reference scripts then increase the variable component.
-
-At the whole-ledger level, let:
-
-```math
-N(t) = |\mathrm{UTxO}(t)|
-\qquad\text{and}\qquad
-S(t) = \sum_{o \in \mathrm{UTxO}(t)} s(o)
-```
-
-A capacity policy may consequently reason about two limits rather than one
-undifferentiated scalar:
-
-```math
-N(t) \leq N_{\max}
-\qquad\text{and}\qquad
-S(t) \leq S_{\max}
-```
-
-This is an analytical decomposition, not a claim that the current ledger maintains
-explicit `Nmax` or `Smax` counters. Cardano's existing formula already combines a
-fixed output overhead with variable serialized size, but prices both through one
-`coinsPerUTxOByte` parameter.
-
-The corresponding price is also a vector:
-
-```math
-p(t) = (p_{\mathrm{box}}(t), p_{\mathrm{byte}}(t))
-```
-
-The current operational value of one allocation is then:
-
-```math
-D(o,t) = p_{\mathrm{box}}(t) + s(o) \times p_{\mathrm{byte}}(t)
-```
-
-Every live UTxO has both components, including a large-ada input whose operational
-role is hidden inside apparently ordinary application value. The output determines
-the resources occupied, but only a transaction changes their aggregate allocation.
-For transaction $tx$:
-
-```math
-\Delta_N(tx) =
-|\mathrm{outputs}(tx)| - |\mathrm{inputs}(tx)|
-```
-
-```math
-\Delta_S(tx) =
-\sum_{o \in \mathrm{outputs}(tx)} s(o)
--
-\sum_{i \in \mathrm{inputs}(tx)} s(i)
-```
-
-The operational transition is the vector:
-
-```math
-\Delta_C(tx) = (\Delta_N(tx), \Delta_S(tx))
-```
-
-At fixed prices, its funding transition is:
+At fixed prices, an alternative can translate the operational delta from section
+2.3.3 into one transaction-level funding delta:
 
 ```math
 \Delta_D(tx) =
@@ -1078,51 +1396,78 @@ p_{\mathrm{box}}(t)\Delta_N(tx)
 p_{\mathrm{byte}}(t)\Delta_S(tx)
 ```
 
-A positive value requires an additional deposit; a negative value releases a refund.
-The refund may be treated as a bearer claim: whoever validly consumes the output
-releases its allocation and receives the associated deposit. Per-output measurement
-remains necessary to derive the transaction aggregate. It does not follow that each
-output must carry the funding mechanism inside application value.
+A positive value means that the transaction allocates more priced capacity than it
+releases and must supply additional backing. A negative value means that it releases
+more than it allocates and may receive the difference. A zero value replaces
+equivalently priced capacity.
 
-#### 2.4.2 Price changes revalue capacity already allocated
+This arithmetic does not determine ownership semantics. A release could return to an
+identified funder, follow a credential, be non-refundable, or be credited to the
+transaction that reduces the common burden. The CPS requires that choice to be
+explicit. It does not require the original payer and release beneficiary to be the
+same party.
 
-Transaction deltas are only one side of the model. Governance may change either the
-price of a live entry or the price of its variable content while outputs remain live.
-If prices move from $(p_{\mathrm{box},0},p_{\mathrm{byte},0})$ to
-$(p_{\mathrm{box},1},p_{\mathrm{byte},1})$, the backing required for the existing
-live set changes by:
+#### 2.6.2 Conservation and reserve solvency
 
-```math
-\Delta_P =
-N(t)(p_{\mathrm{box},1}-p_{\mathrm{box},0})
-+
-S(t)(p_{\mathrm{byte},1}-p_{\mathrm{byte},0})
-```
-
-This revaluation applies to capacity already allocated. It is not caused by an
-application transaction. Under the current design there is no operational balance
-sheet on which to settle it: the result of $p_0$ has already been materialised as
-ordinary ada in historical `TxOut.Value`s. An increase is pushed onto a future
-builder creating replacement outputs; a decrease leaves the previous amount under
-application control.
-
-Any adaptive mechanism must identify a counterparty for both directions. One possible
-model uses a capacity reserve backed at the current aggregate valuation:
+An allocation cannot be released unless it previously entered the live UTxO set. Let
+$C_{\mathrm{alloc}}(tx)$ be the capacity allocated by created outputs and
+$C_{\mathrm{release}}(tx)$ the capacity released by consumed inputs. The capacity
+transition is:
 
 ```math
-B(t) =
-N(t)p_{\mathrm{box}}(t)
-+
-S(t)p_{\mathrm{byte}}(t)
+C_{t+1}=C_t+C_{\mathrm{alloc}}(tx)-C_{\mathrm{release}}(tx)
 ```
 
-If $\Delta_P$ is positive, the treasury would transfer that amount into the reserve.
-If it is negative, the reserve would return $|\Delta_P|$ to the treasury. Live UTxOs
-would retain stable capacity vectors $(1,s(o))$; their current release values would
-be derived from the global price vector.
+Every released allocation is identified by an input referencing a currently unspent
+output. Whole-output consumption and unique out-refs ensure that the same allocation
+cannot be released twice. Capacity is therefore neither created by a release nor
+destroyed without a corresponding consumption or creation transition.
 
-This CPS does not prescribe treasury-backed revaluation. It uses the model to expose
-questions that the current representation hides. Any adaptive solution must state:
+For a refundable mechanism, let $q_t(o)$ be the release claim associated with live
+output $o$, and let $B_t$ be the internal reserve. Exact backing requires:
+
+```math
+B_t=\sum_{o\in\mathrm{UTxO}(t)}q_t(o)
+```
+
+For a transaction consuming inputs $I$ and creating outputs $O$:
+
+```math
+B_{t+1}
+=
+B_t
+-
+\sum_{i\in I}q_t(i)
++
+\sum_{o\in O}q_{t+1}(o)
+```
+
+If the invariant holds before the transaction, removing the claims of consumed
+outputs and adding the claims of created outputs preserves it afterward. The release
+owed for a valid input is already included in the reserve's liabilities and must be
+payable from the reserve. This guarantee requires the reserve to be isolated: no
+unrelated transition or accounting channel may withdraw backing owed to live
+allocations.
+
+The UTxO model supplies the uniqueness property; the reserve invariant supplies the
+payment guarantee. Neither requires the ledger to remember who originally funded an
+allocation.
+
+#### 2.6.3 Revaluation requires a counterparty
+
+Section 2.3.4 defines $\Delta_P$, the revaluation created when capacity prices change
+while allocations remain live. This transition needs a counterparty even though no
+application transaction created or removed capacity. Under the current design there
+is no operational balance sheet on which to settle it: the previous price has already
+been materialised as ordinary ada in historical `TxOut.Value`s. An increase is pushed
+onto a future builder creating replacement outputs; a decrease leaves the previous
+amount under application control.
+
+The CPS does not prescribe how to settle this revaluation. Any new price that changes
+$q_t(o)$ must be accompanied by an atomic reserve adjustment before releases are
+settled at that price; otherwise the invariant in section 2.6.2 no longer guarantees
+payment. This exposes the accounting questions that the current representation hides.
+Any adaptive solution must state:
 
 1. how entry count and variable content size are measured and bounded;
 2. how a transaction funds the net capacity it allocates;
@@ -1205,8 +1550,8 @@ economic reason to consume `o` when
 
 where the right-hand side is the incremental fee and operational cost of adding the
 input. The output can then remain in the UTxO set indefinitely despite the economic
-bound imposed at creation. This condition is measurable per output, which makes the
-quantification below concrete rather than anecdotal.
+bound imposed at creation. This condition is measurable per output, which allows its
+prevalence to be quantified rather than treated as anecdotal.
 
 Empirical analysis of Bitcoin, Bitcoin Cash, and Litecoin found the same general
 recoverability condition: outputs can remain live because spending them costs more
@@ -1285,14 +1630,19 @@ Ranked by importance.
    ration, and what bound does it imply? *(Depends on the UTxO-HD verification above.)*
 4. What is the cost to an adversary of inflating the UTxO set at various parameter
    values, and what set size actually degrades node operation?
+5. On the standard SPO machine, what values of $N_{\max}$ and $S_{\max}$ preserve
+   block-validation, rollback, restart, and synchronisation deadlines for both
+   `InMemory` and `OnDisk` backends? Fit-only estimates are insufficient.
+6. What is the largest complete serialised `TxOut` that can appear in a minimally
+   valid transaction in each era, and how does that indirect ceiling interact with
+   `maxValueSize`, datum, and reference-script limits?
 
 ### 5.2 Mechanism design
 
 1. Can accounting for ledger-state deposits be separated from the value carried by
-   outputs — for example through account-like protocol accounting — while preserving
-   payer attribution, local determinism, and a defensible bound on state growth? If
-   one party funds an output and another consumes it, to whom should any released
-   deposit belong?
+   outputs while preserving local determinism and a defensible bound on state growth?
+   Should released value follow an original payer, a credential, control of the
+   allocation, or the transaction that reduces the common burden?
 2. Can the cost of creating state be expressed as a function of the UTxO set *delta*
    in fees — charging for net entries created, rebating for entries consumed — and
    what are the second-order effects on coin selection and on batching? Karakostas,
@@ -1301,6 +1651,9 @@ Ranked by importance.
    than one that increases the UTxO set [[3]](#ref-3).
 3. Should storage be priced over time, and if so what happens to an output whose rent
    is exhausted? Any answer that permits deletion changes the ledger's guarantees.
+4. If new prices apply to capacity already allocated, should a treasury-backed reserve
+   fund upward revaluation and receive downward revaluation? What safeguards prevent
+   repricing from creating windfalls, and what solvency invariant must hold?
 
 ### 5.3 Migration and governance
 
@@ -1360,6 +1713,35 @@ Ranked by importance.
    `minAda(u) = max(minUTxOValue, ⌊minUTxOValue / adaOnlyUTxOSize⌋ × (utxoEntrySizeWithoutVal + size B))`.
    Its stated aim is to keep the ledger servable by nodes meeting the recommended
    hardware specification.
+
+<a id="ref-6"></a>
+
+6. Cardano Foundation, [*CIP-28: Protocol Parameters (Alonzo
+   Era)*](https://cips.cardano.org/cip/CIP-28) and
+   [*CIP-9: Protocol Parameters (Shelley Era)*](https://cips.cardano.org/cip/CIP-9).
+   `maxValueSize` limits the serialised `Value` in each output, while `maxTxSize`
+   limits the complete transaction and therefore provides only an indirect ceiling
+   on a complete output.
+
+<a id="ref-7"></a>
+
+7. Cardano Developer Portal, [*Minimum hardware requirements to run a stake
+   pool*](https://developers.cardano.org/docs/operate-a-stake-pool/hardware-requirements/),
+   mainnet recommendations as of May 2026.
+
+<a id="ref-8"></a>
+
+8. Duncan Coutts, [*Storing the Cardano ledger state on disk: requirements for a
+   high performance backend*](https://ouroboros-consensus.cardano.intersectmbo.org/assets/files/utxo-db-lsm-1f1ffaa7c42ba448665a3dbca4a9f554.pdf).
+   The analysis models table-operation and I/O requirements, estimates LSM physical
+   overhead, and compares threshold, middle, and stretch workloads with SSD IOPS.
+
+<a id="ref-9"></a>
+
+9. Ouroboros Consensus documentation, [*High Level Overview of
+   UTxO-HD*](https://ouroboros-consensus.cardano.intersectmbo.org/docs/references/miscellaneous/utxo-hd/).
+   The documentation distinguishes `InMemory` and `OnDisk` backends and records the
+   current on-disk performance regression.
 
 ## 7. Copyright
 
