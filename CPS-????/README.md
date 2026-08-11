@@ -40,10 +40,13 @@ License: CC-BY-4.0
       - [2.2.6.4 Required evidence](#2264-required-evidence)
   - [2.3 The core problem: accidental complexity from an abstraction leak](#23-the-core-problem-accidental-complexity-from-an-abstraction-leak)
     - [2.3.1 Ada coupling of native-asset transfers](#231-ada-coupling-of-native-asset-transfers)
-    - [2.3.2 No refund claim for the funder](#232-no-refund-claim-for-the-funder)
+    - [2.3.2 Operational funding has no explicit settlement rule](#232-operational-funding-has-no-explicit-settlement-rule)
     - [2.3.3 The output fixes an ada amount while its real value floats](#233-the-output-fixes-an-ada-amount-while-its-real-value-floats)
     - [2.3.4 A second transaction-cost concept leaks into the user model](#234-a-second-transaction-cost-concept-leaks-into-the-user-model)
     - [2.3.5 Reduced liquid reusability](#235-reduced-liquid-reusability)
+  - [2.4 The underlying operational logic](#24-the-underlying-operational-logic)
+    - [2.4.1 A UTxO consumes a box and the space inside it](#241-a-utxo-consumes-a-box-and-the-space-inside-it)
+    - [2.4.2 Price changes revalue capacity already allocated](#242-price-changes-revalue-capacity-already-allocated)
 - [3. Use Cases](#3-use-cases)
   - [3.1 Mass distribution and airdrops](#31-mass-distribution-and-airdrops)
   - [3.2 Micropayments and stablecoin transfers](#32-micropayments-and-stablecoin-transfers)
@@ -81,12 +84,12 @@ value-transfer interface. Every output must carry ada whose amount is derived fr
 global state-pricing parameter. That ada becomes ordinary output value rather than a
 separately accounted deposit or fee.
 
-The result is an abstraction leak. Native-asset transfers become coupled to ada; the
-party funding the requirement retains no refund claim; historical outputs fix a
-nominal ada amount while its policy and real-world value continue to move; users face
-a second transaction-cost concept; and ada committed to outputs is less freely
-reusable. Wallets and applications must model these effects to construct otherwise
-ordinary transfers.
+The result is an abstraction leak. Native-asset transfers become coupled to ada;
+control of operational funding is determined indirectly by output ownership rather
+than an explicit settlement rule; historical outputs fix a nominal ada amount while
+its policy and real-world value continue to move; users face a second transaction-cost
+concept; and ada committed to outputs is less freely reusable. Wallets and applications
+must model these effects to construct otherwise ordinary transfers.
 
 This CPS describes those UX, liquidity, and engineering consequences while accepting
 that persistent UTxO state must remain bounded under adversarial conditions.
@@ -732,6 +735,16 @@ mechanism is materialised through application outputs. Builders must calculate t
 requirement, source the ada, distribute it between outputs, rebalance change, and
 preserve sufficient ada through later state transitions.
 
+The obligation is present in every live UTxO, including those later consumed as
+transaction inputs. In the current representation it has no separate identity: the
+same `TxOut.Value` simultaneously carries application value and satisfies the
+operational requirement established when the UTxO was created. Consuming one UTxO
+and creating two therefore ends one operational obligation and begins two new ones,
+but the transaction builder experiences that lifecycle only as ada reallocation
+between application outputs.
+
+![One transaction consumes a UTxO and creates two; all three hide an operational obligation inside application value, while a conceptual decomposition exposes the independent application and operational transitions.](./images/06-hidden-operational-cost.svg)
+
 > **The abstraction leak:** an operational resource constraint borne by node
 > operators, including SPOs, becomes a per-output funding mechanism that transaction
 > builders must implement inside application value. Upper layers should fund the
@@ -786,28 +799,43 @@ This is more precise than calling the rule value-blind. A state price can legiti
 depend on bytes rather than the economic value transferred. The abstraction leak is
 that this price changes the value-transfer interface itself.
 
-#### 2.3.2 No refund claim for the funder
+#### 2.3.2 Operational funding has no explicit settlement rule
 
-*Primary leak: the obligation is embedded in value without preserving attribution.*
+*Primary leak: application-value ownership implicitly determines the treatment of an
+operational obligation.*
 
 Consider Alice sending a native asset to Bob. Alice creates Bob's output and supplies
-the required *m* ada. Once the transaction is confirmed, both the asset and the *m*
-ada belong to Bob's output. When Bob spends it, Bob controls where that ada goes.
+the required *m* ada. Once confirmed, both the asset and the *m* ada are ordinary value
+controlled by Bob's output. When Bob spends it, his transaction controls where that
+ada goes.
 
-The ada is not lost or protocol-locked: it remains ledger value. What is absent is a
-claim returning it to the party that supplied it. The ledger preserves the deposit
-as value but does not preserve a refund relationship between Alice and that deposit.
+The absence of a claim returning *m* to Alice is not necessarily a defect. Persistent
+UTxO capacity is a common resource maintained by node operators. A coherent policy may
+deliberately require the transaction that increases the common burden to fund it and
+reward the transaction that later reduces that burden, without recording the original
+funder's identity. Under such a rule the release is a bearer-like protocol incentive,
+not the return of property held in custody for a named depositor.
 
-![Alice supplies the minimum ada in Bob's output, but the ledger retains no refund claim for Alice.](./images/04-payer-beneficiary-flow.svg)
+The current mechanism does not express that policy either. It records no operational
+deposit, allocation, release condition, or beneficiary. Control passes to Bob only
+because the required ada was placed inside Bob's application value. The economic
+result resembles a release-to-consumer rule, but it arises from value ownership rather
+than an explicit common-resource settlement rule.
 
-| Stage | Conventional refundable deposit | Minimum ada in Bob's output |
+![The current mechanism makes control of operational funding follow application-value ownership; an explicit capacity rule could instead charge allocation and reward release without recording a personal depositor.](./images/04-payer-beneficiary-flow.svg)
+
+| Stage | Current minimum ada | Explicit common-resource rule |
 |---|---|---|
-| Funding | Alice supplies the deposit | Alice supplies the minimum ada |
-| Custody | Separate from the payment | Embedded in Bob's output |
-| Release | Returns to Alice | Controlled by Bob when he spends |
+| Increase burden | Creator puts ada in each new output | Allocating transaction funds its net capacity increase |
+| While live | Ada is ordinary application-controlled value | Funding is accounted for as protocol backing, without requiring a named owner |
+| Reduce burden | Consuming transaction controls the ada because it spends the output | Releasing transaction receives the protocol-defined release value |
+| Identity | Output ownership determines control indirectly | No original-payer identity is required unless a design deliberately introduces one |
 
-The distinction is especially material when one party creates outputs for many
-unrelated recipients.
+The design requirement is therefore not that every deposit return to its original
+funder. It is that allocation and release semantics be explicit, deterministic, and
+independent of accidental application-value ownership. Keeping depositor identity out
+of the base mechanism preserves flexibility for transactions, scripts, and higher-level
+protocols to decide how the benefit of a release is used.
 
 #### 2.3.3 The output fixes an ada amount while its real value floats
 
@@ -954,6 +982,159 @@ delegated stake without being moved. An enterprise address has no staking creden
 and therefore no staking rights. The leak is reduced **liquid** reusability, not a
 universal loss of staking rewards.
 
+### 2.4 The underlying operational logic
+
+The preceding sections describe a particular implementation: Cardano represents the
+state-growth constraint as a minimum amount of ada inside every `TxOut.Value`. This
+section abstracts away from that representation to identify the operational logic
+the mechanism is intended to realise. It is neither a description of additional
+current ledger state nor a proposed solution.
+
+The distinction is between **representation** and **semantics**. Ada embedded in an
+output is the current representation. Allocating a finite resource, retaining that
+allocation while an output remains live, releasing it on consumption, and pricing
+the allocation through time are the underlying semantics. Any implementation of the
+same policy must account for those operations, even if it represents them differently.
+
+#### 2.4.1 A UTxO consumes a box and the space inside it
+
+A scalar notion of capacity hides two distinct resource dimensions. Every live UTxO
+first consumes one entry in the global set: the **box**. Its serialized representation
+then consumes a variable amount of space: the **object inside the box**. The capacity
+of output $o$ can therefore be represented as a vector:
+
+```math
+c(o) = (1, s(o))
+```
+
+where the first component is one live UTxO entry and $s(o)$ is the billable size of
+its contents. The fixed component matters even for a minimal output: nodes must still
+index, locate, and serve a distinct entry. Addresses, multi-assets, datums, and
+reference scripts then increase the variable component.
+
+At the whole-ledger level, let:
+
+```math
+N(t) = |\mathrm{UTxO}(t)|
+\qquad\text{and}\qquad
+S(t) = \sum_{o \in \mathrm{UTxO}(t)} s(o)
+```
+
+A capacity policy may consequently reason about two limits rather than one
+undifferentiated scalar:
+
+```math
+N(t) \leq N_{\max}
+\qquad\text{and}\qquad
+S(t) \leq S_{\max}
+```
+
+This is an analytical decomposition, not a claim that the current ledger maintains
+explicit `Nmax` or `Smax` counters. Cardano's existing formula already combines a
+fixed output overhead with variable serialized size, but prices both through one
+`coinsPerUTxOByte` parameter.
+
+The corresponding price is also a vector:
+
+```math
+p(t) = (p_{\mathrm{box}}(t), p_{\mathrm{byte}}(t))
+```
+
+The current operational value of one allocation is then:
+
+```math
+D(o,t) = p_{\mathrm{box}}(t) + s(o) \times p_{\mathrm{byte}}(t)
+```
+
+Every live UTxO has both components, including a large-ada input whose operational
+role is hidden inside apparently ordinary application value. The output determines
+the resources occupied, but only a transaction changes their aggregate allocation.
+For transaction $tx$:
+
+```math
+\Delta_N(tx) =
+|\mathrm{outputs}(tx)| - |\mathrm{inputs}(tx)|
+```
+
+```math
+\Delta_S(tx) =
+\sum_{o \in \mathrm{outputs}(tx)} s(o)
+-
+\sum_{i \in \mathrm{inputs}(tx)} s(i)
+```
+
+The operational transition is the vector:
+
+```math
+\Delta_C(tx) = (\Delta_N(tx), \Delta_S(tx))
+```
+
+At fixed prices, its funding transition is:
+
+```math
+\Delta_D(tx) =
+p_{\mathrm{box}}(t)\Delta_N(tx)
++
+p_{\mathrm{byte}}(t)\Delta_S(tx)
+```
+
+A positive value requires an additional deposit; a negative value releases a refund.
+The refund may be treated as a bearer claim: whoever validly consumes the output
+releases its allocation and receives the associated deposit. Per-output measurement
+remains necessary to derive the transaction aggregate. It does not follow that each
+output must carry the funding mechanism inside application value.
+
+#### 2.4.2 Price changes revalue capacity already allocated
+
+Transaction deltas are only one side of the model. Governance may change either the
+price of a live entry or the price of its variable content while outputs remain live.
+If prices move from $(p_{\mathrm{box},0},p_{\mathrm{byte},0})$ to
+$(p_{\mathrm{box},1},p_{\mathrm{byte},1})$, the backing required for the existing
+live set changes by:
+
+```math
+\Delta_P =
+N(t)(p_{\mathrm{box},1}-p_{\mathrm{box},0})
++
+S(t)(p_{\mathrm{byte},1}-p_{\mathrm{byte},0})
+```
+
+This revaluation applies to capacity already allocated. It is not caused by an
+application transaction. Under the current design there is no operational balance
+sheet on which to settle it: the result of $p_0$ has already been materialised as
+ordinary ada in historical `TxOut.Value`s. An increase is pushed onto a future
+builder creating replacement outputs; a decrease leaves the previous amount under
+application control.
+
+Any adaptive mechanism must identify a counterparty for both directions. One possible
+model uses a capacity reserve backed at the current aggregate valuation:
+
+```math
+B(t) =
+N(t)p_{\mathrm{box}}(t)
++
+S(t)p_{\mathrm{byte}}(t)
+```
+
+If $\Delta_P$ is positive, the treasury would transfer that amount into the reserve.
+If it is negative, the reserve would return $|\Delta_P|$ to the treasury. Live UTxOs
+would retain stable capacity vectors $(1,s(o))$; their current release values would
+be derived from the global price vector.
+
+This CPS does not prescribe treasury-backed revaluation. It uses the model to expose
+questions that the current representation hides. Any adaptive solution must state:
+
+1. how entry count and variable content size are measured and bounded;
+2. how a transaction funds the net capacity it allocates;
+3. how a consumed allocation determines its release value;
+4. who funds existing allocations when the price increases;
+5. who receives released backing when the price decreases; and
+6. which invariant preserves solvency through transaction and governance transitions.
+
+The separation is precise: **transactions fund changes in allocated capacity; a
+pricing-policy change must fund or recover the revaluation of capacity already
+allocated.**
+
 ## 3. Use Cases
 
 <!-- CIP-9999 is explicit: without use cases there is no problem, and disliking a
@@ -1061,15 +1242,22 @@ Ranked by importance.
    transaction.
 3. **Separate resource accounting from value transfer.** A node-state
    constraint should not automatically become value carried by the output.
-   Any refundable mechanism should preserve a clear relationship between the party
-   that funds the resource and the party entitled to recover the deposit.
+   Any refundable mechanism should explicitly define whether release value follows
+   the original funder, control of the allocation, or the transaction that reduces
+   the burden; it need not require these parties to be the same.
 4. **Preserve predictable output usability.** A governance change should not leave
    historical outputs unable to continue their intended asset or application-state
    transition without a clearly specified top-up or migration rule.
-5. **Make liquidity and recovery semantics explicit.** Any amount committed to state
-   protection should have a clearly identified owner, recovery condition, and effect
-   on independently reusable liquidity.
-6. **Provide a migration path.** Lowering the parameter does not retroactively release
+5. **Make liquidity and release semantics explicit.** Any amount committed to state
+   protection should have a defined custody model, release condition, beneficiary
+   rule, and effect on independently reusable liquidity. A design may intentionally
+   avoid recording a personal owner for common-resource backing.
+6. **Assign pricing-transition responsibility.** If a price change applies to capacity
+   already allocated, the mechanism must identify who funds an increase, who receives
+   a decrease, and how aggregate backing remains solvent. If changes are prospective
+   only, the consequences for historical outputs and their successor transactions must
+   be explicit.
+7. **Provide a migration path.** Lowering the parameter does not retroactively release
    ada held in existing outputs; holders must re-spend them, at their own cost. Any
    solution must state what happens to the existing set.
 

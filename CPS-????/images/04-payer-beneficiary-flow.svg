@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="470" viewBox="0 0 1200 470" role="img" aria-labelledby="title desc">
-  <title id="title">Who funds and who recovers minimum ada</title>
-  <desc id="desc">Alice creates an output for Bob containing a native asset and m ada. Bob then owns the output and controls the m ada when the output is spent.</desc>
+  <title id="title">Current value ownership substitutes for an operational settlement rule</title>
+  <desc id="desc">Alice creates an output for Bob containing a native asset and m ada. Bob controls that ada because it is application value. An explicit common-resource rule could instead charge allocation and reward release without recording the original funder.</desc>
   <defs>
     <style>
       .bg{fill:#fbfcfa}.panel{fill:#fff;stroke:#c9cec6;stroke-width:2}.alice{fill:#f6f2ea;stroke:#8f6410;stroke-width:2}.bob{fill:#e2e7f6;stroke:#23439e;stroke-width:2}.ink{fill:#12171a;font:600 22px system-ui,sans-serif}.body{fill:#5a6560;font:18px system-ui,sans-serif}.mono{fill:#23439e;font:600 18px ui-monospace,monospace}.label{fill:#8b948e;font:600 15px ui-monospace,monospace;letter-spacing:1px}.ochre{fill:#8f6410}.blue{fill:#23439e}.rule{stroke:#5a6560;stroke-width:2;fill:none}.dash{stroke-dasharray:7 7}
@@ -18,9 +18,9 @@
   <text class="ink" x="474" y="116">Bob's new output</text>
   <text class="body" x="474" y="154">native asset</text>
   <text class="mono blue" x="474" y="181">+ m ADA</text>
-  <text class="body" x="792" y="116">The deposit travels</text>
-  <text class="body" x="792" y="144">inside the payment.</text>
-  <text class="body" x="792" y="180">Alice retains no claim.</text>
+  <text class="body" x="792" y="116">Operational funding travels</text>
+  <text class="body" x="792" y="144">inside application value.</text>
+  <text class="body" x="792" y="180">No protocol settlement rule.</text>
   <line class="rule dash" x1="601" y1="220" x2="601" y2="286" marker-end="url(#arrow)"/>
   <text class="label" x="48" y="278">2 · LATER, WHEN BOB SPENDS</text>
   <rect class="bob" x="444" y="304" width="314" height="110" rx="8"/>
@@ -29,8 +29,8 @@
   <line class="rule" x1="780" y1="359" x2="874" y2="359" marker-end="url(#arrow)"/>
   <rect class="panel" x="896" y="304" width="256" height="110" rx="8"/>
   <text class="ink" x="926" y="348">Bob's transaction</text>
-  <text class="body" x="926" y="383">Alice is not refunded.</text>
+  <text class="body" x="926" y="383">Value control decides.</text>
   <rect class="panel" x="48" y="322" width="296" height="76" rx="8"/>
-  <text class="label ochre" x="72" y="352">CONVENTIONAL DEPOSIT</text>
-  <text class="body" x="72" y="380">would return to its funder.</text>
+  <text class="label ochre" x="72" y="352">EXPLICIT CAPACITY RULE</text>
+  <text class="body" x="72" y="380">allocator funds; releaser credited.</text>
 </svg>

@@ -69,9 +69,9 @@
   <rect class="card" x="716" y="530" width="620" height="124" rx="12"/>
   <circle cx="748" cy="563" r="17" fill="#edf1fb"/>
   <text class="number blue" x="748" y="569" text-anchor="middle">2</text>
-  <text class="heading ink" x="780" y="570">No refund claim for the funder</text>
-  <text class="body muted" x="744" y="608">The ada remains value, but ownership follows the output rather</text>
-  <text class="body muted" x="744" y="634">than returning to the party that supplied it.</text>
+  <text class="heading ink" x="780" y="570">No explicit operational settlement rule</text>
+  <text class="body muted" x="744" y="608">Control follows application-value ownership rather than an</text>
+  <text class="body muted" x="744" y="634">explicit rule for funding allocation and rewarding release.</text>
 
   <rect class="card" x="64" y="676" width="620" height="124" rx="12"/>
   <circle cx="96" cy="709" r="17" fill="#edf1fb"/>

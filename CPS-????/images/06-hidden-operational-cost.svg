@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
+  <title id="title">Every UTxO hides an operational obligation inside application value</title>
+  <desc id="desc">A transaction consumes one UTxO and creates two. In the current representation, all three UTxOs carry their operational state requirement inside ordinary ada Value. A conceptual decomposition shows the application transfer separately from the release of one operational obligation and creation of two.</desc>
+  <defs>
+    <style>
+      .bg{fill:#f8faf8}.panel{fill:#fff;stroke:#d9ded9;stroke-width:1.5}.appPanel{fill:#edf1fb;stroke:#294aa5;stroke-width:1.7}.opPanel{fill:#edf4ef;stroke:#678170;stroke-width:1.7}.hiddenPanel{fill:#fff7e8;stroke:#a66b08;stroke-width:1.7}.ink{fill:#17201d}.muted{fill:#5d6964}.blue{fill:#294aa5}.green{fill:#476252}.ochre{fill:#955f05}.title{font:700 31px system-ui,sans-serif}.subtitle{font:18px system-ui,sans-serif}.eyebrow{font:700 15px ui-monospace,monospace;letter-spacing:1.4px}.heading{font:700 21px system-ui,sans-serif}.body{font:17px system-ui,sans-serif}.small{font:15px system-ui,sans-serif}.mono{font:600 17px ui-monospace,monospace}.monoSmall{font:600 14px ui-monospace,monospace}.arrow{stroke:#69736f;stroke-width:2;fill:none}.boundary{stroke:#17201d;stroke-width:3}.dash{stroke:#a66b08;stroke-width:2;stroke-dasharray:7 6}.rule{stroke:#d9ded9;stroke-width:1.5}.token{fill:#eeeafd;stroke:#b8a9ef}.ada{fill:#e7f1fb;stroke:#9fc6e6}.op{fill:#e4f1e8;stroke:#91b19a}.fee{fill:#fff0d9;stroke:#d8b677}
+    </style>
+    <pattern id="hatch" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="12" height="12" fill="#fff7e8"/><line x1="0" y1="0" x2="0" y2="12" stroke="#e4c78f" stroke-width="4"/></pattern>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5 0 10z" fill="#69736f"/></marker>
+  </defs>
+  <rect class="bg" width="1400" height="900" rx="12"/>
+  <text class="eyebrow ochre" x="64" y="55">THE VALUE LEAK · ONE TRANSACTION</text>
+  <text class="title ink" x="64" y="94">Every UTxO hides an operational obligation inside application value</text>
+  <text class="subtitle muted" x="64" y="124">The obligation exists for the consumed input and for every output created — but it has no separate ledger identity.</text>
+
+  <text class="eyebrow muted" x="64" y="176">CURRENT REPRESENTATION · EVERYTHING APPEARS AS TXOUT.VALUE</text>
+
+  <!-- Current input -->
+  <rect class="panel" x="64" y="198" width="330" height="220" rx="14"/>
+  <text class="eyebrow muted" x="88" y="230">WALLET#0 · CONSUMED INPUT</text>
+  <rect class="token" x="88" y="252" width="88" height="36" rx="9"/><text class="mono blue" x="132" y="276" text-anchor="middle">1 BTC</text>
+  <rect class="ada" x="186" y="252" width="116" height="36" rx="9"/><text class="mono blue" x="244" y="276" text-anchor="middle">100 ADA</text>
+  <line class="dash" x1="64" y1="318" x2="394" y2="318"/>
+  <rect x="65" y="319" width="328" height="98" rx="0 0 13 13" fill="url(#hatch)"/>
+  <text class="eyebrow ochre" x="88" y="347">HIDDEN OPERATIONAL ROLE</text>
+  <text class="heading ochre" x="88" y="379">M(wallet#0) = 1 ADA</text>
+  <text class="small muted" x="88" y="403">Paid when this UTxO was created</text>
+
+  <path class="arrow" d="M394 307H505" marker-end="url(#arrow)"/><text class="monoSmall ochre" x="450" y="269" text-anchor="middle">CAPACITY CHANGES HERE</text><text class="monoSmall muted" x="450" y="288" text-anchor="middle">Tx₁</text>
+
+  <!-- Current recipient -->
+  <rect class="panel" x="505" y="198" width="365" height="220" rx="14"/>
+  <text class="eyebrow muted" x="529" y="230">TX1#0 · RECIPIENT OUTPUT</text>
+  <rect class="token" x="529" y="252" width="88" height="36" rx="9"/><text class="mono blue" x="573" y="276" text-anchor="middle">1 BTC</text>
+  <rect class="ada" x="627" y="252" width="96" height="36" rx="9"/><text class="mono blue" x="675" y="276" text-anchor="middle">1 ADA</text>
+  <line class="dash" x1="505" y1="318" x2="870" y2="318"/>
+  <rect x="506" y="319" width="363" height="98" fill="url(#hatch)"/>
+  <text class="eyebrow ochre" x="529" y="347">HIDDEN OPERATIONAL ROLE</text>
+  <text class="heading ochre" x="529" y="379">M(tx1#0) = 1 ADA</text>
+  <text class="small muted" x="529" y="403">Blended with value sent to the recipient</text>
+
+  <!-- Current change -->
+  <rect class="panel" x="890" y="198" width="446" height="220" rx="14"/>
+  <text class="eyebrow muted" x="914" y="230">TX1#1 · CHANGE OUTPUT</text>
+  <rect class="ada" x="914" y="252" width="126" height="36" rx="9"/><text class="mono blue" x="977" y="276" text-anchor="middle">98.5 ADA</text>
+  <line class="dash" x1="890" y1="318" x2="1336" y2="318"/>
+  <rect x="891" y="319" width="444" height="98" fill="url(#hatch)"/>
+  <text class="eyebrow ochre" x="914" y="347">HIDDEN OPERATIONAL ROLE</text>
+  <text class="heading ochre" x="914" y="379">M(tx1#1) = 1 ADA</text>
+  <text class="small muted" x="914" y="403">Blended with value returned as change</text>
+
+  <line class="boundary" x1="64" y1="458" x2="1336" y2="458"/>
+  <rect class="fee" x="1090" y="438" width="246" height="40" rx="20"/><text class="mono ochre" x="1213" y="464" text-anchor="middle">fee = 0.5 ADA</text>
+  <text class="eyebrow muted" x="64" y="505">CONCEPTUAL DECOMPOSITION · THE TWO CONCERNS EXPOSED</text>
+
+  <!-- Application lane -->
+  <rect class="appPanel" x="64" y="530" width="180" height="120" rx="12"/>
+  <text class="eyebrow blue" x="84" y="559">APPLICATION</text><text class="heading ink" x="84" y="590">Transfer intent</text><text class="small muted" x="84" y="619">Assets and value</text><text class="small muted" x="84" y="640">chosen by the author</text>
+  <rect class="panel" x="266" y="530" width="260" height="120" rx="12"/>
+  <text class="monoSmall muted" x="286" y="558">wallet#0</text><text class="mono blue" x="286" y="593">1 BTC + 99 ADA</text><text class="small muted" x="286" y="624">application projection</text>
+  <path class="arrow" d="M526 590H590" marker-end="url(#arrow)"/>
+  <rect class="panel" x="590" y="530" width="330" height="120" rx="12"/>
+  <text class="monoSmall muted" x="610" y="558">tx1#0</text><text class="mono blue" x="610" y="593">1 BTC + 0 ADA</text><text class="small muted" x="610" y="624">recipient projection</text>
+  <rect class="panel" x="940" y="530" width="396" height="120" rx="12"/>
+  <text class="monoSmall muted" x="960" y="558">tx1#1</text><text class="mono blue" x="960" y="593">97.5 ADA</text><text class="small muted" x="960" y="624">change projection</text>
+
+  <!-- Operational lane -->
+  <rect class="opPanel" x="64" y="670" width="180" height="140" rx="12"/>
+  <text class="eyebrow green" x="84" y="699">OPERATIONAL</text><text class="heading ink" x="84" y="730">UTxO capacity</text><text class="small muted" x="84" y="759">Why each entry</text><text class="small muted" x="84" y="780">may remain live</text>
+  <rect class="panel" x="266" y="670" width="260" height="140" rx="12"/>
+  <text class="monoSmall muted" x="286" y="698">wallet#0 · consumed</text><text class="heading green" x="286" y="735">1 ADA released</text><text class="small muted" x="286" y="765">One operational obligation</text><text class="small muted" x="286" y="788">ends with the input.</text>
+  <path class="arrow" d="M526 740H590" marker-end="url(#arrow)"/>
+  <rect class="panel" x="590" y="670" width="330" height="140" rx="12"/>
+  <text class="monoSmall muted" x="610" y="698">tx1#0 · created</text><text class="heading green" x="610" y="735">1 ADA required</text><text class="small muted" x="610" y="765">A new operational obligation</text><text class="small muted" x="610" y="788">starts with the output.</text>
+  <rect class="panel" x="940" y="670" width="396" height="140" rx="12"/>
+  <text class="monoSmall muted" x="960" y="698">tx1#1 · created</text><text class="heading green" x="960" y="735">1 ADA required</text><text class="small muted" x="960" y="765">A second operational obligation</text><text class="small muted" x="960" y="788">starts with the change output.</text>
+
+  <rect class="opPanel" x="266" y="834" width="1070" height="44" rx="10"/>
+  <text class="mono green" x="801" y="862" text-anchor="middle">2 ADA created − 1 ADA released = 1 ADA net operational burden</text>
+</svg>
