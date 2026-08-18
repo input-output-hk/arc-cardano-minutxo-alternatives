@@ -2,7 +2,7 @@
 
 ## Epic hierarchy
 
-- [ARC min-UTxO stream](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/2) — `Epic`
+- [[ARC-09] [TV-15] IOR — MinUTxO alternatives — Phase 2](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/1) — `Epic`
   - [Stream Bootstrap & Initial Exploration](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/3) — `Epic`, completed
   - [Problem Statement Definition (CPS)](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/7) — `Epic`
   - [Implementation Design Space Analysis & Policy Recommendation](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/89) — `Epic`
