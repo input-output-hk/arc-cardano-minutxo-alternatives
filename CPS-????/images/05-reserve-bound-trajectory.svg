@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="660" viewBox="0 0 1200 660" role="img" aria-labelledby="title desc">
   <title id="title">Reserve depletion and the theoretical issued-supply UTxO ceiling</title>
-  <desc id="desc">Two aligned plots share a thirty-year time axis. The upper plot shows the theoretical UTxO-count ceiling rising from 56.3 to 65.2 billion. The lower plot shows the reserve declining from 6.206 billion ada toward zero under maximum monetary expansion of 0.3 percent per epoch. This is an analytical envelope, not a forecast.</desc>
+  <desc id="desc">Two aligned plots share a thirty-year time axis. The upper plot shows the theoretical UTxO-count ceiling rising from 56.3 to 65.3 billion. The lower plot shows the reserve declining from 6.196 billion ada toward zero under maximum monetary expansion of 0.3 percent per epoch. This is an analytical envelope, not a forecast.</desc>
   <defs>
     <style>
       .bg{fill:#fff}.rule{stroke:#d9ddd9;stroke-width:1}.axis{stroke:#8b938f;stroke-width:1}.projection{stroke:#b9bfbb;stroke-width:1;stroke-dasharray:3 5}.ceiling{fill:none;stroke:#2647a5;stroke-width:3}.reserve{fill:none;stroke:#a66200;stroke-width:3}.area{fill:#2647a5;opacity:.055}.start{fill:#fff;stroke-width:2.5}.ink{fill:#18201c;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.muted{fill:#66706b;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.panel{fill:#3f4944;font:500 14px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.06em}.tick{fill:#6d7671;font:13px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.value{font:500 14px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.formula{fill:#66706b;font:14px ui-monospace,SFMono-Regular,Menlo,monospace}.foot{fill:#737c77;font:12px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -9,10 +9,10 @@
   <rect class="bg" width="1200" height="660"/>
 
   <text class="ink" x="92" y="42" font-size="22" font-weight="500">Reserve depletion expands the issued-supply ceiling</text>
-  <text class="muted" x="92" y="70" font-size="14">Analytical envelope from epoch 647 · ρ = 0.003 per five-day epoch · fixed 160-byte denominator</text>
+  <text class="muted" x="92" y="70" font-size="14">Analytical envelope from epoch 648 · ρ = 0.003 per five-day epoch · fixed 160-byte denominator</text>
 
   <text class="panel" x="92" y="102">THEORETICAL UTxO CEILING</text>
-  <text class="formula" x="1090" y="102" text-anchor="end">N(n) = [Smax − R₀(1 − ρ)ⁿ] / ph</text>
+  <text class="formula" x="1090" y="102" text-anchor="end">N(n) = [A_max − R₀(1 − ρ)ⁿ] / (p h)</text>
 
   <g transform="translate(0 25)">
   <line class="rule" x1="135" y1="92" x2="1090" y2="92"/>
@@ -52,7 +52,7 @@
   <text class="tick" x="118" y="412" text-anchor="end">6B</text>
   <path class="reserve" d="M135 403.7 L150.9 418.9 L166.8 432.5 L182.8 444.7 L198.7 455.7 L214.6 465.5 L230.5 474.3 L246.4 482.1 L262.3 489.2 L278.2 495.5 L294.2 501.2 L310.1 506.3 L326 510.8 L341.9 514.9 L357.8 518.5 L373.8 521.8 L389.7 524.7 L405.6 527.4 L421.5 529.7 L437.4 531.8 L453.3 533.7 L469.2 535.4 L485.2 536.9 L501.1 538.3 L517 539.5 L532.9 540.6 L548.8 541.6 L564.8 542.4 L580.7 543.2 L596.6 543.9 L612.5 544.6 L628.4 545.1 L644.3 545.6 L660.2 546.1 L676.2 546.5 L692.1 546.9 L708 547.2 L723.9 547.5 L739.8 547.7 L755.8 548 L771.7 548.2 L787.6 548.4 L803.5 548.5 L819.4 548.7 L835.3 548.8 L851.2 549 L867.2 549.1 L883.1 549.2 L899 549.2 L914.9 549.3 L930.8 549.4 L946.8 549.5 L962.7 549.5 L978.6 549.6 L994.5 549.6 L1010.4 549.7 L1026.3 549.7 L1042.2 549.7 L1058.2 549.7 L1074.1 549.8 L1090 549.8"/>
   <circle class="start" cx="135" cy="403.7" r="5" stroke="#a66200"/>
-  <text class="value" x="151" y="397" fill="#a66200">6.206B ada</text>
+  <text class="value" x="151" y="397" fill="#a66200">6.196B ada</text>
 
   <line class="projection" x1="135" y1="117" x2="135" y2="550"/>
   <text class="tick" x="135" y="578" text-anchor="middle">now</text>
@@ -62,7 +62,7 @@
   <text class="tick" x="772" y="578" text-anchor="middle">20</text>
   <text class="tick" x="931" y="578" text-anchor="middle">25</text>
   <text class="tick" x="1090" y="578" text-anchor="middle">30</text>
-  <text class="muted" x="612" y="608" text-anchor="middle" font-size="13">Years from epoch 647</text>
+  <text class="muted" x="612" y="608" text-anchor="middle" font-size="13">Years from epoch 648</text>
 
   <line class="rule" x1="92" y1="626" x2="1090" y2="626"/>
   <text class="foot" x="92" y="648">Envelope assumes the maximum ρ share leaves reserves each epoch. Unclaimed rewards and governance changes make this a bound, not a forecast.</text>

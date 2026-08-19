@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="850" viewBox="0 0 1400 850" role="img" aria-labelledby="title desc">
+  <title id="title">From epoch-648 mainnet state to the evidence-backed minimum-ada conclusion</title>
+  <desc id="desc">A four-step argument separates live UTxO stock from churn, measures exact per-output and estimated serialized-byte units, converts both into a current-tariff equivalent, and interprets the result. Supporting panels show concentrated incidence and distinguish stake credentials from active stake.</desc>
+  <defs>
+    <style>
+      .bg{fill:#f8faf8}.panel{fill:#fff;stroke:#d9ded9;stroke-width:1.5}.ink{fill:#17201d}.muted{fill:#5d6964}.blue{fill:#294aa5}.green{fill:#476252}.ochre{fill:#955f05}.red{fill:#9b3b34}.title{font:700 30px system-ui,sans-serif}.subtitle{font:17px system-ui,sans-serif}.eyebrow{font:700 13px ui-monospace,monospace;letter-spacing:1.15px}.big{font:750 32px system-ui,sans-serif}.metric{font:700 21px system-ui,sans-serif}.body{font:16px system-ui,sans-serif}.small{font:13px system-ui,sans-serif}.mono{font:650 15px ui-monospace,monospace}.track{fill:#edf0ed}.fixed{fill:#5570b6}.bytes{fill:#d69b3c}.active{fill:#6d8f78}.inactive{fill:#7189c8}.none{fill:#d6a24e}.rule{stroke:#d9ded9;stroke-width:1.2}.arrow{fill:#a9b2ad}.soft-green{fill:#edf4ef;stroke:#9fb1a5}.soft-blue{fill:#edf1fb}.soft-ochre{fill:#fff3dc}
+    </style>
+  </defs>
+
+  <rect class="bg" width="1400" height="850" rx="12"/>
+  <text class="eyebrow green" x="64" y="47">MAINNET · LATEST COMPLETE SNAPSHOT ANALYSED: EPOCH 648</text>
+  <text class="title ink" x="64" y="84">Read the evidence from state to conclusion</text>
+  <text class="subtitle muted" x="64" y="112">Stock → billable resources → ada equivalent → economic meaning</text>
+
+  <rect class="panel" x="64" y="144" width="276" height="278" rx="13"/>
+  <text class="eyebrow blue" x="86" y="176">1 · SEPARATE STOCK FROM CHURN</text>
+  <text class="big ink" x="86" y="219">11.076M</text>
+  <text class="body muted" x="86" y="242">live UTxOs</text>
+  <text class="metric ink" x="86" y="277">36.556B ada</text>
+  <text class="body muted" x="86" y="299">resident in the live set</text>
+  <line class="rule" x1="86" y1="319" x2="318" y2="319"/>
+  <text class="mono green" x="86" y="347">+199,122 created</text>
+  <text class="mono red" x="86" y="371">−205,741 consumed</text>
+  <rect class="soft-blue" x="86" y="386" width="232" height="25" rx="6"/>
+  <text class="small blue" x="202" y="403" text-anchor="middle">404,863 gross → −6,619 net</text>
+
+  <polygon class="arrow" points="345,273 355,283 345,293"/>
+
+  <rect class="panel" x="360" y="144" width="314" height="278" rx="13"/>
+  <text class="eyebrow blue" x="382" y="176">2 · MEASURE TWO RESOURCES</text>
+  <text class="metric ink" x="382" y="210">U = 160N + S</text>
+  <text class="small muted" x="382" y="231">p = 4,310 lovelace per unit</text>
+  <text class="body ink" x="382" y="260">Per-output component · exact</text>
+  <text class="mono blue" x="650" y="282" text-anchor="end">1.772B units</text>
+  <rect class="track" x="382" y="291" width="268" height="12" rx="6"/>
+  <rect class="fixed" x="382" y="291" width="145" height="12" rx="6"/>
+  <text class="small blue" x="534" y="302">54.17%</text>
+  <text class="body ink" x="382" y="330">Serialised TxOut · estimated</text>
+  <text class="mono ochre" x="650" y="352" text-anchor="end">1.500B bytes</text>
+  <rect class="track" x="382" y="361" width="268" height="12" rx="6"/>
+  <rect class="bytes" x="382" y="361" width="123" height="12" rx="6"/>
+  <text class="small ochre" x="512" y="372">45.83%</text>
+  <text class="small muted" x="382" y="394">Mean serialised TxOut: 135.4 bytes</text>
+  <text class="small muted" x="382" y="411">Exact N; sampled S.</text>
+
+  <polygon class="arrow" points="679,273 689,283 679,293"/>
+
+  <rect class="panel" x="694" y="144" width="286" height="278" rx="13"/>
+  <text class="eyebrow blue" x="716" y="176">3 · CONVERT UNITS INTO ADA</text>
+  <text class="big ink" x="716" y="222">14.102M ada</text>
+  <text class="body muted" x="716" y="245">current-tariff equivalent</text>
+  <rect class="soft-blue" x="716" y="268" width="242" height="34" rx="7"/>
+  <text class="small blue" x="728" y="290">7.638M fixed</text>
+  <text class="small muted" x="832" y="290">+</text>
+  <text class="small ochre" x="850" y="290">6.464M bytes</text>
+  <line class="rule" x1="716" y1="327" x2="958" y2="327"/>
+  <text class="metric ochre" x="716" y="360">14.348M ada</text>
+  <text class="body muted" x="716" y="382">creation-era rules</text>
+  <text class="small muted" x="716" y="403">95% interval: 14.168–14.529M</text>
+
+  <polygon class="arrow" points="985,273 995,283 985,293"/>
+
+  <rect class="panel" x="1000" y="144" width="336" height="278" rx="13"/>
+  <text class="eyebrow blue" x="1022" y="176">4 · INTERPRET NARROWLY</text>
+  <text class="big ochre" x="1022" y="222">0.0393%</text>
+  <text class="body muted" x="1022" y="245">of ada resident in the live set</text>
+  <line class="rule" x1="1022" y1="267" x2="1314" y2="267"/>
+  <text class="body ink" x="1022" y="296">✓ Economic floor on output form</text>
+  <text class="body ink" x="1022" y="327">✓ Spendable through consumption</text>
+  <text class="body red" x="1022" y="358">× Not a protocol-owned reserve</text>
+  <text class="body red" x="1022" y="389">× Not a labelled on-chain balance</text>
+
+  <rect class="panel" x="64" y="448" width="624" height="284" rx="13"/>
+  <text class="eyebrow blue" x="88" y="480">WHO BEARS MORE THAN THEIR SHARE?</text>
+  <text class="small muted" x="88" y="503">Share of live count → share of reconstructed floor</text>
+  <text class="body ink" x="88" y="541">Native assets</text>
+  <text class="mono blue" x="342" y="541">39.27%</text>
+  <text class="metric muted" x="424" y="542">→</text>
+  <text class="mono ochre" x="468" y="541">54.46%</text>
+  <rect class="track" x="88" y="552" width="546" height="10" rx="5"/>
+  <rect class="fixed" x="88" y="552" width="214" height="10" rx="5"/>
+  <rect class="bytes" x="302" y="552" width="83" height="10" rx="5"/>
+  <text class="body ink" x="88" y="597">Script address</text>
+  <text class="mono blue" x="342" y="597">12.28%</text>
+  <text class="metric muted" x="424" y="598">→</text>
+  <text class="mono ochre" x="468" y="597">16.46%</text>
+  <rect class="track" x="88" y="608" width="546" height="10" rx="5"/>
+  <rect class="fixed" x="88" y="608" width="67" height="10" rx="5"/>
+  <rect class="bytes" x="155" y="608" width="23" height="10" rx="5"/>
+  <text class="body ink" x="88" y="653">Datum / reference script</text>
+  <text class="mono blue" x="342" y="653">12.73%</text>
+  <text class="metric muted" x="424" y="654">→</text>
+  <text class="mono ochre" x="468" y="653">17.46%</text>
+  <rect class="track" x="88" y="664" width="546" height="10" rx="5"/>
+  <rect class="fixed" x="88" y="664" width="70" height="10" rx="5"/>
+  <rect class="bytes" x="158" y="664" width="25" height="10" rx="5"/>
+  <text class="small muted" x="88" y="708">Overlapping lenses: the three rows must not be added.</text>
+
+  <rect class="panel" x="704" y="448" width="632" height="284" rx="13"/>
+  <text class="eyebrow blue" x="728" y="480">STAKE-CAPABLE ≠ ACTIVE IN THIS SNAPSHOT</text>
+  <text class="small muted" x="728" y="503">Classification of the reconstructed creation-era floor</text>
+  <text class="metric ink" x="728" y="543">87.42% has a stake credential</text>
+  <rect class="active" x="728" y="566" width="299" height="36" rx="7"/>
+  <rect class="inactive" x="1027" y="566" width="205" height="36"/>
+  <rect class="none" x="1232" y="566" width="72" height="36" rx="7"/>
+  <rect class="active" x="728" y="630" width="12" height="12" rx="2"/>
+  <text class="body ink" x="750" y="641">Active snapshot</text>
+  <text class="mono green" x="1304" y="641" text-anchor="end">7.444M · 51.88%</text>
+  <rect class="inactive" x="728" y="661" width="12" height="12" rx="2"/>
+  <text class="body ink" x="750" y="672">Credential, not active</text>
+  <text class="mono blue" x="1304" y="672" text-anchor="end">5.100M · 35.54%</text>
+  <rect class="none" x="728" y="692" width="12" height="12" rx="2"/>
+  <text class="body ink" x="750" y="703">No stake credential</text>
+  <text class="mono ochre" x="1304" y="703" text-anchor="end">1.805M · 12.58%</text>
+
+  <rect class="soft-green" x="64" y="758" width="1272" height="54" rx="11"/>
+  <text class="eyebrow green" x="88" y="790">EVIDENCE-BACKED CLAIM</text>
+  <text class="body ink" x="304" y="791">The aggregate floor is modest; the friction is distributed and concentrated in feature-rich outputs.</text>
+  <text class="small muted" x="1336" y="837" text-anchor="end">Exact population counts · sampled structural and monetary estimates</text>
+</svg>
