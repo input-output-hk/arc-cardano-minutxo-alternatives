@@ -45,10 +45,10 @@ Answering this requires separating two questions:
 ## Outcomes
 
 1. **[Problem Statement Definition (CPS)](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/7)** — reviewed, evidence-backed definition of the problem and required outcomes.
-2. **[Implementation Design Space Analysis & Policy Recommendation](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/89)** — comparison of complete implementations and final policy recommendation.
-3. **[Adopted Solution Design & Specification](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/100)** — implementation-ready technical design for the selected solution.
-4. **[Integrated `cardano-ledger` Prototyping](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/101)** — integrated implementation and executable validation of the design.
-5. **[CIP Authoring & Submission](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/117)** — reviewed CIP based on the specification and prototype findings.
+2. **[Implementation Design Space Analysis & Policy Recommendation](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/14)** — comparison of complete implementations and final policy recommendation.
+3. **[Adopted Solution Design & Specification](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/19)** — implementation-ready technical design for the selected solution.
+4. **[Integrated `cardano-ledger` Prototyping](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/25)** — integrated implementation and executable validation of the design.
+5. **[CIP Authoring & Submission](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/30)** — reviewed CIP based on the specification and prototype findings.
 
 ## Success criteria
 
