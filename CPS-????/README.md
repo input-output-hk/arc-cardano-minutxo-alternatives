@@ -237,6 +237,16 @@ Before fees and other outputs are considered, the shortfall is the positive
 difference between the successor's minimum and the ada recovered from the state
 input.
 
+A stable tariff can make this lifecycle issue less visible. Changing
+`coinsPerUTxOByte` does not debit or invalidate existing outputs; new outputs,
+including successors, must meet the parameters in force when validated
+[[4]](#ref-4). Ada recovered from an input can therefore fall short even when
+application state is unchanged.
+
+Proposals with explicit deposits must also distinguish historical allocation,
+current funding requirements, and the amount available for release after a parameter
+change, and explain how any shortfall or surplus is handled.
+
 ## Goals
 
 ### Properties that must be preserved
@@ -314,6 +324,13 @@ is outside this CPS's scope.
 
 3. [*CIP-89: Distributed DApps and Beacon
    Tokens*](https://cips.cardano.org/cip/CIP-0089).
+
+<a id="ref-4"></a>
+
+4. [*Cardano Ledger: Babbage UTxO
+   validation*](https://github.com/nhenin/cardano-ledger/blob/bef480ebd/eras/babbage/impl/src/Cardano/Ledger/Babbage/Rules/Utxo.hs#L399).
+   The minimum-output check uses the transaction's newly created outputs and the
+   current protocol parameters.
 
 ## Copyright
 
