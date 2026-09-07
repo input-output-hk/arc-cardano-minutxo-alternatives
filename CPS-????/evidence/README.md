@@ -1,9 +1,24 @@
 # Mainnet live-UTxO evidence
 
-This directory contains the exact DB-Sync query results and figure generator used by
-the CPS evidence section. It covers output counts only. It does not estimate the ada
-associated with minUTxO, classify staking participation, or infer why an output was
-created or consumed.
+**Status: historical snapshot; absolute live counts require correction.** The live
+stock figure has been removed from the active CPS. The original query, results, and
+figure are retained here for investigation, not as validated ledger cardinalities.
+
+The query reconstructs live stock by summing creations minus consumptions from epoch
+0, without an initial stock. Its epoch filter excludes genesis creations, which
+DB-Sync 13.7.2.1 records under a block with no epoch number, while later spending of
+those outputs enters the consumption count. See the
+[genesis insertion code](https://github.com/IntersectMBO/cardano-db-sync/blob/13.7.2.1/cardano-db-sync/src/Cardano/DbSync/Era/Byron/Genesis.hs#L93)
+and [the historical query](./utxo-count-by-epoch.sql).
+
+Before these absolute counts are reused, the reconstruction must account for the
+initial state and ledger removals outside ordinary transactions, and agree with a
+direct inventory of live outputs at the recorded chain point. No corrected count
+has been established. A historical stock offset need not invalidate recent flow
+totals or their difference, but those do not validate the absolute stock.
+
+This dataset covers output counts. It does not measure application friction, builder
+complexity, or the reasons outputs were created or consumed.
 
 ## Analysis boundary
 
@@ -13,7 +28,7 @@ created or consumed.
 - **Block height:** 13,800,907
 - **Absolute slot:** 195,004,781
 - **Block time:** 2026-08-12 21:44:32 UTC
-- **End-of-epoch live count produced by the query:** 11,076,329 outputs
+- **Historical `utxo_count_end` query result, awaiting correction:** 11,076,329
 
 The DB-Sync environment was configured with
 `ghcr.io/intersectmbo/cardano-db-sync:13.7.2.1` and the full insertion preset, so
@@ -25,22 +40,23 @@ committed data.
 
 ## Counting method
 
-For each epoch, the query counts ledger-effective transitions:
+For each epoch, the historical query counts:
 
 - **created:** ordinary outputs from phase-2-valid transactions, plus collateral
   returns from phase-2-invalid transactions;
 - **consumed:** ordinary inputs consumed by phase-2-valid transactions, plus
   collateral inputs consumed by phase-2-invalid transactions; and
-- **live at epoch end:** the cumulative sum of `created - consumed` from epoch 0.
+- **`utxo_count_end`:** the cumulative sum of `created - consumed` from epoch 0,
+  with the initial-state omission described above.
 
-The counts use the complete DB-Sync history rather than a sample. “Exact” in the CPS
-means exact under this published query and source database; it is not a separate
-ledger-node cross-check.
+The query uses historical rows rather than a sample. That does not make its stock
+reconstruction complete; the former description of the live count as exact is
+withdrawn.
 
 ## Files
 
-- [`utxo-count-by-epoch.sql`](./utxo-count-by-epoch.sql) produces the exact count and
-  flow series, frozen at epoch 648.
+- [`utxo-count-by-epoch.sql`](./utxo-count-by-epoch.sql) is the historical query,
+  frozen at epoch 648, whose stock calculation requires correction.
 - [`utxo-count-by-epoch.csv`](./utxo-count-by-epoch.csv) is the committed query result.
 - [`epoch-dates.sql`](./epoch-dates.sql) produces the first and last block time in
   each epoch.
@@ -51,9 +67,11 @@ ledger-node cross-check.
   [`../images/09-live-utxo-history.svg`](../images/09-live-utxo-history.svg) from the
   two CSV files using only the Python standard library.
 
-## Reproduction
+## Reproducing the historical calculation
 
-Run the queries against a full-history mainnet DB-Sync PostgreSQL database:
+The following commands reproduce the original method, including its stock omission.
+They are retained for diagnosis and do not constitute a corrected counting method.
+Run them against a full-history mainnet DB-Sync PostgreSQL database:
 
 ```sh
 cd 'CPS-????/evidence'
@@ -75,6 +93,7 @@ The published artifacts have these SHA-256 checksums:
 fa265bf938313fc4235fa666f687071d63d1f5425d0c97cca693963091ff893b  chain-point.csv
 ```
 
-The generator is deterministic for the committed CSV inputs. Re-running the SQL is
-the stronger check: it tests whether an independently populated, compatible DB-Sync
-database produces the same count series at the stated boundary.
+The generator is deterministic for the committed CSV inputs. Reproducing those
+results verifies the historical calculation, not the correctness of the stock
+estimate. Validation requires a corrected reconstruction and an independent inventory
+at the same chain point.
