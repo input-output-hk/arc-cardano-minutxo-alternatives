@@ -292,9 +292,18 @@ is outside this CPS's scope.
 
 ## Open Questions
 
-When one party supplies the backing for an output controlled by another, who can
-recover that backing and exercise its staking rights? Which operations would require
-both parties to cooperate?
+1. If a capacity-pricing parameter such as `coinsPerUTxOByte` increases, should an
+   application provide additional funding when it recreates an output without
+   increasing its size, or should its existing funding remain sufficient?
+2. If the representation of ada required for minUTxO changes, how can deployed
+   contracts that check exact ada amounts continue to operate?
+3. When an output is no longer useful to an application and the fee to spend it
+   exceeds the ada that spending it would free, is it acceptable for it to remain in
+   the UTxO set indefinitely, or should there be an additional incentive to remove it?
+4. If a solution uses explicit deposits, should they be stored in each output or
+   managed separately by the ledger? If managed separately, should each deposit fund
+   one output, or could a deposit fund several? Could transactions using shared
+   funding still proceed independently?
 
 ## References
 
