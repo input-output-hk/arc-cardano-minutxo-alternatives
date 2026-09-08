@@ -292,16 +292,18 @@ is outside this CPS's scope.
 
 ## Open Questions
 
-1. **How does protection against accumulation of live-output count and size compare
-   with the current rule, including existing state and parameter changes?**
-2. **Which documented pain points are removed, reduced, left unchanged, or shifted to
-   another participant or layer?**
-3. **If value is used for resource protection, who supplies it, who controls it and
-   its staking rights, and who can recover it under what conditions?**
-4. **What must wallets and transaction builders still do, and how are existing
-   outputs handled during the transition?**
-5. **What new trust assumptions, dependencies, or failure modes does the design
-   introduce?**
+1. If a capacity-pricing parameter such as `coinsPerUTxOByte` increases, should an
+   application provide additional funding when it recreates an output without
+   increasing its size, or should its existing funding remain sufficient?
+2. If the representation of ada required for minUTxO changes, how can deployed
+   contracts that check exact ada amounts continue to operate?
+3. When an output is no longer useful to an application and the fee to spend it
+   exceeds the ada that spending it would free, is it acceptable for it to remain in
+   the UTxO set indefinitely, or should there be an additional incentive to remove it?
+4. If a solution uses explicit deposits, should they be stored in each output or
+   managed separately by the ledger? If managed separately, should each deposit fund
+   one output, or could a deposit fund several? Could transactions using shared
+   funding still proceed independently?
 
 ## References
 
