@@ -292,16 +292,9 @@ is outside this CPS's scope.
 
 ## Open Questions
 
-1. **How does protection against accumulation of live-output count and size compare
-   with the current rule, including existing state and parameter changes?**
-2. **Which documented pain points are removed, reduced, left unchanged, or shifted to
-   another participant or layer?**
-3. **If value is used for resource protection, who supplies it, who controls it and
-   its staking rights, and who can recover it under what conditions?**
-4. **What must wallets and transaction builders still do, and how are existing
-   outputs handled during the transition?**
-5. **What new trust assumptions, dependencies, or failure modes does the design
-   introduce?**
+When one party supplies the backing for an output controlled by another, who can
+recover that backing and exercise its staking rights? Which operations would require
+both parties to cooperate?
 
 ## References
 
