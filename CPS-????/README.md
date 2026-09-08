@@ -83,10 +83,11 @@ Two roles are relevant here:
 | **Applicative value** | The ada and native assets the application intends the output to carry | Present in `TxOut.Value`, but not identified separately from operational backing |
 | **Operational backing** | The economic role played by the output's ada in satisfying minUTxO | Not represented separately; enforced as a lower bound on ada in the same `Value` |
 
-These roles can overlap: ada carried for an application purpose may also satisfy
-minUTxO. Conversely, a datum or reference script can increase the required ada even
-though neither is stored in `Value`. The creating transaction must source enough ada;
-once the output exists, its spending condition controls it.
+The same ada can serve both as applicative value and as operational backing. For
+example, ada sent as a payment can also satisfy the output's minUTxO requirement.
+Conversely, a datum or reference script can increase the required ada even though
+neither is stored in `Value`. The creating transaction must source enough ada; once
+the output exists, its spending condition controls it.
 
 ### Necessary resource friction and accidental implementation friction
 
