@@ -31,11 +31,10 @@ its required ada. Native-token transfers must include ada, small ada payments ca
 always be represented exactly, and transaction builders must accommodate the minimum
 when constructing application and change outputs.
 
-Funding requirements can remain under a different representation.
-When all available ada is needed to recreate equivalent backing, none remains for
-the transaction fee. Additional state can require additional funding. High fan-out,
-successor-output top-ups, and non-staking application state expose further
-consequences for applications.
+An output may contain only enough ada to recreate the application state, leaving
+nothing for transaction fees. Sending tokens to many recipients or storing more data
+can require additional ada. Ada held at a non-staking address earns no staking
+rewards.
 
 This CPS examines these constraints and their workarounds. Its goal is to reduce
 application and transaction-builder friction while preserving resource protection,
