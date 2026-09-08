@@ -16,31 +16,27 @@ License: CC-BY-4.0
 
 ## Abstract
 
-Cardano's current minUTxO rule requires every new transaction output to
-contain a minimum amount of ada based on a fixed per-output overhead and the output's
-serialised size. This requirement provides **economic coordination** for persistent
-UTxO state.
+Cardano's current minUTxO rule requires every new transaction output to contain a
+minimum amount of ada based on a fixed per-output overhead and the output's serialised
+size. This size-sensitive requirement provides **economic coordination** for
+persistent UTxO state. However, the required ada is represented as ordinary output
+value, which creates additional friction.
 
-The ada satisfying the minimum remains ordinary coin in `TxOut.Value`, controlled by
-the output's spending condition. Ada intended for application purposes can also
-serve as **operational backing**. Application content, including a datum or reference
-script, can increase the minimum without itself appearing in `Value`.
+The minimum is determined from the complete serialised `TxOut`, including any datum
+or reference script. The ada used to satisfy it remains ordinary coin in `TxOut.Value`,
+alongside the ada and native assets the application intends the output to carry.
+The same ada can serve both purposes. The ledger records no separate deposit or
+backing balance, and control of all ada follows the output's spending condition.
 
-This arrangement constrains what an independent output can contain and who controls
-its required ada. Native-token transfers must include ada, small ada payments cannot
-always be represented exactly, and transaction builders must accommodate the minimum
-when constructing application and change outputs.
+This coupling creates **accidental implementation friction** beyond the **necessary
+resource friction** of protecting the live UTxO set. It can prevent a standalone
+payment below minUTxO, make a token sender supply ada later controlled by the recipient,
+and require ada in application state that does not participate in staking. High
+fan-out and successor-output top-ups amplify the funding and transaction-building
+burden.
 
-Funding requirements can remain under a different representation.
-When all available ada is needed to recreate equivalent backing, none remains for
-the transaction fee. Additional state can require additional funding. High fan-out,
-successor-output top-ups, and non-staking application state expose further
-consequences for applications.
-
-This CPS examines these constraints and their workarounds. Its goal is to reduce
-application and transaction-builder friction while preserving resource protection,
-and to distinguish improvements in representation and workflow from changes in
-funding or economic rights.
+This CPS documents these frictions and their current workarounds, and sets goals for
+reducing them while preserving protection of the live UTxO set.
 
 ## Problem
 
@@ -78,13 +74,12 @@ ada available for other uses, subject to the minima of the outputs that remain.
 Ada in a live output may also participate in staking, depending on its address and
 stake credential.
 
-### Application content, applicative value, and operational backing
+### Applicative value and operational backing
 
-The discussion uses three related concepts:
+Two roles are relevant here:
 
-| Concept | Meaning | Current representation |
+| Role | Meaning | Current representation |
 |---|---|---|
-| **Application content** | The complete output content selected by the application, including its address, value, datum, and any reference script | The complete `TxOut` |
 | **Applicative value** | The ada and native assets the application intends the output to carry | Present in `TxOut.Value`, but not identified separately from operational backing |
 | **Operational backing** | The economic role played by the output's ada in satisfying minUTxO | Not represented separately; enforced as a lower bound on ada in the same `Value` |
 
