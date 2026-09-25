@@ -49,8 +49,8 @@ they uniquely define the boundaries between attempts.
 ## Validation and limitations
 
 - Historical stock reconstruction omitted genesis outputs while including later
-  spends. Its absolute-count claim was withdrawn on 7 September; the 11–24 August
-  report now carries an explicit correction. No corrected count is established.
+  spends. Its absolute-count claim was withdrawn on 7 September. Correction and
+  independent validation remain open; no corrected count is established.
 - The deterministic 1-in-500 DB-Sync sample still requires independent reproduction
   and ledger-native era-sizing review.
 - Retained local results recorded 402 passing examples across seven focused groups.
