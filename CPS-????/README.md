@@ -326,7 +326,7 @@ is outside this CPS's scope.
 <a id="ref-4"></a>
 
 4. [*Cardano Ledger: Babbage UTxO
-   validation*](https://github.com/nhenin/cardano-ledger/blob/bef480ebd/eras/babbage/impl/src/Cardano/Ledger/Babbage/Rules/Utxo.hs#L399).
+   validation*](https://github.com/nhenin/cardano-ledger-specs/blob/bef480ebd/eras/babbage/impl/src/Cardano/Ledger/Babbage/Rules/Utxo.hs#L399).
    The minimum-output check uses the transaction's newly created outputs and the
    current protocol parameters.
 

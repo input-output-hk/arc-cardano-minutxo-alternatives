@@ -2,39 +2,29 @@
 
 ## Source repository
 
-- Repository: [`input-output-hk/arc-minutxo`](https://github.com/input-output-hk/arc-minutxo)
-- Audited branches: `main` and `codex/cps-capacity-narrative`
-- Confirmed Git history: eight commits from 28 July to 11 August 2026
-- Latest confirmed checkpoint: [`c1bd76e`](https://github.com/input-output-hk/arc-minutxo/commit/c1bd76e51ecbf6bbfa53934fdd2789d227118fc3)
-- Working-state cutoff: 17 August 2026
+- Repository: [`input-output-hk/arc-cardano-minutxo-alternatives`](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives)
+- Report update prepared: 25 September 2026
+- Evidence through 21 September for local Ledger implementation and 24 September
+  for workstream discussions and weekly-meeting outcomes
 
-Primary evidence reviewed: the root README, CPS and CIP drafts, `NOTES.md`,
-`PROJECT_MEMORY.md`, `HANDOFF.md`, the weekly report, DB-Sync methodology and outputs,
-and Git history/working-tree state.
+The reports combine dated Git history, published issues and assessments, retained
+validation results, and workstream discussions reviewed with Nicolas. Completed
+work is distinguished from proposals, open decisions and incomplete integration.
+The 22 September–5 October report is an interim draft as of 25 September.
 
-## External format references
+## Format references
 
 - [PubSub bi-weekly report template](https://github.com/input-output-hk/pubsub/blob/main/biweekly-reports/TEMPLATE.md)
 - [PubSub report examples](https://github.com/input-output-hk/pubsub/tree/main/biweekly-reports)
 - [PubSub epic example](https://github.com/input-output-hk/pubsub/issues/46)
 
-## Evidence labels
+## Published evidence
 
-- **Confirmed** — present in committed Git history.
-- **In progress** — present in the 17 August working tree or project memory but not
-  in the latest confirmed commit.
-- **Proposed** — inferred from recorded next actions, blockers, or acceptance needs.
-- **Blocked** — requires a decision, external evidence, or independent review.
-
-No historical intent is invented. The first report's next steps come from dated plans.
-The second report is a live draft with a 17 August evidence cutoff.
-
-## Known limitations
-
-- Git history begins on 28 July 2026.
-- Gitignored prototype and private Slack material were not independently inspected;
-  their status comes from project memory and handoff notes.
-- The deterministic 1-in-500 DB-Sync sample requires independent reproduction and
-  ledger-native era-sizing review.
-- The planning backlog is published in this private repository. Reports link directly
-  to the corresponding GitHub issues; publication to the official repository remains separate.
+- [Backlog](backlog/README.md) and [GitHub milestones](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/milestones): milestone scope, issue status and completion dates, checked on 25 September.
+- [ARC PR #38](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/pull/38): focused CPS publication.
+- [ARC PR #44](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/pull/44): three-level Ledger exploration.
+- [ARC PR #45](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/pull/45): CPS review and withdrawal of the historical stock chart.
+- [CIPs PR #1268](https://github.com/cardano-foundation/CIPs/pull/1268): official CPS submission on 11 September. Nicolas confirmed CPS-0037 numbering and ongoing review on 22 September; numbering does not establish acceptance.
+- [Direct output split](https://github.com/nhenin/cardano-ledger-specs/commit/3843077adc0ecf1d4ce92d92df00a0fe1586480b), dated 27 August, and [forging checkpoint](https://github.com/nhenin/cardano-ledger-specs/commit/a0d67967bffb0667bf9665db0e74422dc70bba10), dated 3 September: early implementation and accounting-interface experiments.
+- [Output-allocation checkpoint](https://github.com/nhenin/cardano-ledger-specs/commit/3c0614f26767ebe222d350b1b3f5f8688169175d), dated 21 September: separate storage, migration and initial allocation. The implementation attempt was subsequently parked and a fresh branch started from Ledger master; its findings remain useful.
+- [Will's 23 September assessment](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/41#issuecomment-5796435821) and [annotated branch](https://github.com/willjgould/cardano-ledger/commit/29586b32e2c4d663a2e4374410a808a07bcff521): effects on ordinary balancing, validation and builders. An assessment and code annotations do not establish a working netting implementation.
