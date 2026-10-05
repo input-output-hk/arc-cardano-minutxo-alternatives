@@ -33,7 +33,8 @@ resource friction** of protecting the live UTxO set. It can prevent a standalone
 payment below minUTxO, make a token sender supply ada later controlled by the recipient,
 and require ada in application state that does not participate in staking. High
 fan-out and successor-output top-ups amplify the funding and transaction-building
-burden.
+burden. Funding an output can itself increase its encoded size and therefore the
+minimum that the builder must fund.
 
 This CPS documents these frictions and their current workarounds, and sets goals for
 reducing them while preserving protection of the live UTxO set.
@@ -88,6 +89,85 @@ example, ada sent as a payment can also satisfy the output's minUTxO requirement
 Conversely, a datum or reference script can increase the required ada even though
 neither is stored in `Value`. The creating transaction must source enough ada; once
 the output exists, its spending condition controls it.
+
+### A circular dependency between funding and cost
+
+*Funding changes the output's own minimum*
+
+Wallets, transaction builders, and applications must determine how much ada an
+output requires before they can fund and balance the transaction. However, the ada
+they supply becomes part of the serialised output used to calculate that
+requirement. Adding funding can therefore increase the amount that must be funded,
+even when the address, native tokens, datum, and reference script stay unchanged.
+
+For an output `o(c)` with those other fields fixed, let `c` be its ada amount and
+`p` be `coinsPerUTxOByte`. Funding it exactly at the minimum requires solving a
+fixed-point equation:
+
+```math
+c = M(c)
+  = p\left(160 + \operatorname{sizeInBytes}(o(c))\right)
+```
+
+CBOR integer widths change at encoding boundaries [[5]](#ref-5). For example, a
+Babbage map-form output with a 57-byte base address, no native tokens, datum or
+reference script, and a zero-ada placeholder occupies 63 bytes. At `p = 4,310`, its
+calculated minimum is `961,130` lovelace. Inserting that amount expands the output
+to 67 bytes, raising the minimum to `978,370` lovelace. The first calculation
+therefore leaves it `17,240` lovelace short. Using `978,370` satisfies the equation
+for this output.
+
+The ledger checks the final output against `c >= M(c)`. The builder bears the
+work of reaching that valid result while respecting the intended transfer and
+available funds. Libraries can handle the dependency through iteration or other
+sizing methods, but the dependency remains part of the mechanism's construction
+requirements. An estimate made before the final ada amount is set cannot always
+be used unchanged during balancing.
+
+**A separate deposit field can retain this dependency.** If both
+application ada and a separate deposit remain in the priced serialisation, builders
+must still account for their effect on the requirement. A fixed funding budget can
+also make exact allocation impossible. Let `A` be the total ada available to an
+output, allocated between application ada `A - d` and a deposit `d`. Requiring the
+deposit to equal the cost of that final representation gives:
+
+```math
+d = C_A(d)
+  = p\left(160 + \operatorname{sizeInBytes}(\operatorname{TxOut}(A-d,d))\right),
+\qquad 0 \leq d \leq A
+```
+
+This equation need not have a solution. To make the constraint reproducible,
+consider a split representation encoded as the CBOR map
+`{0: address, 1: applicationAda, 4: deposit}`. With the same 57-byte base address,
+no native tokens, datum or reference script, total `A = 1,061,146` lovelace and
+`p = 4,310`, three allocations illustrate the boundary:
+
+| Deposit `d` | Application ada `A - d` | Output bytes | Required backing `C_A(d)` |
+|---:|---:|---:|---:|
+| 995,610 | 65,536 | 73 | 1,004,230 |
+| 1,004,230 | 56,916 | 71 | 995,610 |
+| 995,611 | 65,535 | 71 | 995,610 |
+
+Moving one lovelace from application ada to the deposit at the first row's
+allocation shortens the application amount's encoding by two bytes. Iterating
+`d := C_A(d)` alternates between the first two rows. An
+[exhaustive reproduction](./evidence/deposit_fixed_point.py) finds no exact
+solution; the smallest sufficient deposit is `995,611`, one lovelace above its
+own requirement.
+
+The absence of exact equality in this example follows from preserving the total
+ada while pricing the changing encodings of both amounts. It is an allocation
+constraint that any implementation of those rules must handle. This split
+representation illustrates a requirement for proposed changes; today's merged
+`Value` instead has the construction dependency shown in the first example.
+
+The problem for users of the mechanism is the funding and balancing logic they
+must implement to satisfy a requirement that depends on the funding itself. A
+solution should identify which calculations and funding steps it removes or
+simplifies. Where the dependency remains, the solution must define how builders
+handle it and any allocation without exact equality, including the treatment of
+surplus, additional funding, or rejection.
 
 ### Necessary resource friction and accidental implementation friction
 
@@ -202,8 +282,8 @@ script. CIP-68 and CIP-89 provide examples of such output patterns [[2]](#ref-2)
 
 | Aspect | Explanation |
 |---|---|
-| **Why minUTxO matters** | The builder must calculate the minimum for every output and allocate enough ada. Adding an input can change the asset bundle, size, and minUTxO of the change output, requiring another balancing pass. |
-| **Current workarounds** | Libraries and wallets can automate minimum calculation and balancing, subject to the application's output and funding constraints. |
+| **Why minUTxO matters** | The builder must calculate the minimum for every output and allocate enough ada. Inserting that funding can increase the output's own minimum, leaving a first estimate insufficient; see [A circular dependency between funding and cost](#a-circular-dependency-between-funding-and-cost). Adding an input can also change the asset bundle, size, and minUTxO of the change output, requiring another balancing pass. |
+| **Current workarounds** | Libraries and wallets can automate minimum calculation and balancing, subject to the application's output and funding constraints. They must still resolve the funding dependency against the final encoding and available funds. |
 
 <a id="use-case-high-fan-out"></a>
 
@@ -265,7 +345,8 @@ Any proposed solution must:
    identified in the use cases without shifting them invisibly to another participant
    or layer.
 3. **Simplify transaction building.** Reduce the complexity of funding, allocation,
-   balancing, and top-up logic in applications, wallets, and SDKs.
+   balancing, and top-up logic in applications, wallets, and SDKs, including the
+   dependency between the funding amount and its own size-based requirement.
 4. **Limit ecosystem disruption.** Avoid unnecessary trust, infrastructure, and
    migration requirements.
 
@@ -287,6 +368,11 @@ Examples should cover outputs with no intended ada, ada below the current minimu
 and ada sufficient to satisfy it. They should follow backing through creation,
 continuation, consolidation, and release, including changes in the requirement.
 
+For output funding, include encoding-boundary cases and identify which calculations,
+iterations, or funding adjustments wallets and builders must still perform. A change
+in where backing is stored should be assessed separately from a reduction in the
+logic required to calculate and fund it.
+
 Selecting an optimal tariff or a particular deposit, account, or settlement design
 is outside this CPS's scope.
 
@@ -304,6 +390,22 @@ is outside this CPS's scope.
    managed separately by the ledger? If managed separately, should each deposit fund
    one output, or could a deposit fund several? Could transactions using shared
    funding still proceed independently?
+5. When an output's ada must be split between application value and a deposit while
+   preserving its total, how should an allocation with no exact size-dependent
+   deposit equality be handled? If surplus backing is permitted, who controls it
+   and how can it be recovered?
+
+## Contributors
+
+The minUTxO problem has been discussed by the community over several years,
+including at BuidlerFest. We thank
+[@Crypto2099](https://github.com/Crypto2099),
+[@lehins](https://github.com/lehins),
+[@ch1bo](https://github.com/ch1bo),
+[@matteocoppola](https://github.com/matteocoppola), and
+[@padierfind](https://github.com/padierfind) for their contributions to these
+discussions. The [CPS review discussion](https://github.com/cardano-foundation/CIPs/pull/1268#issuecomment-5835357254)
+provides additional context on this earlier work.
 
 ## References
 
@@ -329,6 +431,12 @@ is outside this CPS's scope.
    validation*](https://github.com/nhenin/cardano-ledger-specs/blob/bef480ebd/eras/babbage/impl/src/Cardano/Ledger/Babbage/Rules/Utxo.hs#L399).
    The minimum-output check uses the transaction's newly created outputs and the
    current protocol parameters.
+
+<a id="ref-5"></a>
+
+5. [*RFC 8949: Concise Binary Object Representation*, sections 3 and
+   4.1](https://www.rfc-editor.org/rfc/rfc8949.html). Defines integer encoding
+   widths and preferred serialisation used in the example.
 
 ## Copyright
 
