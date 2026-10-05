@@ -148,7 +148,7 @@ fixed-point equation:
 
 ```math
 c = M(c)
-  = p\left(160 + \operatorname{sizeInBytes}(o(c))\right)
+  = p\left(160 + \mathrm{sizeInBytes}(o(c))\right)
 ```
 
 CBOR integer widths change at encoding boundaries [[5]](#ref-5). For example, a
@@ -175,7 +175,7 @@ deposit to equal the cost of that final representation gives:
 
 ```math
 d = C_A(d)
-  = p\left(160 + \operatorname{sizeInBytes}(\operatorname{TxOut}(A-d,d))\right),
+  = p\left(160 + \mathrm{sizeInBytes}(\mathrm{TxOut}(A-d,d))\right),
 \qquad 0 \leq d \leq A
 ```
 
