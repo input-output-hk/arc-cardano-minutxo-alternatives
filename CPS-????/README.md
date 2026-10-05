@@ -90,6 +90,48 @@ Conversely, a datum or reference script can increase the required ada even thoug
 neither is stored in `Value`. The creating transaction must source enough ada; once
 the output exists, its spending condition controls it.
 
+### No separate accounting for backing across parameter changes
+
+*Who funds an increase, and who benefits from a decrease?*
+
+The ledger records an output's total ada and spending conditions. It does not
+record a separate minUTxO balance, identify an original funder of that backing, or
+assign that funder a distinct right to recover it [[6]](#ref-6). Applications that
+need to distinguish their assets from the funding supplied for persistent state
+must maintain that distinction through their own accounting and spending rules.
+
+Changes to `coinsPerUTxOByte` expose the consequences of this representation. An
+existing output retains its ada and remains consumable. The parameter change does
+not automatically debit it or issue a refund. Newly created outputs, including
+successors that preserve the same application state, must satisfy the parameters
+in force when validated [[4]](#ref-4).
+
+- **An increase can require additional funding to continue an application.** The
+  input's ada may no longer cover its successor's minimum, even without an increase
+  in state size. The application must find the shortfall in available funds or
+  arrange another funding source. The minUTxO mechanism does not assign a separate
+  top-up obligation to the original funder or another participant.
+- **A decrease can release funding for the current controller's benefit.** When an
+  output is consumed, a successor may preserve the same state with less ada.
+  Subject to the spending conditions, transaction fees, and the requirements of
+  other outputs, the difference can be used elsewhere. This can provide a liquidity
+  windfall to someone who did not originally supply the backing.
+
+For example, suppose Alice sends Bob a native token and supplies 1 ada to meet the
+output's minimum. If the minimum for an equivalent successor later falls to
+0.5 ada, Bob can recreate the token output with 0.5 ada and use the remaining
+0.5 ada for fees or other outputs, subject to their own minima. Alice has no
+separate protocol-level claim to that amount. The decrease changes how much ada
+must remain in the successor; control of the existing funds still follows the
+output's spending conditions.
+
+Value conservation remains precise. The missing distinction is between historical
+funding, the current backing requirement, and rights over the ada made available
+when an output is consumed. Applications must determine who bears a shortfall or
+benefits from a reduction. A separate deposit record can make the amounts explicit;
+a solution must also define funding obligations and release rights across parameter
+changes.
+
 ### A circular dependency between funding and cost
 
 *Funding changes the output's own minimum*
@@ -246,6 +288,10 @@ concern here is who supplies and later controls the required ada.
 | **Why minUTxO matters** | The sender must source the ada required by the new output, but the recipient controls that ada after the output is created. The sender has no separate claim to recover it. |
 | **Current workarounds** | Co-spend and recreate an existing recipient output, use a recipient-funded pull or claim flow instead of a push flow, or reduce the new output's size. The first two require coordination or change the flow; the last only reduces the amount. |
 
+If the minimum later decreases, the recipient may also benefit from the resulting
+release of funding, as described in [No separate accounting for backing across
+parameter changes](#no-separate-accounting-for-backing-across-parameter-changes).
+
 <a id="use-case-non-staking-state"></a>
 
 #### 4. Ada held in non-staking application state
@@ -321,7 +367,9 @@ application state is unchanged.
 
 Proposals with explicit deposits must also distinguish historical allocation,
 current funding requirements, and the amount available for release after a parameter
-change, and explain how any shortfall or surplus is handled.
+change, and explain how any shortfall or surplus is handled, including who funds
+an increase and who benefits from a decrease. See [No separate accounting for
+backing across parameter changes](#no-separate-accounting-for-backing-across-parameter-changes).
 
 ## Goals
 
@@ -358,6 +406,9 @@ A proposed solution should:
   including parameter changes where relevant;
 - state whether each pain point is removed, reduced, unchanged, or shifted, and
   identify who bears remaining burdens or regressions;
+- identify who funds additional backing after a parameter increase and who can
+  reuse ada released after a decrease, including cases where the original funder
+  and current controller differ;
 - use reproducible transactions to compare total ada required, fees, intended
   transfers, and recoverable backing, counting ada that serves overlapping roles
   only once; and
@@ -380,7 +431,9 @@ is outside this CPS's scope.
 
 1. If a capacity-pricing parameter such as `coinsPerUTxOByte` increases, should an
    application provide additional funding when it recreates an output without
-   increasing its size, or should its existing funding remain sufficient?
+   increasing its size, or should its existing funding remain sufficient? If the
+   parameter decreases, who should benefit from the reduced backing requirement,
+   and should any entitlement depend on who originally supplied the funding?
 2. If the representation of ada required for minUTxO changes, how can deployed
    contracts that check exact ada amounts continue to operate?
 3. When an output is no longer useful to an application and the fee to spend it
@@ -437,6 +490,13 @@ provides additional context on this earlier work.
 5. [*RFC 8949: Concise Binary Object Representation*, sections 3 and
    4.1](https://www.rfc-editor.org/rfc/rfc8949.html). Defines integer encoding
    widths and preferred serialisation used in the example.
+
+<a id="ref-6"></a>
+
+6. [*Cardano Ledger: Babbage output
+   format*](https://github.com/IntersectMBO/cardano-ledger/blob/master/eras/babbage/impl/cddl/data/babbage.cddl#L143).
+   The output records an address, value, optional datum, and optional reference
+   script, without separate minUTxO funding or refund fields.
 
 ## Copyright
 
