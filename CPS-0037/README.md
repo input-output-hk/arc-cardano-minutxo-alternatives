@@ -1,6 +1,6 @@
 ---
-CPS: "?"
-Title: Application and transaction-builder friction in the current minUTxO implementation
+CPS: 37
+Title: Application and transaction friction in minUTxO implementation
 Category: Ledger
 Status: Open
 Authors:
@@ -9,7 +9,7 @@ Authors:
   - Polina Vinogradova <polina.vinogradova@iohk.io>
 Proposed Solutions: []
 Discussions:
-  - ARC working draft: https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/pull/38
+  - Original PR: https://github.com/cardano-foundation/CIPs/pull/1268
 Created: 2026-07-28
 License: CC-BY-4.0
 ---
@@ -448,7 +448,7 @@ is outside this CPS's scope.
    deposit equality be handled? If surplus backing is permitted, who controls it
    and how can it be recovered?
 
-## Contributors
+## Acknowledgements
 
 The minUTxO problem has been discussed by the community over several years,
 including at BuidlerFest. We thank

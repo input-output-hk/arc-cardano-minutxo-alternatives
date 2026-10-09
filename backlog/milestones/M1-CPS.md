@@ -2,7 +2,7 @@
 
 **Deliverable:** Cardano Problem Statement
 
-**Working artifact:** `CPS-????/README.md`
+**Working artifact:** `CPS-0037/README.md`
 
 **State:** In progress
 

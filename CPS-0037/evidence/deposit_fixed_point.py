@@ -11,7 +11,7 @@ and Transition/InitialFundsSpec.hs with its Fixture.hs. This self-contained
 encoding reconstruction is not a compiled Ledger integration test.
 
 Run from the repository root:
-    python3 'CPS-????/evidence/deposit_fixed_point.py'
+    python3 'CPS-0037/evidence/deposit_fixed_point.py'
 """
 
 

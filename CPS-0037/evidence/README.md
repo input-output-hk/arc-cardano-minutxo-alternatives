@@ -74,7 +74,7 @@ They are retained for diagnosis and do not constitute a corrected counting metho
 Run them against a full-history mainnet DB-Sync PostgreSQL database:
 
 ```sh
-cd 'CPS-????/evidence'
+cd 'CPS-0037/evidence'
 psql "$DBSYNC_DATABASE_URL" --no-psqlrc --quiet \
   --file=utxo-count-by-epoch.sql > utxo-count-by-epoch.csv
 psql "$DBSYNC_DATABASE_URL" --no-psqlrc --quiet \
