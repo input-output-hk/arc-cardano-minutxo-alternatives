@@ -65,7 +65,7 @@ anyone has already run this.
 
 ## Process
 
-- Folder is `CPS-????/` until a number is assigned. There is no draft status: the
-  unmerged PR *is* the draft.
+- The assigned CPS number is 0037 and the folder is `CPS-0037/`. There is no draft
+  status: the unmerged PR *is* the draft.
 - Category: Ledger. License: CC-BY-4.0.
 - `Proposed Solutions: []` stays empty until a CIP exists.

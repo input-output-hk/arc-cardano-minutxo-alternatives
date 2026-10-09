@@ -2,8 +2,8 @@
 
 ARC workstream on the min-UTxO mechanism.
 
-- `CPS-????/` -- the Cardano Problem Statement draft. The folder is renamed once a
-  number is assigned; it is submitted as a PR against cardano-foundation/CIPs.
+- [CPS-0037](CPS-0037/README.md) -- the Cardano Problem Statement, under review in
+  [CIPs PR #1268](https://github.com/cardano-foundation/CIPs/pull/1268).
 - `CIP-????/` -- an early design sketch for ledger-managed UTxO state deposits.
   It is discussion material for the Ledger Working Group, not yet a submission.
 - [`backlog/`](backlog/README.md) -- delivery milestones, epics, and work items for
