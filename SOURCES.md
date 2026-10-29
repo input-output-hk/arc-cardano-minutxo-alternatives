@@ -49,7 +49,7 @@ was missing from the earlier snapshot. The local Ledger checkout is clean at tha
 commit, matching its recorded fork tracking ref; the development chat records its
 push. It separates UTxO storage domains and pure deposit operations, introduces
 provisional V2/V1 formula parity and extracts `Cardano.Ledger.TxOut` while keeping
-Core exports compatible. Production still creates V1 entries; migration and
+Core exports compatible. The prototype's creation path still uses V1; migration and
 parameter-driven version selection remain unimplemented.
 
 The verification record reports 145 targeted checks after consolidating the
