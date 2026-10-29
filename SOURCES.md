@@ -3,14 +3,15 @@
 ## Source repository
 
 - Repository: [`input-output-hk/arc-cardano-minutxo-alternatives`](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives)
-- Report update prepared: 27 October 2026
+- Report update prepared: 29 October 2026
 - The 22 September–5 October report is finalized for that reporting period, using
   repository and supplied Slack evidence through 5 October. This refresh corrects
   the submission rename/acknowledgements status and a broken test-backlog link.
 - The 6–19 October report now covers the full period, including implementation,
   validation, CPS review and downstream work after the previous 9 October cutoff.
-- The 20 October–2 November report is an interim draft as of 27 October. No work
-  after that date is counted as completed.
+- The 19–30 October report replaces the initially assumed 20 October–2 November
+  window, following David's request supplied by Nicolas. It is an interim draft
+  as of 29 October; no work after that date is counted as completed.
 
 The reports combine dated Git history, published issues and assessments, retained
 validation results, recorded weekly notes and workstream discussions reviewed with
@@ -23,6 +24,47 @@ evidence. Historical source checks retain their original dates below. The
 27 October review separately checked CPS PR #1268, ARC PR #53 and issues #13,
 #40 and #41 on GitHub. Recorded tests were reviewed, not rerun; no current CI or
 complete multi-era validation result is inferred from them.
+
+## 29 October follow-up
+
+Nicolas supplied David Rosales Parral's Slack request to prepare a report for
+19–30 October and his correction of a follow-up slot from the 26th to the 16th.
+The surrounding sequence (the next week's holiday, then PubSub, then this slot)
+places that corrected date on 16 November. This records the supplied scheduling
+exchange; no calendar invitation or additional message was sent. The new report
+uses David's requested window. Its 19 October boundary overlaps the prior report;
+that day's implementation is identified as the starting checkpoint, not a second
+delivery.
+
+Live GitHub verification on 29 October confirms that
+[CPS PR #1268](https://github.com/cardano-foundation/CIPs/pull/1268) was merged at
+`2026-10-27T16:59:53Z` (18:59:53 in Cyprus), merge commit
+[`9cebacf9`](https://github.com/cardano-foundation/CIPs/commit/9cebacf9dab2030dd0322219577cd2b24ed6e4f0).
+The earlier 27 October read below occurred before the merge. The new report now
+records CPS publication and carries solution-design work forward into the CIP.
+
+The final 27 October prototype commit
+[`1a903ab00`](https://github.com/nhenin/cardano-ledger-specs/commit/1a903ab0040f4f3723d9343a323a75b44ded5245)
+was missing from the earlier snapshot. The local Ledger checkout is clean at that
+commit, matching its recorded fork tracking ref; the development chat records its
+push. It separates UTxO storage domains and pure deposit operations, introduces
+provisional V2/V1 formula parity and extracts `Cardano.Ledger.TxOut` while keeping
+Core exports compatible. Production still creates V1 entries; migration and
+parameter-driven version selection remain unimplemented.
+
+The verification record reports 145 targeted checks after consolidating the
+storage/deposit changes, followed by six successful build targets and 134 checks
+(127 goldens plus seven collateral properties, 100 cases each) after TxOut
+extraction. The full 209-business-check and full State Types suites were not rerun
+for this final checkpoint. This supersedes the earlier statement that the changes
+were still uncommitted and their combined build was pending.
+
+A bounded review of the local Ledger history and verification record, plus the
+latest turns of “Réévaluer la situation” and “Rédiger un message Slack à Pi”, found
+no further 28–29 October implementation or validation results in those sources.
+Slack was not independently searched again for this follow-up; the source for
+David's new instructions is Nicolas's supplied transcript. Earlier chat and Slack
+coverage retains its 27 October cutoff below.
 
 ## 27 October evidence review
 
