@@ -1,5 +1,26 @@
 # ARC min-UTxO backlog
 
+## Current implementation — 30 October 2026
+
+The integrated DepositStore candidate is published in
+[Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3), at
+`7b9b2748`. PR #2 is closed. The new reference branch,
+`leios-prototype-snapshot-30-10`, contains the upstream snapshot fetched today;
+ten integration conflicts remain unresolved.
+
+| Delivered at this checkpoint | Still open |
+|---|---|
+| Explicit output variants, declarations, exact accounting and historical allocation storage | Design review, Store-backed Plutus projection and remaining interface work |
+| 209 DepositStore examples and 13 metadata/codec examples pass locally | Full pricing, stake/voting and shared collateral coverage |
+| All four CI compiler builds pass | Full test validation: the conformance job has 27 failures; investigate before attributing the cause |
+
+Use [M4](milestones/M4-PROTOTYPE.md) for the implementation checkpoint,
+[#27](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/27)
+for upstream integration and
+[#29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29)
+for validation. The [project board](https://github.com/orgs/input-output-hk/projects/261)
+tracks active work. Local unpublished changes are not counted as delivered here.
+
 ## Epic hierarchy
 
 - [[ARC-09] [TV-15] IOR — MinUTxO alternatives — Phase 2](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/1) — `Epic`
@@ -19,8 +40,8 @@ sub-issues, following the structure used by the PubSub stream.
 |---|---|---|---|
 | [M1 — Problem Statement Definition (CPS)](milestones/M1-CPS.md) | Cardano Problem Statement | In progress | Reviewed and submission-ready |
 | [M2 — Implementation Design Space Analysis & Policy Recommendation](milestones/M2-ALTERNATIVES-REPORT.md) | Design-space analysis and final policy recommendation | In progress | Recommendation reviewed and approved |
-| [M3 — Adopted Solution Design & Specification](milestones/M3-SOLUTION-DESIGN.md) | Complete technical solution specification | Blocked by M2 recommendation | Reviewed implementation contract |
-| [M4 — Integrated `cardano-ledger` Prototyping](milestones/M4-PROTOTYPE.md) | Integrated Ledger prototype | Exploratory checkpoint | Adopted semantics integrated and tested |
+| [M3 — Adopted Solution Design & Specification](milestones/M3-SOLUTION-DESIGN.md) | Complete technical solution specification | Candidate specification available; adoption awaits M2 and review | Reviewed implementation contract |
+| [M4 — Integrated `cardano-ledger` Prototyping](milestones/M4-PROTOTYPE.md) | Integrated Ledger prototype | In progress: published implementation; integration and validation open | Adopted semantics integrated and tested |
 | [M5 — CIP Authoring & Submission](milestones/M5-CIP-AUTHORING.md) | Cardano Improvement Proposal | Blocked by stable M3/M4 results | Reviewed and submission-ready CIP |
 
 ## Delivery flow
@@ -41,28 +62,29 @@ M5 — CIP Authoring & Submission
 Write, review, and submit the CIP
 ```
 
-Prototype findings may feed corrections back into M3 before CIP authoring, but M4 is not
-complete until the mechanism is integrated into `cardano-ledger` rules.
+Prototype findings feed corrections back into M3 before CIP authoring. M4 now has
+an integrated candidate, but remains open until design review, upstream integration
+and the relevant validation are complete.
 
 These are deliverable completion gates, not a requirement to finish all comparison
 work before exploring the codebase. The exploration below feeds evidence into M2 and
 draft contracts into M3 while keeping M4's integrated-implementation criteria intact.
 
-## Three-level active Ledger exploration
+## Cross-level design review
 
 [Issue #39](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/39),
-under the existing prototype epic #25, tracks an exploration whose outcome is a precise
-specification, concrete implementation design and focused evidence for a preferred
-working direction. Comparative analysis and the final recommendation remain separate
-deliverables; opening these tickets does not mark the design or implementation complete.
+under the existing prototype epic #25, tracks the design and interface review across
+output representation, transaction netting and protocol settlement. Published prototype
+evidence now informs that review. Comparative analysis and the final recommendation
+remain separate deliverables; implementation does not establish formal adoption.
 
-| Work item | Issue | Scope and acceptance criteria |
+| Work item | Issue | Current focus |
 |---|---|---|
-| Cross-level scope, synthesis and review gates | [#39](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/39) | [Exploration overview](issues/exploration/ledger-design-exploration.md) |
-| Level 1 — Separate output assets and capacity deposit | [#40](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/40) | [Output-role split](issues/exploration/01-output-role-split.md) |
-| Level 2 — Explicit transaction-level deposit netting | [#41](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/41) | [Transaction netting](issues/exploration/02-transaction-deposit-netting.md) |
-| Level 3 — Protocol-managed backing and settlement | [#42](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/42) | [Dust account](issues/exploration/03-protocol-dust-account.md) |
-| Transversal — Refine asset, coin and mint interfaces | [#43](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/43) | [Accounting interfaces](issues/prototype/accounting-refactor.md) |
+| Cross-level review | [#39](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/39) | [Reconcile the implemented candidate and open decisions](issues/exploration/ledger-design-exploration.md). |
+| Output representation | [#40](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/40) | [Review implemented output variants and remaining compatibility](issues/exploration/01-output-role-split.md). |
+| Transaction netting | [#41](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/41) | [Reconcile Will's assessment with the published Store/netting contract](issues/exploration/02-transaction-deposit-netting.md). |
+| Protocol backing | [#42](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/42) | [Review historical refunds, pricing evolution and settlement guarantees](issues/exploration/03-protocol-dust-account.md). |
+| Accounting interfaces | [#43](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/43) | [Audit remaining consumers, mint semantics and compatibility](issues/prototype/accounting-refactor.md). |
 
 The three levels are cumulative; they are not three competing alternatives or three
 pre-approved activations. The interface refactor supports the exploration and does
@@ -106,6 +128,9 @@ used by the first bi-weekly report.
 5. [Document the design rationale](issues/solution-design/05-rationale.md) ([#24](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/24))
 
 ### M4 — Integrated `cardano-ledger` Prototyping
+
+All four tasks are in progress. Their delivered evidence and remaining acceptance
+criteria are recorded separately; none is closed merely because the prototype builds.
 
 1. [Align the domain model with the adopted specification](issues/prototype/PROTO-01-domain-model.md) ([#26](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/26))
 2. [Integrate the mechanism into Ledger rules](issues/prototype/PROTO-02-ledger-integration.md) ([#27](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/27))

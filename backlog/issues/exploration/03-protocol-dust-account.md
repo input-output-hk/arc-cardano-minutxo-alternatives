@@ -1,6 +1,6 @@
 # Explore protocol-managed capacity settlement through a dust account
 
-**Status:** Planned — specification, design and exploration.
+**Status:** In Progress — DepositStore prototype published; policy, compatibility and coverage review outstanding.
 
 **Parent:** [Three-level Ledger exploration](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/39).
 
@@ -8,13 +8,40 @@
 
 **Transversal work:** [Accounting interface refactor](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/43).
 
+## Current progress and remaining work — 30 October 2026
+
+[Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3) at [`7b9b27480`](https://github.com/nhenin/cardano-ledger-specs/commit/7b9b274800e213a33bb2f55b1210e901d91034dc) implements the current protocol-settlement experiment as
+`UTxOStore`. The pinned [specification](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-rules.md) and [verification record](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-verification.md)
+replace the earlier assumption that state and historical-refund handling are still
+unimplemented.
+
+- [x] Retain each accepted output's size and calculation; preserve its original
+  refund across snapshots and parameter changes without an external history oracle.
+- [x] Implement a cached Store total equal to the sum of recorded deposit obligations,
+  with checked construction/updates and snapshot mismatch rejection.
+- [x] Implement ordinary/collateral allocation and release, monetary-pot accounting,
+  Store serialization and Conway translation with focused ledger-effect evidence.
+- [ ] Review the selected historical-refund policy against alternatives, its economic
+  consequences, and any explicit repricing/version-selection policy.
+- [ ] Resolve stronger local settlement and Plutus context projection; complete
+  pricing, stake, voting and remaining shared collateral test coverage.
+- [ ] Measure state/lookup costs and complete activation, builder, signed-transaction
+  and recovery review. Consensus rollback is outside the current ledger tests.
+- [ ] Review the combined contract with Nicolas and complete broader validation.
+
+The prototype has no unallocated Store surplus: its invariant is exact cached equality.
+Production selects V1; V2 has provisional V1 formula parity. Local checks include all
+209 DepositStore contracts and 13 metadata/codec properties. [Full CI](https://github.com/nhenin/cardano-ledger-specs/actions/runs/41019013763)
+has a failed conformance job; the prototype is not fully validated or formally adopted.
+
 ## Objective
 
 Determine how capacity backing can move out of application outputs into protocol-managed
 accounting while preserving state protection, ADA conservation and solvent settlement.
 Produce a precise specification and implementation design supported by focused evidence.
-The dust account is a working architectural direction and name, not a settled choice
-of refund policy, ownership, storage layout or formally approved protocol mechanism.
+The dust account is the exploration name; DepositStore is the current implemented
+choice. Its refund policy, ownership and layout remain subject to the comparative
+and cross-level review below, rather than constituting formal protocol approval.
 
 ## Scope
 

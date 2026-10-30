@@ -1,6 +1,30 @@
 # Explore the Ledger across output splitting, transaction netting, and protocol settlement
 
-**Status:** Planned — specification, design and exploration.
+**Status:** In Progress — published integrated prototype; cross-level review and full validation outstanding.
+
+## Current progress and remaining work — 30 October 2026
+
+The current evidence is [Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3) at [`7b9b27480`](https://github.com/nhenin/cardano-ledger-specs/commit/7b9b274800e213a33bb2f55b1210e901d91034dc). The pinned
+[specification](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-rules.md) and [verification record](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-verification.md) describe output variants,
+transaction declarations/netting, collateral and Store effects, accepted-size and
+creation-price retention, serialization and legacy translation.
+
+- [x] Publish the prototype and its specification/verification evidence.
+- [x] Implement historical deposit refunds from retained accepted size and calculation,
+  including restoration and later parameter changes.
+- [ ] Reconcile Will's earlier in-output assessment with the external-Store contract;
+  record the shared review and remaining builder/interface work.
+- [ ] Resolve Plutus context projection and stronger local-settlement semantics.
+  Explicit repricing and calculation-version selection remain separate design work;
+  V2 currently has provisional V1 formula parity.
+- [ ] Complete the full pricing, stake and voting test matrices and remaining shared
+  collateral regressions; investigate CI failures and complete broader validation.
+- [ ] Complete the reviewed alternatives, cross-level design and milestone deliverables.
+
+Local checks passed all 209 DepositStore contracts and 13 Store metadata/codec checks.
+All four GHC CI build jobs passed. The [full CI run](https://github.com/nhenin/cardano-ledger-specs/actions/runs/41019013763)
+has a failed conformance job; the cause is not yet attributed. Full validation remains
+outstanding. These results do not establish formal adoption or completion of M3/M4.
 
 ## Purpose
 
@@ -13,6 +37,21 @@ Exploration must expose its constraints, costs, counterexamples and remaining ch
 It is not presented as an unbiased search or as a completed comparison of alternatives.
 The existing alternatives work still needs to make the reasoning and trade-offs
 explicit, reviewable and evidence-backed before a formal recommendation.
+
+## Track progress and review
+
+| Track | Owner | Current evidence and next step |
+|---|---|---|
+| [Value split (#40)](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/40) | Nicolas Henin | Output/Store integration published; finish the impact assessment and cross-level review |
+| [Transaction deposit netting (#41)](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/41) | Will Gould | Earlier Ledger/builder assessment available; reconcile its assumptions with the published prototype |
+| [Protocol settlement (#42)](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/42) | Unassigned | DepositStore prototype available; review policy, compatibility, cost and coverage gaps |
+| [Accounting interfaces (#43)](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/43) | Unassigned | Interface slices published; complete the residual-consumer and compatibility audit |
+
+The original Phase 1 impact-assessment and shared-contract deliverables remain part
+of these tracks. Record affected modules, functions, interfaces and consumers at
+pinned revisions, distinguish preserved behavior from changes, and propagate revised
+assumptions across split and netting. Published implementation evidence does not
+replace the outstanding reviews or complete #42/#43.
 
 ## Three cumulative levels
 

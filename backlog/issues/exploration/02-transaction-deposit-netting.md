@@ -1,6 +1,8 @@
-# Explore transaction-level capacity-deposit netting
+# Explore Ledger code impacts of transaction deposit netting
 
-**Status:** Planned — specification, design and exploration.
+**Status:** In Progress — assessment available; reconciliation with the published Store/netting prototype and review outstanding.
+
+**Owner:** Will Gould.
 
 **Parent:** [Three-level Ledger exploration](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/39).
 
@@ -10,6 +12,32 @@
 
 **Transversal work:** [Accounting interface refactor](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/43).
 
+## Current progress and remaining work — 30 October 2026
+
+[Will's Ledger and builder assessment](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/41#issuecomment-5796435821)
+is available and remains attributed to Will. It assumes backing held in outputs,
+recorded backing at least equal to required backing, and total-value getters that
+include both application ADA and backing.
+
+[Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3) at [`7b9b27480`](https://github.com/nhenin/cardano-ledger-specs/commit/7b9b274800e213a33bb2f55b1210e901d91034dc) now supplies an external-Store implementation with exact
+TopTx/SubTx declarations, delegation, historical refunds and ordinary/collateral
+accounting. Its [specification](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-rules.md) and [verification record](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-verification.md) are
+evidence for the next review; they do not establish Will's agreement with that contract.
+
+- [x] Record the existing Ledger/builder assessment and its assumptions.
+- [x] Link published netting implementation and focused transaction-rule evidence.
+- [ ] Pin Will's annotated Ledger and builder revisions and reconcile the assessment
+  with external deposits, exact allocation, explicit declarations and nested transactions.
+- [ ] Update builder input selection, change, collateral-return and serialization
+  implications against that reconciled contract; demonstrate the remaining examples.
+- [ ] Review the resulting split/netting contract with Nicolas, including local
+  settlement, Plutus and activation dependencies.
+
+The prototype's positive/zero/negative accounting checks and historical refunds are
+implemented. The stronger local-release guarantee remains unresolved. Local results
+include all 209 DepositStore contracts; [full CI](https://github.com/nhenin/cardano-ledger-specs/actions/runs/41019013763)
+has a failed conformance job and broader validation remains outstanding.
+
 ## Objective
 
 Specify how a transaction relates the capacity deposits released by consumed outputs
@@ -18,6 +46,27 @@ needed to express that relationship. Establish what explicit netting adds to exi
 ADA balancing rather than assuming that a new name or transaction field is necessary.
 The result is a reviewed specification and implementation design with focused evidence,
 not a completed settlement implementation or formal protocol adoption.
+
+## Impact assessment and cross-level review
+
+Will continues to own the netting investigation. His assessment is the starting
+point for the remaining revision-pinned Ledger/builder impact work. Reconcile its
+provisional assumptions with Nicolas's published split and Store implementation:
+
+- [ ] Pin the Ledger and prototype revisions examined; map modules, functions,
+  interfaces and consumers for transaction balancing, validation and deposit accounting.
+- [ ] Trace existing ADA balancing and identify what explicit netting would change,
+  what behavior must remain unchanged, and which interfaces may be affected.
+- [ ] Record uncertainties and the focused experiments needed to resolve them;
+  include reproducible commands and results for experiments performed.
+- [ ] Link the shared, versioned provisional contract with #40; distinguish required
+  new backing, actual allocation and releasable old backing, and identify the interfaces
+  that supply or validate each quantity without double-counting it.
+- [ ] Review the impact assessment with Nicolas and record the next specification/design
+  steps, open dependencies and proposed implementation slices.
+
+The remaining assessment and review establish the shared assumptions; implementation
+evidence alone does not complete the specification, design or acceptance criteria.
 
 ## Scope
 
@@ -29,6 +78,9 @@ not a completed settlement implementation or formal protocol adoption.
 - Provide the settlement contract that can later be implemented by a protocol account.
 
 ## Design questions
+
+The in-output split below is the earlier assessment baseline. Compare it explicitly
+with the current external-Store contract when answering these questions.
 
 ### What changes beyond existing balancing?
 

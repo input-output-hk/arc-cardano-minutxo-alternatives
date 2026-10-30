@@ -1,12 +1,38 @@
-# Explore the output-role split: Assets and CapacityDeposit
+# Explore Ledger code impacts of the Value split
 
-**Status:** Planned — specification, design and exploration.
+**Status:** In Progress — output variants and Store integration published; compatibility and design review outstanding.
+
+**Owner:** Nicolas Henin.
 
 **Parent:** [Three-level Ledger exploration](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/39).
 
 **Next level:** [Transaction deposit netting](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/41).
 
 **Transversal work:** [Accounting interface refactor](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/43).
+
+## Current progress and remaining work — 30 October 2026
+
+[Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3) at [`7b9b27480`](https://github.com/nhenin/cardano-ledger-specs/commit/7b9b274800e213a33bb2f55b1210e901d91034dc) supersedes the September interface-only checkpoint.
+The [specification](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-rules.md) and [verification record](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-verification.md) pin the implemented
+contracts and the scope of executed checks.
+
+- [x] Implement implicit and Store-backed output variants, output interfaces and
+  shared-era integration in the prototype.
+- [x] Retain accepted output size and creation calculation; refund historical deposits
+  after restoration and parameter changes.
+- [x] Publish transaction-rule and ledger-effect evidence, including all 209
+  DepositStore contracts and 13 Store metadata/codec checks passing locally.
+- [ ] Complete the consumer impact map and review the shared contract with Will.
+- [ ] Design and test Store-backed Plutus contexts; complete pricing, stake, voting
+  and remaining shared collateral coverage.
+- [ ] Review builder/tooling, activation and compatibility boundaries, including
+  stronger local settlement and explicit repricing/version-selection dependencies.
+
+Store-backed output projections contain application assets; their external deposits
+are accounted for separately. The earlier in-output equation below remains a
+comparison baseline. Production selects V1; V2 has provisional formula parity.
+[Full CI](https://github.com/nhenin/cardano-ledger-specs/actions/runs/41019013763) is not green: the conformance job failed,
+and broader validation remains outstanding.
 
 ## Objective
 
@@ -15,6 +41,28 @@ application-controlled assets from the ADA backing an output's persistent-state 
 Support the design with source-grounded analysis and focused executable evidence.
 This is the first level of a preferred working direction, not a claim of formal
 protocol adoption or a completed integrated implementation.
+
+## Impact assessment and cross-level review
+
+Nicolas leads the Value-split investigation alongside Will's netting work in #41.
+The published prototype supplies concrete evidence. Complete the revision-pinned
+impact assessment and review the shared provisional contract against it:
+
+- [ ] Complete the impact map against the pinned Ledger/prototype revisions: affected modules,
+  functions, interfaces and consumers across the output lifecycle.
+- [ ] Identify the changes needed for the split and the behavior that must remain
+  unchanged, including compatibility boundaries; separate observations from assumptions.
+- [ ] Record uncertainties and the focused experiments needed to resolve them;
+  include reproducible commands and results for experiments performed.
+- [ ] Link a shared, versioned provisional contract with #41 covering application
+  ADA, required and recorded backing, release-facing quantities and total output ADA;
+  identify unresolved choices and propagate assumption changes to both tracks.
+- [ ] Review the impact assessment with Will and record the next specification/design
+  steps, open dependencies and proposed implementation slices.
+
+These assessment and review tasks remain open independently of the implemented
+prototype slices. The full specification, design objectives and acceptance criteria
+below remain in scope.
 
 ## Scope
 
@@ -94,3 +142,7 @@ No full Ledger integration, central-repository pull request, dust-account implem
 new economic pricing policy or automatic adoption of the earlier spike is required here.
 Completion means reviewed specification/design evidence for this level, not completion
 of the integrated-prototype milestone or formal architectural approval.
+
+## Historical exploration references
+
+The [prototype branch](https://github.com/nhenin/cardano-ledger-specs/tree/nicolas/dijkstra-output-allocation-review) preserves the [21 September 2026 experimental checkpoint](https://github.com/nhenin/cardano-ledger-specs/commit/3c0614f26767ebe222d350b1b3f5f8688169175d). This is historical evidence; the current integrated prototype and remaining validation are described above.

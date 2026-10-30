@@ -1,8 +1,31 @@
 # Refine asset, coin, and mint interfaces to support the three-level exploration
 
-**Status:** Planned — specification, design and exploration.
+**Status:** In Progress — interface slices published; residual-consumer and compatibility review outstanding.
 
 **Parent:** [Three-level Ledger exploration](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/39).
+
+## Current progress and remaining work — 30 October 2026
+
+[Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3) at [`7b9b27480`](https://github.com/nhenin/cardano-ledger-specs/commit/7b9b274800e213a33bb2f55b1210e901d91034dc) is the current published implementation evidence.
+[State representation and interfaces](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-rules.md#ds-state-representation) and the
+[verification record](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-verification.md) describe the completed slices and their limits.
+
+- [x] Separate output interfaces and collection queries in `Cardano.Ledger.TxOut`.
+- [x] Store shared ledger outputs and historical metadata in `UTxOStore`; migrate
+  accepted-input contracts, contexts and annotations to `Allocations`.
+- [x] Remove the shared whole-Store projections and publish selected build/runtime
+  evidence for the interface migrations.
+- [ ] Complete the residual consumer inventory and reviewed compatibility/removal policy.
+- [ ] Review stake output-delta contracts, `txouts` and allocation-construction
+  interfaces; retire `LegacyUTxOMap` only after its remaining owners are resolved.
+- [ ] Complete the mint-specific invariant, policy-index, exact-wire/hash and
+  compact-path evidence required below, plus agreed cost checks.
+- [ ] Investigate CI failures and finish broader validation; [full CI](https://github.com/nhenin/cardano-ledger-specs/actions/runs/41019013763)
+  has a failed conformance job despite all four GHC build jobs passing.
+
+These completed slices do not establish full `Value` retirement, Store-backed Plutus
+compatibility or the complete mint-refactor contract. Later local stake/allocation
+work is outside this published checkpoint.
 
 ## Purpose
 
@@ -15,16 +38,17 @@ ADA projections, signed native-asset arithmetic, compact storage, sizing and cod
 Classify consumers before selecting replacements. A global rename does not establish
 domain granularity, and full removal of `Value` must not block design exploration.
 
-## Starting evidence
+## Historical starting evidence
 
-- Working code checkpoint: `nicolas/minutxo-accounting-refactor` at `6084525881`,
-  five signed commits above `9714940b3f`. This checkpoint is currently held in a
-  private Ledger fork; independent verification requires reviewer access or a later
-  reviewed publication of the relevant evidence. This issue does not publish that code.
-- Typed mint concepts exist and have reached selected accounting, policy, Plutus and
-  upgrade consumers. Generic interfaces remain; this is not a finished refactor.
-- Uncommitted experiments are outside this revision-pinned baseline and require
-  separate review.
+- The September starting checkpoint was `nicolas/minutxo-accounting-refactor` at
+  `6084525881`, five signed commits above `9714940b3f`. It was recorded as a
+  private-fork baseline requiring reviewer access. Retain it as historical evidence;
+  the current published checkpoint is linked above.
+- At that checkpoint, typed mint concepts had reached selected accounting, policy,
+  Plutus and upgrade consumers. Generic interfaces remained; that observation did
+  not establish a finished refactor.
+- Uncommitted experiments remain outside the published evidence and require separate
+  review.
 
 ## Scope and contracts to review
 
@@ -80,6 +104,6 @@ Work in parallel with [split](https://github.com/input-output-hk/arc-cardano-min
 actually depends on it. Deposits, settlement, migration, staking and economic policy
 changes belong to those design issues, not this behavior-preserving refactor.
 
-Review the five-commit baseline against the contract before deciding fix-forward or
-history rework. Keep code experiments on the personal Ledger fork. Any central Ledger pull
-request requires a separate review and decision.
+Retain the five-commit baseline for comparison and review the current migration and
+residual interfaces against this contract. Keep code experiments on the personal
+Ledger fork. Any central Ledger pull request requires a separate review and decision.
