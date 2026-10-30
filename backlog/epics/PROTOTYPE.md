@@ -1,24 +1,31 @@
-# Integrated `cardano-ledger` Prototyping
+# Ledger Prototype
 
-## Context
+**Status:** In progress · **Deliverable:** validated Ledger implementation.
 
-The adopted specification must be validated in the Ledger implementation rather than
-only as a document or isolated model. Integration may expose type, serialization,
-transition, accounting, or compatibility constraints that require the design to change.
+**Question:** can `cardano-ledger` execute the candidate's rules correctly while
+preserving the required compatibility?
 
-## Goal
+[Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3), head
+`7b9b274800e213a33bb2f55b1210e901d91034dc`, publishes the implementation.
 
-Implement the adopted specification in the appropriate `cardano-ledger` rules and
-test whether its intended behavior and invariants hold in the integrated system.
+| Delivered | Remaining |
+|---|---|
+| [DepositStore model #26](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/26) | [Upstream integration #57](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/57) |
+| [Ledger rules #27](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/27) | [Coverage gaps #58](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/58) |
+| [209 business cases + 13 metadata/codec cases #28](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/28) | [Interface migration #43](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/43) |
+| Four GHC builds pass | [Full regression validation #29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29) |
 
-## Approach
+Full CI is **not green**: 24 of 26 package jobs pass; Dijkstra and conformance each
+report the same 27 SubTx cases failing. The cause is not yet attributed.
+The newer `leios-prototype-snapshot-30-10` has ten unresolved integration conflicts.
+Local unpublished changes are not counted in this checkpoint.
 
-1. Align the domain model with the adopted specification.
-2. Integrate the mechanism into Ledger rules and required state/serialization types.
-3. Implement invariant, compatibility, and integration tests.
-4. Validate the results and feed material findings back into the specification.
+## Done when
 
-## Outcome
+- [ ] The reference snapshot is integrated with reviewed conflict resolutions.
+- [ ] Remaining agreed coverage and interface contracts are implemented.
+- [ ] Relevant regression suites pass at the integrated revision, with reproducible evidence.
+- [ ] Deviations and compatibility limits are resolved with Protocol Specification;
+  production work outside the prototype is explicitly recorded.
 
-An integrated implementation with reproducible build and test results, documented
-limitations, and enough evidence to confirm or revise the design before CIP authoring.
+Completed implementation slices do not complete this epic or approve the protocol.

@@ -1,26 +1,31 @@
-# Adopted Solution Design & Specification
+# Protocol Specification
 
-## Context
+**Status:** In progress · **Deliverable:** reviewed implementation contract.
 
-The policy recommendation selects a direction, but it is not yet an implementation
-contract. The selected implementation must be made precise before changes are made to
-Ledger state, transaction validation, serialization, accounting, or migration behavior.
+**Question:** what state, transaction rules and transitions define the candidate mechanism?
 
-## Goal
+The [candidate specification](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-rules.md)
+is published. Publication and implementation do not constitute design approval.
 
-Turn the approved policy recommendation into a complete and internally consistent
-technical specification that can be implemented in `cardano-ledger`.
+## Deliverables and reviews
 
-## Approach
+| Deliverable | Publication | Remaining review |
+|---|---|---|
+| Candidate architecture | [#20](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/20) | [Output representation #40](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/40). |
+| Candidate state and transaction rules | [#21](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/21) | [Transaction netting #41](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/41). |
+| Candidate accounting and settlement | [#22](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/22) | [Deposit settlement #42](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/42). |
+| Transition and ecosystem contracts | — | [Compatibility #23](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/23). |
+| Decision rationale | — | [Design rationale #24](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/24), informed by Architecture Decision. |
 
-1. Define the adopted solution architecture.
-2. Specify Ledger state and validation rules.
-3. Specify economic settlement and accounting.
-4. Specify transition and ecosystem compatibility.
-5. Document the rationale for the selected internal design choices.
+## Done when
 
-## Outcome
+- [ ] State, validation, funding, settlement and historical refunds are unambiguous.
+- [ ] Output, transaction and Store contracts agree; material open decisions are resolved.
+- [ ] Legacy migration, codecs, Plutus, builders, staking and governance impacts have
+  explicit contracts and review conclusions.
+- [ ] The rationale links to the reviewed architecture choice and records limitations.
+- [ ] The reviewed specification is consistent with the prototype and its test results.
 
-A reviewed implementation contract covering architecture, state, validation,
-accounting, transition, compatibility, and rationale, ready to be tested through the
-integrated prototype.
+The reviews previously grouped under #39 now belong directly here. Their original
+acceptance criteria and ownership are retained. Ledger implementation work remains
+under [Ledger Prototype](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/25).

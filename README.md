@@ -2,7 +2,7 @@
 
 ARC workstream on the min-UTxO mechanism.
 
-- [CPS-0037](CPS-0037/README.md) -- the Cardano Problem Statement, under review in
+- [CPS-0037](CPS-0037/README.md) -- the Cardano Problem Statement, published on 27 October 2026 through
   [CIPs PR #1268](https://github.com/cardano-foundation/CIPs/pull/1268).
 - `CIP-????/` -- an early design sketch for ledger-managed UTxO state deposits.
   It is discussion material for the Ledger Working Group, not yet a submission.

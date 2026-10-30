@@ -1,59 +1,52 @@
-# Refine asset, coin, and mint interfaces to support the three-level exploration
+# Complete Ledger interface migration
 
-**Status:** Planned — specification, design and exploration.
+**Parent:** [Ledger Prototype](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/25).
 
-**Parent:** [Three-level Ledger exploration](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/39).
+**Status:** In progress — published interface slices exist; residual migration remains open.
 
-## Purpose
+## Responsibility
 
-Make the accounting responsibilities exposed by the three-level exploration explicit
-in the Ledger interfaces. This is a transversal, behavior-preserving engineering
-track; it does not itself implement capacity deposits, netting, or a dust account.
+Complete the consumer and compatibility audit for output, asset, coin and mint
+interfaces, then implement the justified remaining slices. Review semantic choices
+with [Output representation](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/40), [Transaction netting](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/41) and
+[Compatibility](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/23); do not make protocol choices through accessor changes.
 
-The first output-splitting spike exposed that `Value`/`Val` combine output holdings,
-ADA projections, signed native-asset arithmetic, compact storage, sizing and codecs.
-Classify consumers before selecting replacements. A global rename does not establish
-domain granularity, and full removal of `Value` must not block design exploration.
+In [Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3) at [`7b9b27480`](https://github.com/nhenin/cardano-ledger-specs/commit/7b9b274800e213a33bb2f55b1210e901d91034dc), `Cardano.Ledger.TxOut` owns output interfaces and collection
+queries; shared state owns `UTxOStore`; accepted-input contracts and annotations
+use `Allocations`; whole-Store projections are removed.
+[The pinned representation](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-rules.md#ds-state-representation) records these completed
+slices. Later local stake/allocation changes are outside this checkpoint.
 
-## Starting evidence
+## Remaining migration
 
-- Working code checkpoint: `nicolas/minutxo-accounting-refactor` at `6084525881`,
-  five signed commits above `9714940b3f`. This checkpoint is currently held in a
-  private Ledger fork; independent verification requires reviewer access or a later
-  reviewed publication of the relevant evidence. This issue does not publish that code.
-- Typed mint concepts exist and have reached selected accounting, policy, Plutus and
-  upgrade consumers. Generic interfaces remain; this is not a finished refactor.
-- Uncommitted experiments are outside this revision-pinned baseline and require
-  separate review.
+- [ ] Inventory declarations, exports and consumers across core, eras, APIs,
+  translations, tools and tests; explain every retained representation adapter.
+- [ ] Review stake output-delta contracts, `txouts` and allocation construction;
+  distinguish proposed outputs from historical allocations. Retire
+  `LegacyUTxOMap` only after its remaining responsibilities have explicit owners.
+- [ ] Complete mint decomposition and policy-index evidence, constructor/instance
+  guarantees, ADA access/update, compact paths and exact encoding/hash equivalence.
+- [ ] Preserve behavior, failure payloads/order and era upgrades in each justified
+  slice; publish clean commits, targeted results and residual exceptions.
+- [ ] Send validation findings to [#29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29). Its final CI result is four successful
+  compiler builds and 24 of 26 package jobs passing; Dijkstra and conformance each
+  report 27 failures whose origin remains unestablished. This issue owns interface
+  correctness, not a duplicate full-CI gate.
 
-## Scope and contracts to review
+## Contracts to preserve
 
-- Inventory declarations, exports and consumers by role, era support, arithmetic,
-  construction, read/write access, validity assumptions and representation exposure.
-- `Assets` includes ADA and native assets. `CapacityDeposit` is a distinct ADA role
-  for the later design. `OutputCoins` means an ADA-only view, not a whole-asset bundle.
-- `MintDelta` carries signed native-asset changes, with no ADA. `MintedAssets` selects
-  positive entries; `BurnedAssets` contains positive magnitudes of negative entries.
-- Review actual guarantees of exported constructors, record fields and instances;
-  positive projection functions alone do not establish an unforgeable positive type.
-- Decide `MultiAsset`/`PolicyID`/`AssetName` ownership, concrete generic signatures,
-  whether `OutputCoins` needs a type, and legacy API migration before changing them.
-- Investigate whether conservation consumers can use separate ADA and native-asset
-  operations. Record real aggregate requirements and counterexamples, not just names.
+`Assets` includes ADA and native assets. `OutputCoins` is an ADA-only role;
+`CapacityDeposit` is a distinct role. `MintDelta` contains signed native assets
+without ADA; `MintedAssets` selects positive entries and `BurnedAssets` contains
+positive magnitudes. Review constructor guarantees separately from projections.
 
-This track preserves ledger acceptance, state transitions, failure payloads and order,
-encoding/decoding, equivalent-operation bytes/hashes, era upgrades and compact paths.
-Keep exact Plutus representations: V1/V2 mint has the existing leading ADA-zero entry;
-V3/V4 mint is native-only. External Plutus `Value` is not a Ledger rename target.
+Keep exact Plutus representations: V1/V2 mint retains its leading ADA-zero entry;
+V3/V4 mint is native-only. External Plutus `Value` is not a rename target.
+Review `MultiAsset`/`PolicyID`/`AssetName` ownership, generic signatures and
+legacy migration against consumers. Record aggregate requirements and counterexamples;
+a global rename does not establish an appropriate interface.
 
-## Deliverables
-
-1. A reviewed interface contract with concrete signatures, laws and compatibility policy.
-2. A revision-pinned consumer inventory linking each replacement or exception to evidence.
-3. Small justified implementation slices with targeted tests and fork diff links.
-4. A residual-use audit identifying what each exploration level still requires.
-
-## Acceptance criteria
+## Acceptance criteria retained
 
 - [ ] Domain, genericity, module ownership and compatibility decisions are reviewed;
   no new catch-all abstraction or silent read/write allocation rule is introduced.
@@ -68,18 +61,16 @@ V3/V4 mint is native-only. External Plutus `Value` is not a Ledger rename target
 - [ ] Exact Plutus representation, serialization/hash equivalence, upgrades, failures
   and collateral paths have appropriate regression evidence; semantic equality of
   `MultiAsset` alone is not treated as evidence of identical maps or wire bytes.
-- [ ] Builds/tests and agreed hot-path checks are reproducible, tied to exact commits,
-  with exclusions visible. No filtered run is described as a complete green suite.
+- [ ] Migration-specific builds/tests and agreed hot-path checks are reproducible,
+  tied to exact commits, with exclusions visible. Report broader package/CI results
+  in #29; no filtered run is described as a complete green suite.
 - [ ] The reviewed migration scope is complete, with explicit legacy boundary
   exceptions and a removal policy; completed slices have clean signed fork commits.
 
-## Dependencies and exclusions
+## Historical baseline
 
-Work in parallel with [split](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/40), [netting](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/41) and
-[dust-account](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/42) design. Require an agreed interface only where an experiment
-actually depends on it. Deposits, settlement, migration, staking and economic policy
-changes belong to those design issues, not this behavior-preserving refactor.
-
-Review the five-commit baseline against the contract before deciding fix-forward or
-history rework. Keep code experiments on the personal Ledger fork. Any central Ledger pull
-request requires a separate review and decision.
+The September `nicolas/minutxo-accounting-refactor` checkpoint `6084525881`
+contained five signed commits above `9714940b3f` and was recorded as private-fork
+evidence. Selected mint consumers had been adapted; the migration was incomplete.
+Keep it for comparison with the published head, not as the current delivery status.
+Uncommitted experiments are excluded. A central Ledger PR remains a separate decision.

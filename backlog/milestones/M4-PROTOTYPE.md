@@ -1,28 +1,39 @@
-# Milestone M4 — Integrated `cardano-ledger` Prototyping
+# Milestone M4 — Ledger Prototype
 
-**Working artifact:** local `cardano-ledger` branch `nicolas/minutxo-deposit`
+**State:** In progress · **Deliverable:** integrated, validated Ledger prototype.
 
-**State:** Exploratory checkpoint; blocked on stable CIP semantics
+**Checkpoint:** [Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3)
+at `7b9b274800e213a33bb2f55b1210e901d91034dc`.
+The reference is `leios-prototype-snapshot-30-10` at
+`9df9f98cce86c5f2195142b2c02dd9b39dd9dc7c`; ten integration conflicts remain.
 
-## Objective
+## Completed implementation slices
 
-Integrate the adopted solution into the appropriate `cardano-ledger` rules and provide
-executable evidence that its semantics, invariants, and transition are feasible.
+- [Model #26](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/26): output variants, declarations and historical allocation storage.
+- [Ledger rules #27](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/27): transaction rules, Store-specific collateral and state effects.
+- [Business suite #28](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/28): 209 examples plus 13 metadata/codec examples pass locally.
+- Four CI builds pass: GHC 9.6.7, 9.10.3, 9.12.4 and 9.14.1.
 
-## Issues
+## Remaining work
 
-1. [Align the domain model](../issues/prototype/PROTO-01-domain-model.md)
-2. [Integrate Ledger rules](../issues/prototype/PROTO-02-ledger-integration.md)
-3. [Implement invariant and compatibility tests](../issues/prototype/PROTO-03-tests.md)
-4. [Validate and document prototype results](../issues/prototype/PROTO-04-validation.md)
+| Task | Completion evidence |
+|---|---|
+| [Upstream integration #57](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/57) | Reviewed conflict resolutions; resulting head builds and is tested. |
+| [Coverage gaps #58](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/58) | Pricing, distributions, Plutus and shared collateral cases accounted for. |
+| [Interface migration #43](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/43) | Reviewed residual consumers, invariants and compatibility evidence. |
+| [Regression validation #29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29) | Relevant suites pass at the integrated head; limitations and costs documented. |
 
-## Acceptance criteria
+[CI run 41019013763](https://github.com/nhenin/cardano-ledger-specs/actions/runs/41019013763)
+finished with **24/26 package jobs passing**. Dijkstra and conformance each report
+27 failing SubTx cases; the cause is not yet attributed. The aggregate gate also
+fails because those suites failed. Test duration is not a production-performance measurement.
 
-- Domain and Ledger-rule semantics match the adopted solution specification.
-- Required type and serialization changes are implemented.
-- Validation and transition are integrated into `cardano-ledger` rules.
-- QuickCheck, integration, compatibility, and relevant Ledger tests pass.
-- Findings feed back into the CIP and delivery record.
+## Completion criteria
 
-The earlier `max(0,M-adaIn)` model and seven recorded QuickCheck properties are prior
-exploration only; they do not complete this milestone.
+- [ ] Integrated behavior matches the reviewed specification.
+- [ ] Required type, serialization, transition and interface changes are complete.
+- [ ] Relevant property, integration, compatibility and regression tests pass.
+- [ ] Findings, limitations and remaining production work feed back into the CIP.
+
+Local unpublished changes are excluded. Formal architecture approval and protocol
+review remain under M2/M3; completed implementation slices do not complete M4.

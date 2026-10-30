@@ -1,27 +1,26 @@
-# Problem Statement Definition (CPS)
+# Problem Definition
 
-## Context
+**Status:** Done · **Deliverable:** published CPS-0037.
 
-The current min-UTxO mechanism protects Cardano against uncontrolled persistent-state
-growth by requiring ADA in every output. The investigation needs a shared description
-of how that mechanism works, why it exists, and where its application-facing behavior
-creates friction before any alternative can be evaluated fairly.
+**Question:** what application and transaction-building problems must an alternative
+to minUTxO solve, without prescribing that alternative?
 
-## Goal
+[CIPs PR #1268](https://github.com/cardano-foundation/CIPs/pull/1268) was merged on
+27 October 2026. It publishes the mechanism, problem model, seven use cases,
+required outcomes, non-goals and references.
 
-Agree on a solution-neutral, evidence-backed definition of the min-UTxO problem and
-the outcomes that a successful solution should achieve.
+## Completed scope
 
-## Approach
+- [x] Explain the current mechanism and its provenance (#8).
+- [x] Define the problem and solution-neutral model (#9).
+- [x] Document use cases and required outcomes (#11).
+- [x] Assemble and review the CPS (#12).
+- [x] Complete review and submission (#13).
 
-1. Document the current mechanism and its provenance.
-2. Define the problem and formal capacity model.
-3. Produce and validate the mainnet evidence.
-4. Document concrete use cases and required outcomes.
-5. Assemble and review the complete CPS draft.
-6. Complete domain review and prepare submission.
+## Separate follow-up work
 
-## Outcome
-
-A reviewed Cardano Problem Statement that establishes the common problem definition,
-evidence base, use cases, terminology, and evaluation requirements used by the design-space work.
+[Reproducible mainnet analysis](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/10) and
+[empirical application evidence](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/56) support the
+[Architecture Decision](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/14). They remain open and do not reopen the
+published CPS deliverable. Publication does not imply that these investigations
+have been completed or that a solution has been adopted.

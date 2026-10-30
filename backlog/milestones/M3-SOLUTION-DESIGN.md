@@ -1,21 +1,19 @@
-# Milestone M3 — Adopted Solution Design & Specification
+# Milestone M3 — Protocol Specification
 
-## Objective
+**State:** In progress · **Deliverable:** reviewed implementation contract.
 
-Define the selected solution completely enough to be implemented and later written as a CIP.
+Candidate architecture (#20), state/rules (#21) and accounting (#22) are published.
+[Output representation #40](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/40), [transaction netting #41](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/41) and
+[deposit settlement #42](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/42) retain the substantive design reviews.
+[Compatibility #23](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/23) and [rationale #24](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/24) remain open.
 
-## Sub-issues
+## Completion criteria
 
-1. Define the adopted solution architecture.
-2. Specify Ledger state and validation rules.
-3. Specify economic settlement and accounting.
-4. Specify transition and ecosystem compatibility.
-5. Document the design rationale.
+- [ ] Architecture is reconciled with the reviewed M2 recommendation.
+- [ ] State, validation, accounting, transition and ecosystem contracts are unambiguous.
+- [ ] Conservation, exact Store backing, determinism and unique release are explicit.
+- [ ] Material open choices have review conclusions and rationale.
+- [ ] Specification and prototype behavior agree; deviations and exclusions are recorded.
 
-## Acceptance criteria
-
-- Architecture implements the M2 recommendation.
-- State, validation, accounting, transition, and compatibility are unambiguous.
-- Conservation, solvency, determinism, and unique-release invariants are explicit.
-- Rationale records why the selected design choices were adopted.
-- Specification is stable enough to serve as the M4 implementation contract.
+[Protocol Specification epic](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/19) is the authoritative work breakdown.
+Publication of candidate contracts alone does not complete this milestone.
