@@ -1,3 +1,23 @@
+# Ledger exploration — consolidated
+
+**Status:** Closed as superseded, not completed.
+
+The extra exploration epic duplicated the Protocol Specification and Ledger Prototype
+deliverables. Its remaining work is now tracked directly in those epics:
+
+| Work | Continuing issue | Parent |
+|---|---|---|
+| Output representation review | [#40](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/40) | Protocol Specification #19 |
+| Transaction netting review | [#41](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/41) | Protocol Specification #19 |
+| Deposit settlement review | [#42](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/42) | Protocol Specification #19 |
+| Ledger interface migration | [#43](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/43) | Ledger Prototype #25 |
+
+Ownership and substantive review criteria are retained. Closing this container does
+not certify design adoption, full validation or completion of its former children.
+
+<details>
+<summary>Previous scope, retained for traceability</summary>
+
 # Explore the Ledger across output splitting, transaction netting, and protocol settlement
 
 **Status:** In Progress — published integrated prototype; cross-level review and full validation outstanding.
@@ -125,3 +145,5 @@ demonstrate an integrated, production-ready Ledger implementation.
 Review the scope and the findings of each level before committing to its implementation
 choices. Use small, signed, reviewable code slices on the personal Ledger fork when
 an experiment is justified; no central Ledger pull request is implied.
+
+</details>

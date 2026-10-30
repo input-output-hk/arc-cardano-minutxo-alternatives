@@ -1,60 +1,40 @@
-# ARC min-UTxO stream
+# [ARC-09] [TV-15] MinUTxO alternatives
 
-## Context
+**Programme** · Target: 10 January 2027 · Start date: not recorded.
 
-Cardano's min-UTxO rule requires every output to contain a minimum amount of ADA. The
-rule contributes to an adversarial bound on persistent UTxO state, but it also exposes
-that operational requirement directly to applications and transaction builders. This
-can constrain output construction, distribute ADA across application state, and make
-some token, script, and high-output-count workflows harder to express or operate.
+**Purpose:** remove the need to embed minimum ADA in every application output while
+preserving protection against adversarial growth of persistent Ledger state.
 
-The stream investigates whether Cardano can preserve a defensible bound on persistent
-ledger state while improving this abstraction. It considers the current mechanism's
-history and mainnet incidence, changes in node state-management architecture, concrete
-application use cases, alternative capacity-control and settlement mechanisms, and the
-migration constraints of existing UTxOs.
+This is the programme, not a sixth deliverable epic. The previous “Phase 2” label
+has been removed because it described a period rather than an outcome.
 
-## What are we trying to answer?
+## Deliverables
 
-> What is the best trade-off for removing the requirement to embed a minimum amount
-> of ADA in every UTxO, without compromising the security and operability of the chain?
+| Epic | Question it answers | Status on 30 October 2026 |
+|---|---|---|
+| [Problem Definition](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/7) | What problem must an alternative solve? | Done: CPS-0037 published. |
+| [Architecture Decision](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/14) | Which complete mechanism should we choose, and why? | In progress: comparison and recommendation remain open. |
+| [Protocol Specification](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/19) | What are the exact rules of the candidate mechanism? | In progress: candidate contracts published; review and decisions remain. |
+| [Ledger Prototype](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/25) | Can the Ledger implement those rules correctly? | In progress: implementation and focused tests published; integration and full validation remain. |
+| [CIP](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/30) | What proposal can implementers review and adopt? | Todo: requires reviewed specification and prototype findings. |
 
-Answering this requires separating two questions:
+Research, specification and prototyping inform each other. Publishing a prototype
+neither selects the architecture formally nor completes compatibility review.
 
-1. **What must remain protected?** Persistent UTxO state must remain within a
-   defensible capacity envelope under adversarial behavior.
-2. **How should that protection be implemented?** Capacity control, economic
-   settlement, Ledger representation, and transition are design choices that should
-   be evaluated independently before being combined into a complete solution.
+## Programme completion
 
-## Scope
+- [ ] Compare at least two complete alternatives against the CPS requirements.
+- [ ] Record the reviewed recommendation, trade-offs and evidence limitations.
+- [ ] Review state, accounting, validation, transition and ecosystem contracts.
+- [ ] Validate the integrated Ledger prototype against those contracts.
+- [ ] Prepare an author-approved, submission-ready CIP.
 
-- Define the current min-UTxO mechanism, its provenance, and the problem experienced
-  by applications and transaction builders.
-- Establish a solution-neutral model for persistent UTxO capacity, allocation, and release.
-- Quantify the current mechanism using reproducible Cardano mainnet evidence.
-- Document concrete high-output-count, token/script, and economically stranded-output use cases.
-- Construct and compare at least two complete implementations that remove the need
-  for minimum ADA to remain embedded in each output.
-- Evaluate security, solvency, liquidity, staking, compatibility, governance,
-  parametrization, implementation cost, and user-experience trade-offs.
-- Select and specify an adopted solution.
-- Integrate the adopted design into `cardano-ledger` rules and validate its invariants.
-- Produce a reviewed CIP based on the specification and prototype findings.
+Quantitative claims must have reproducible evidence or explicit limitations.
+Separate follow-ups track [mainnet analysis](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/10) and
+[application evidence](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/56); they are not unfinished CPS publication tasks.
 
-## Outcomes
+## History
 
-1. **[Problem Statement Definition (CPS)](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/7)** — reviewed, evidence-backed definition of the problem and required outcomes.
-2. **[Implementation Design Space Analysis & Policy Recommendation](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/14)** — comparison of complete implementations and final policy recommendation.
-3. **[Adopted Solution Design & Specification](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/19)** — implementation-ready technical design for the selected solution.
-4. **[Integrated `cardano-ledger` Prototyping](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/25)** — integrated implementation and executable validation of the design.
-5. **[CIP Authoring & Submission](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/30)** — reviewed CIP based on the specification and prototype findings.
-
-## Success criteria
-
-- The problem statement and quantitative claims are publicly reviewable and reproducible.
-- At least two complete candidate implementations are documented and compared.
-- The policy recommendation identifies one adopted solution and explains its trade-offs.
-- The specification preserves the required security, conservation, solvency, and migration invariants.
-- The prototype is integrated into `cardano-ledger` rules and the relevant tests pass.
-- The final CIP is consistent with the reviewed specification and prototype findings.
+[Initial exploration](https://github.com/input-output-hk/ARC-operating-model/issues/63)
+retains the original ARC mandate. [Bootstrap](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/3) is completed setup work.
+Neither is a peer of the five deliverable epics in the default EPICS view.

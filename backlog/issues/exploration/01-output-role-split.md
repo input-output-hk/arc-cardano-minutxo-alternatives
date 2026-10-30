@@ -1,117 +1,38 @@
-# Explore Ledger code impacts of the Value split
+# Review output representation
 
-**Status:** In Progress — output variants and Store integration published; compatibility and design review outstanding.
+**Parent:** [Protocol Specification](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/19).
 
 **Owner:** Nicolas Henin.
 
-**Parent:** [Three-level Ledger exploration](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/39).
+**Status:** In progress — candidate published; representation and cross-contract review remain open.
 
-**Next level:** [Transaction deposit netting](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/41).
+## Responsibility
 
-**Transversal work:** [Accounting interface refactor](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/43).
+Review the output contract published by [#20](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/20) and [#21](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/21). Accept or
+revise its vocabulary, construction/read/update laws, allocation boundary and
+consumer assumptions. Coordinate netting with Will in [#41](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/41), settlement
+with [#42](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/42) and compatibility with [#23](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/23).
 
-## Current progress and remaining work — 30 October 2026
+[Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3) at [`7b9b27480`](https://github.com/nhenin/cardano-ledger-specs/commit/7b9b274800e213a33bb2f55b1210e901d91034dc) and its [domain model](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-rules.md#L680) supply the current candidate.
+Implicit outputs retain their existing in-output minimum; Store-backed output
+projections contain application assets, while deposits are held externally.
+Accepted size and creation calculation retain the historical refund basis.
 
-[Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3) at [`7b9b27480`](https://github.com/nhenin/cardano-ledger-specs/commit/7b9b274800e213a33bb2f55b1210e901d91034dc) supersedes the September interface-only checkpoint.
-The [specification](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-rules.md) and [verification record](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-verification.md) pin the implemented
-contracts and the scope of executed checks.
+## Remaining review
 
-- [x] Implement implicit and Store-backed output variants, output interfaces and
-  shared-era integration in the prototype.
-- [x] Retain accepted output size and creation calculation; refund historical deposits
-  after restoration and parameter changes.
-- [x] Publish transaction-rule and ledger-effect evidence, including all 209
-  DepositStore contracts and 13 Store metadata/codec checks passing locally.
-- [ ] Complete the consumer impact map and review the shared contract with Will.
-- [ ] Design and test Store-backed Plutus contexts; complete pricing, stake, voting
-  and remaining shared collateral coverage.
-- [ ] Review builder/tooling, activation and compatibility boundaries, including
-  stronger local settlement and explicit repricing/version-selection dependencies.
+- [ ] Complete the revision-pinned impact map and distinguish preserved behavior,
+  changed interfaces and unresolved assumptions across the output lifecycle.
+- [ ] Review required versus allocated deposits, zero-price records and exact
+  allocation; assess the earlier in-output split as an alternative, not the
+  current Store-backed projection contract.
+- [ ] Test the generic-aggregate hypothesis against real consumers; retain native-asset
+  aggregation needs and justified adapters. Transfer code migration to [#43](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/43).
+- [ ] Reconcile the shared split/netting contract with Will and record Nicolas's
+  review, decisions and blockers in [#24](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/24).
+- [ ] Hand compatibility/activation obligations to [#23](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/23) and the coverage
+  matrix to [#25](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/25). This review does not own their implementation or full CI.
 
-Store-backed output projections contain application assets; their external deposits
-are accounted for separately. The earlier in-output equation below remains a
-comparison baseline. Production selects V1; V2 has provisional formula parity.
-[Full CI](https://github.com/nhenin/cardano-ledger-specs/actions/runs/41019013763) is not green: the conformance job failed,
-and broader validation remains outstanding.
-
-## Objective
-
-Produce a precise specification and implementation design for separating
-application-controlled assets from the ADA backing an output's persistent-state cost.
-Support the design with source-grounded analysis and focused executable evidence.
-This is the first level of a preferred working direction, not a claim of formal
-protocol adoption or a completed integrated implementation.
-
-## Impact assessment and cross-level review
-
-Nicolas leads the Value-split investigation alongside Will's netting work in #41.
-The published prototype supplies concrete evidence. Complete the revision-pinned
-impact assessment and review the shared provisional contract against it:
-
-- [ ] Complete the impact map against the pinned Ledger/prototype revisions: affected modules,
-  functions, interfaces and consumers across the output lifecycle.
-- [ ] Identify the changes needed for the split and the behavior that must remain
-  unchanged, including compatibility boundaries; separate observations from assumptions.
-- [ ] Record uncertainties and the focused experiments needed to resolve them;
-  include reproducible commands and results for experiments performed.
-- [ ] Link a shared, versioned provisional contract with #41 covering application
-  ADA, required and recorded backing, release-facing quantities and total output ADA;
-  identify unresolved choices and propagate assumption changes to both tracks.
-- [ ] Review the impact assessment with Will and record the next specification/design
-  steps, open dependencies and proposed implementation slices.
-
-These assessment and review tasks remain open independently of the implemented
-prototype slices. The full specification, design objectives and acceptance criteria
-below remain in scope.
-
-## Scope
-
-- Define `Assets` as holdings including ADA and native assets, not native assets alone.
-- Define `CapacityDeposit` as a distinct ADA-denominated operational role.
-- Identify the supported eras and exact output construction, read and update contracts.
-- Trace output creation, validation, storage, spending, collateral and era transition.
-- Identify effects on conservation, staking, Plutus, builders, serialization and sizing.
-- Use the earlier split prototype as evidence and a source of counterexamples.
-
-## Design questions
-
-### Meaning, allocation and access
-
-1. What distinguishes the deposit required by the rule, the amount actually allocated,
-   and the amount recorded for later release? Can an output carry surplus backing?
-2. Which quantity does each getter expose: application ADA, capacity backing, or total
-   output ADA? Which updates are legal, and which require an allocation decision?
-3. For the in-output split, specify the relation
-   `outputCoins(o) = ada(assets(o)) + capacityDepositCoins(o)`.
-   `OutputCoins` is an ADA-only role; the name does not decide its Haskell representation.
-4. Does any real domain operation require a generic `Assets <> CapacityDeposit` bundle,
-   or can explicit ADA and native-asset operations satisfy its contract?
-   Record counterexamples; the absence of such a requirement is a hypothesis to test.
-
-### Ledger and external boundaries
-
-5. How are native-asset and ADA conservation checked separately without losing any
-   era-specific fees, refunds, deposits, withdrawals or other accounting terms?
-6. What happens on successful spending and on phase-2 failure, including collateral
-   return? How are the two ADA roles represented in state totals and stake attribution?
-7. Which representation is visible to each Plutus language version and existing tools?
-   Identify intentional changes separately from contracts that must remain unchanged.
-8. What encoding, compact representation and sizing rule are proposed? If old bytes
-   acquire a new interpretation, specify the activation and signed-transaction risks.
-9. How are existing outputs and transactions crossing an era or parameter boundary
-   handled? Do not silently choose implicit allocation, explicit allocation or a hybrid.
-
-## Deliverables
-
-- A versioned split specification: concepts, state, allocation and validation rules,
-  invariants, observable behavior, compatibility boundaries and decision rationale.
-- An implementation map with pinned source references, proposed interfaces, affected
-  rules/modules, compact paths, migration points and independently reviewable slices.
-- Worked examples and focused tests/models covering ordinary and adverse cases.
-- A decision register distinguishing observations, design choices and unresolved items,
-  plus explicit contracts passed to netting and [protocol settlement](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/42).
-
-## Acceptance criteria
+## Acceptance criteria retained
 
 - [ ] Vocabulary, supported eras and construction/read/update laws are reviewed;
   application ADA is not excluded from `Assets` or silently reclassified by an accessor.
@@ -128,21 +49,12 @@ below remain in scope.
 - [ ] Nicolas has reviewed the spec, implementation map and cross-level assumptions;
   unresolved consensus/economic choices block implementation-ready status.
 
-## Dependencies and review gates
+These criteria require a reviewed contract and explicitly owned blockers, not
+completion of every related implementation. Executed evidence and CI limitations
+are recorded by [#29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29).
 
-Coordinate interface changes with the accounting refactor, but do not require its
-complete retirement of `Value` before investigating this level or the next ones.
-Review concrete public-interface and wire choices before implementing them.
-Netting may be explored against a clearly stated provisional split contract; changes
-to that contract must be propagated and reviewed across both levels.
+## Historical evidence
 
-## Non-goals
-
-No full Ledger integration, central-repository pull request, dust-account implementation,
-new economic pricing policy or automatic adoption of the earlier spike is required here.
-Completion means reviewed specification/design evidence for this level, not completion
-of the integrated-prototype milestone or formal architectural approval.
-
-## Historical exploration references
-
-The [prototype branch](https://github.com/nhenin/cardano-ledger-specs/tree/nicolas/dijkstra-output-allocation-review) preserves the [21 September 2026 experimental checkpoint](https://github.com/nhenin/cardano-ledger-specs/commit/3c0614f26767ebe222d350b1b3f5f8688169175d). This is historical evidence; the current integrated prototype and remaining validation are described above.
+The [21 September split checkpoint](https://github.com/nhenin/cardano-ledger-specs/commit/3c0614f26767ebe222d350b1b3f5f8688169175d)
+and the [28 September interface update](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/40#issuecomment-5866268906)
+remain historical comparisons. The current implementation is pinned above.

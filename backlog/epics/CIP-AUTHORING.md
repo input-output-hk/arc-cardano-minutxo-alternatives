@@ -1,25 +1,23 @@
-# CIP Authoring & Submission
+# CIP
 
-## Context
+**Status:** Todo · **Deliverable:** reviewed, submission-ready Cardano Improvement Proposal.
 
-Once the solution has been specified and exercised in `cardano-ledger`, the design
-must be expressed as a public proposal that the Cardano community and implementers can
-review independently of the internal project history.
+**Question:** what normative proposal can the community and implementers review?
 
-## Goal
+## Work
 
-Produce a clear and implementable CIP that accurately reflects the reviewed technical
-specification, its rationale, and the findings from integrated prototyping.
+1. [Draft the specification #31](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/31).
+2. [Explain rationale and alternatives #32](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/32).
+3. [Document compatibility and implementation #33](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/33).
+4. [Complete domain and editorial review #34](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/34).
+5. [Prepare submission #35](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/35).
 
-## Approach
+## Done when
 
-1. Draft the normative specification sections.
-2. Write the rationale and alternatives-considered sections.
-3. Document compatibility, transition, and implementation path.
-4. Complete domain and editorial review.
-5. Prepare the final submission package.
+- [ ] Normative rules match the reviewed [Protocol Specification](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/19).
+- [ ] Rationale cites the [Architecture Decision](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/14) and prototype findings.
+- [ ] Transition, compatibility and implementation limits are explicit.
+- [ ] Authors and reviewers approve the document; metadata, references and submission
+  package are complete.
 
-## Outcome
-
-An author-approved, editor-ready Cardano Improvement Proposal with consistent
-specification, rationale, compatibility analysis, transition, and implementation guidance.
+The current early CIP sketch is discussion material, not this completed deliverable.
