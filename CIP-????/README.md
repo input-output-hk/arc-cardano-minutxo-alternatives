@@ -23,9 +23,10 @@ License: CC-BY-4.0
 - [1. Abstract](#1-abstract)
 - [2. Motivation: Why is this CIP necessary?](#2-motivation-why-is-this-cip-necessary)
   - [2.1 Application value independent of resource funding](#21-application-value-independent-of-resource-funding)
-  - [2.2 ADA-free SubTxs and transaction-level netting](#22-ada-free-subtxs-and-transaction-level-netting)
-  - [2.3 A predictable deposit calculation](#23-a-predictable-deposit-calculation)
-  - [2.4 Pricing evolution and compatibility](#24-pricing-evolution-and-compatibility)
+  - [2.2 Transaction-level netting](#22-transaction-level-netting)
+  - [2.3 ADA-free SubTxs](#23-ada-free-subtxs)
+  - [2.4 A predictable deposit calculation](#24-a-predictable-deposit-calculation)
+  - [2.5 Pricing evolution and compatibility](#25-pricing-evolution-and-compatibility)
 - [3. Specification](#3-specification)
   - [3.1 Moving minUTxO accounting from TxOuts to transactions](#31-moving-minutxo-accounting-from-txouts-to-transactions)
     - [3.1.1 Builder experience: consolidating token outputs](#311-builder-experience-consolidating-token-outputs)
@@ -127,24 +128,29 @@ transfer; it does not remove the cost of keeping an output live. An ADA-bearing
 output using the new form commits its application ADA **plus** its deposit, whereas
 ADA in a legacy output can serve both roles.
 
-### 2.2 ADA-free SubTxs and transaction-level netting
+### 2.2 Transaction-level netting
 
 A transaction consumes and creates outputs together. ADA from consumed outputs
 can already fund new outputs under the current rules. This CIP makes the resource
 funding explicit at that same boundary: deposits released by spent outputs offset
 deposits required by new outputs, and the transaction settles the difference.
 
-This enables a user to author a token operation as a SubTx with zero application
-ADA in its inputs and outputs. The SubTx can ask the enclosing transaction to fund
-its deposit requirement, or delegate a deposit release for use elsewhere in the
-batch. For example, one user's consolidation can release backing needed by another
-user's split into several outputs.
+The builder accounts for a single net deposit change in the transaction balance.
+This applies to standalone transactions as well as batches containing SubTxs.
+
+### 2.3 ADA-free SubTxs
+
+A SubTx can ask the enclosing transaction to fund its deposit requirement,
+allowing a user to author a token operation with zero application ADA in its inputs
+and outputs. It can also delegate a deposit release for use elsewhere in the batch.
+For example, one user's consolidation can release backing needed by another user's
+split into several outputs.
 
 Users can therefore separate the token operation they author from its ADA funding.
 The enclosing transaction combines the deposit contributions; funding for fees and
 any remaining shortfall must be arranged when assembling the complete transaction.
 
-### 2.3 A predictable deposit calculation
+### 2.4 A predictable deposit calculation
 
 Separating the deposit also needs a calculation that is straightforward for wallets
 and transaction builders. The current minimum depends on the output's serialized
@@ -158,7 +164,7 @@ Builders can calculate the requirement without a fixed-point calculation over
 the funded ADA or byte-perfect sizing of the whole output. Payload measurements,
 transaction-fee calculation and final balancing still apply.
 
-### 2.4 Pricing evolution and compatibility
+### 2.5 Pricing evolution and compatibility
 
 The cost assigned to UTxO capacity must be able to evolve without changing the
 amount recoverable from an existing deposit. This CIP introduces a new accounting
