@@ -87,9 +87,10 @@ enclosing transaction, enabling native-asset transfers with zero application ADA
 while the enclosing transaction funds fees and any additional deposit requirement.
 
 A new deposit formula eliminates the fixed-point problem and the need for
-byte-perfect output sizing when calculating deposits. Historical accounting
-preserves original deposits across parameter changes, and legacy outputs remain
-supported.
+byte-perfect output sizing when calculating deposits. A new accounting mechanism
+starts at the hard fork with this formula and supports future formula versions
+and parameter changes while preserving each deposit's original amount. Legacy
+outputs remain supported.
 
 ## 2. Motivation: Why is this CIP necessary?
 
@@ -719,7 +720,14 @@ the external deposit amount nor the allocation origin.
 
 #### 3.2.3 Deposit calculation
 
-The proposal starts with formula V1. Let `p` be the effective
+The new formula addresses two separate construction problems:
+
+| Current minimum-ADA calculation | Formula V1 |
+| --- | --- |
+| Adding ADA can change the output's encoded size and therefore its required minimum, creating a fixed-point problem. | The deposit calculation does not depend on application ADA. |
+| Builders must reproduce the exact serialized output size. | Builders use fixed base and per-asset allowances, plus datum and script payload lengths. |
+
+The proposal activates formula V1 at the hard fork. Let `p` be the effective
 `coinsPerUTxOByte` parameter and let the output measurements be as follows.
 
 | Symbol | Measurement |
@@ -732,10 +740,17 @@ The proposal starts with formula V1. Let `p` be the effective
 F_{1,p}(o) = p\left(250 + 74N(o) + D(o) + R(o)\right)
 ```
 
+The constants `250` and `74` are pricing allowances, not exact encoded sizes.
+Shorter asset names and shared policy IDs do not reduce the per-asset charge;
+changing quantities without changing asset identities leaves `N(o)` unchanged.
 The output address, application ADA, and enclosing CBOR fields contribute no
-additional term. The original datum and script payload bytes must be available
-when a historical deposit is calculated. Re-encoding the whole output is
-unnecessary for this formula.
+additional term. This trades byte-level pricing precision for a predictable
+deposit calculation.
+
+The original datum and script payload bytes must still be available when a
+historical deposit is calculated. V1 removes the need to size or re-encode the
+whole output for deposit calculation; it does not remove the payload-length
+terms or change transaction-fee sizing.
 
 The same measurement and formula apply to ordinary outputs and collateral returns,
 and to calculating the supporting era's minimum for newly created legacy outputs.
@@ -746,11 +761,15 @@ as a test formula:
 F_{2,p}(o) = p\left(260 + 80N(o) + D(o) + R(o)\right)
 ```
 
-V2 is illustrative; this CIP does not activate it. A new network or era transition
-initially selects V1 with its effective protocol-parameter rate. The rate used in
-the examples is an explicit input to those examples.
+V2 is illustrative; this CIP does not activate it. The rate used in the examples
+is an explicit input to those examples.
 
 #### 3.2.4 Allocation history and the Store invariant
+
+This CIP introduces allocation history at the hard fork, with V1 as its initial
+formula. Subsequent formula versions and rate changes extend this history while
+preserving the original amounts of deposits allocated under earlier rules.
+Pre-fork outputs enter through the migration rules in §3.3.1.
 
 The reference implementation represents the resource and its backing together. The CIP's
 conceptual `DepositStore` is named `UTxOStore` in the implementation. Its type
@@ -828,7 +847,7 @@ allocations. The ledger rejects formula-version downgrades and permits rates
 to increase or decrease within a version. Reapplying the current formula is a
 no-op.
 
-At migration, translate existing UTxO references and their semantic address, value,
+At the hard fork, translate existing UTxO references and their semantic address, value,
 datum and reference script into legacy entries marked `AtStoreMigration`. Initialise
 the formula baseline to V1 with the effective translated rate. The external Store
 total starts at zero. Existing ADA pots and output values retain their amounts.
