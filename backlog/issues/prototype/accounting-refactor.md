@@ -1,13 +1,13 @@
-# Complete Ledger interface migration
+# Defer the broader Ledger interface migration
 
 **Parent:** [Ledger Prototype](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/25).
 
-**Status:** Follow-up. The prototype already uses the published interfaces. Nicolas is checking the implementation details in [#29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29).
+**Status:** Closed as not planned for this prototype. The published interfaces and completed refactors are recorded below. The broader consumer audit and migration ideas are deferred. Nicolas is checking the implemented behavior in [#29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29).
 
-## Responsibility
+## Published work and deferred scope
 
-Complete the consumer and compatibility audit for output, asset, coin and mint
-interfaces, then implement the justified remaining slices. Review semantic choices
+A future consumer and compatibility audit could identify further changes to output,
+asset, coin and mint interfaces. Review any resulting semantic choices
 with [Output representation](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/40), [Transaction netting](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/41) and
 [Compatibility](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/23); do not make protocol choices through accessor changes.
 

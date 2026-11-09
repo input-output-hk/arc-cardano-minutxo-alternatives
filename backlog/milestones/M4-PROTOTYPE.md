@@ -7,7 +7,7 @@
 The latest completed [full CI run](https://github.com/nhenin/cardano-ledger-specs/actions/runs/42479739616) passed on `b77257163`.
 
 **Remaining prototype work.** Nicolas will check the implementation details and record
-his findings in [validation #29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29).
+his findings in [review of deposit rules and implementation #29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29).
 
 **Afterwards.** Assess how the reviewed implementation would integrate with Plutus
-in [compatibility #23](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/23), then run a private network test.
+in [compatibility #23](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/23), then run the [private network test #60](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/60).

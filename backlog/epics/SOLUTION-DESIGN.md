@@ -14,7 +14,8 @@ is published. Publication and implementation do not constitute design approval.
 | Candidate architecture | [#20](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/20) | [Output representation #40](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/40). |
 | Candidate state and transaction rules | [#21](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/21) | [Transaction netting #41](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/41). |
 | Candidate accounting and settlement | [#22](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/22) | [Deposit settlement #42](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/42). |
-| Transition and ecosystem contracts | — | [Compatibility #23](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/23). |
+| Transition and ecosystem contracts | — | [Plutus integration and transition compatibility #23](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/23). |
+| Private network validation | — | Run the [private network test #60](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/60) after the Plutus assessment. |
 | Decision rationale | — | [Design rationale #24](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/24), informed by Architecture Decision. |
 
 ## Done when

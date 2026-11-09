@@ -1,4 +1,4 @@
-# Review transition and ecosystem compatibility
+# Assess Plutus integration and transition compatibility
 
 **Parent:** [Protocol Specification](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/19).
 
@@ -10,7 +10,7 @@ backing exposed to scripts, and identify what carries over to the reviewed revis
 One option to evaluate is a new script version that reads both legacy and new
 inputs, exposes their backing and application value separately, and allows a
 validator to inspect transaction-level deposit netting. Check the effect on
-earlier script versions. A private network test follows this assessment. [Prototype verification #29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29)
+earlier script versions. The [private network test #60](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/60) follows this assessment. [Prototype verification #29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29)
 
 ## Responsibility
 

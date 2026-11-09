@@ -69,17 +69,17 @@ Decision. CPS publication does not complete that research.
 | [Architecture #20](issues/solution-design/01-architecture.md) | [Output representation #40](issues/exploration/01-output-role-split.md) |
 | [State and rules #21](issues/solution-design/02-ledger-rules.md) | [Transaction netting #41](issues/exploration/02-transaction-deposit-netting.md) |
 | [Accounting #22](issues/solution-design/03-settlement-accounting.md) | [Deposit settlement #42](issues/exploration/03-protocol-dust-account.md) |
-| — | [Transition and ecosystem compatibility #23](issues/solution-design/04-transition-compatibility.md) |
+| — | [Plutus integration and transition compatibility #23](issues/solution-design/04-transition-compatibility.md) |
+| — | [Private network test #60](issues/solution-design/private-network-test.md), after the Plutus assessment |
 | — | [Design rationale #24](issues/solution-design/05-rationale.md) |
 
 ## Ledger Prototype
 
 **[M4](milestones/M4-PROTOTYPE.md)** — the [model](issues/prototype/PROTO-01-domain-model.md), [Ledger rules](issues/prototype/PROTO-02-ledger-integration.md), [business suite](issues/prototype/PROTO-03-tests.md) and [upstream integration](issues/prototype/upstream-integration.md) are delivered.
 
-[Final detailed review #29](issues/prototype/PROTO-04-validation.md) tracks Nicolas's verification.
-[Plutus assessment #23](issues/solution-design/04-transition-compatibility.md) and a private network test follow.
-The [interface](issues/prototype/accounting-refactor.md) and [coverage](issues/prototype/remaining-test-coverage.md)
-tickets retain possible extensions for later work.
+[Review deposit rules and implementation #29](issues/prototype/PROTO-04-validation.md) tracks Nicolas's verification.
+[Plutus assessment #23](issues/solution-design/04-transition-compatibility.md) and the [private network test #60](issues/solution-design/private-network-test.md) follow.
+The [broader interface migration #43](issues/prototype/accounting-refactor.md) and [extended coverage #58](issues/prototype/remaining-test-coverage.md) were closed as not planned for this prototype. Their tickets retain the ideas for later work.
 
 ## CIP
 

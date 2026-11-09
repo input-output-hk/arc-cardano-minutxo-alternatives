@@ -1,4 +1,4 @@
-# Validate the Ledger prototype
+# Review the Ledger prototype’s deposit rules and implementation
 
 **Status:** Final detailed review by Nicolas. The prototype is nearly complete.
 
@@ -17,5 +17,5 @@ outputs. Record any concrete issue found during that review.
 [Verification record](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-verification.md)
 
 **After the prototype review.** Assess how the reviewed version would integrate with
-Plutus in [compatibility #23](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/23), then run a private network test and record the
+Plutus in [Plutus assessment #23](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/23), then run the [private network test #60](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/60) and record the
 tested revision and observed result.

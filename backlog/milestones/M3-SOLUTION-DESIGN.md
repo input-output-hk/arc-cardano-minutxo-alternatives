@@ -5,7 +5,7 @@
 Candidate architecture (#20), state/rules (#21) and accounting (#22) are published.
 [Output representation #40](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/40), [transaction netting #41](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/41) and
 [deposit settlement #42](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/42) retain the substantive design reviews.
-[Compatibility #23](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/23) and [rationale #24](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/24) remain open.
+[Plutus integration and transition compatibility #23](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/23) and [rationale #24](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/24) remain open. Run the [private network test #60](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/60) after the Plutus assessment.
 
 ## Completion criteria
 

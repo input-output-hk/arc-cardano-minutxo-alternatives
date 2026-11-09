@@ -1,6 +1,6 @@
-# Complete the remaining DepositStore test coverage
+# Defer extended DepositStore test coverage
 
-**Status:** Coverage follow-up. [Final review #29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29) tracks the remaining detailed
+**Status:** Closed as not planned for this prototype. The existing test results and deferred coverage ideas are recorded below. [Final review #29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29) tracks the remaining detailed
 verification of the prototype. This ticket retains broader test ideas for future work.
 
 ## 9 November evidence
