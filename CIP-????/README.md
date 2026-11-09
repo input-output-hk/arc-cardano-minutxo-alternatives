@@ -67,27 +67,32 @@ License: CC-BY-4.0
 
 ## 1. Abstract
 
+This CIP continues the community work on minUTxO described in
+[CPS-0037](../CPS-0037/README.md#acknowledgements), including discussions at
+BuidlerFest in Argentina. We thank
+[@Crypto2099](https://github.com/Crypto2099),
+[@lehins](https://github.com/lehins),
+[@ch1bo](https://github.com/ch1bo),
+[@matteocoppola](https://github.com/matteocoppola), and
+[@padierfind](https://github.com/padierfind) for sharing ideas and contributing to
+the discussions that made this proposal possible. The design presented here
+builds on that collective effort and carries it forward into a concrete ledger
+proposal.
+
 This proposal introduces explicit UTxO capacity deposits and transaction-level
-netting. A new output form carries the application's assets, including zero ADA,
-while the ledger accounts separately for the full deposit required to keep that
-output in the UTxO set. Spending the output releases its original deposit through
-its spending authority.
+netting. A new output form carries application assets, including zero ADA, with
+the full deposit accounted for separately by the ledger. Spending releases its
+original deposit through the output's spending authority.
 
-A transaction funds the difference between deposits required by its new outputs
-and deposits released by its consumed outputs. Each sub-transaction declares its
-own contribution and can delegate funding or release accounting to the enclosing
-transaction. A sub-transaction can therefore transfer native assets with zero
-application ADA while the enclosing transaction provides fees and any additional
-deposit funding.
+Transactions fund the difference between new deposits and released deposits.
+Sub-transactions can delegate deposit funding or release accounting to the
+enclosing transaction, enabling native-asset transfers with zero application ADA
+while the enclosing transaction funds fees and any additional deposit requirement.
 
-The candidate also introduces a component-based deposit formula and retains the
-formula history and allocation origin needed to recover each output's original
-deposit. Parameter changes price future allocations. Existing implicit-deposit
-outputs and the new output form coexist.
-
-The proposal addresses the application and transaction-builder friction described
-in CPS-0037. Its remaining review covers script compatibility, local release
-settlement, pricing calibration, and integration across the node and wallet stack.
+A component-based formula and allocation history preserve original deposits
+across prospective parameter changes. Legacy and new output forms coexist. The
+proposal addresses CPS-0037's application and builder friction; remaining review
+covers script compatibility, local release settlement, pricing and integration.
 
 ## 2. Motivation: Why is this CIP necessary?
 
