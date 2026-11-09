@@ -79,6 +79,9 @@ the discussions that made this proposal possible. The design presented here
 builds on that collective effort and carries it forward into a concrete ledger
 proposal.
 
+*And to everyone who has ever sighed at yet another minUTxO top-up: this one's for
+you. We're working to make your life a little easier from here on.*
+
 This proposal introduces explicit UTxO capacity deposits and transaction-level
 netting. A new output form carries application assets, including zero ADA, with
 the full deposit accounted for separately by the ledger. Spending releases its
