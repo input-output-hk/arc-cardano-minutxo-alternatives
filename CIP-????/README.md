@@ -228,10 +228,94 @@ the enclosing transaction.
 #### 3.1.2 TxBody deposit declarations
 
 TopTx is the enclosing transaction; SubTx is a body composed into it. A standalone
-transaction is a TopTx with no SubTxs. Both body maps gain optional key `28`, with
-a declaration type specific to their level. Amounts use lovelace. The following
-CDDL gives the body additions and their complete declaration encodings; the
-commented entries are inserted into the corresponding existing body maps.
+transaction is a TopTx with no SubTxs. Each body carries a deposit declaration
+specific to its level. Amounts use lovelace.
+
+**Haskell interface.** The prototype adds the following fields to its body
+constructors. This excerpt shows only those fields; the existing input, output,
+fee and other fields are omitted.
+
+```haskell
+data DijkstraTxBodyRaw l era where
+  DijkstraTxBodyRaw ::
+    { dtbrNetUTxODepositChange :: !TopTxUTxODepositDeclaration
+    } ->
+    DijkstraTxBodyRaw TopTx era
+  DijkstraSubTxBodyRaw ::
+    { dstbrNetUTxODepositChange :: !SubTxUTxODepositDeclaration
+    } ->
+    DijkstraTxBodyRaw SubTx era
+```
+
+The declaration payloads describe zero, allocation or release, together with the
+funding or settlement choice. These are the prototype's actual types, with
+deriving clauses omitted:
+
+```haskell
+-- TopTx: net change for the complete transaction batch.
+data NetUTxODepositChange
+  = NoUTxODepositChange
+  | AllocateUTxODeposit !StrictlyPositiveCoin
+  | ReleaseUTxODeposit !StrictlyPositiveCoin !TopTxReleaseSettlement
+
+data TopTxReleaseSettlement
+  = NoTopTxSettlement
+  | TopTxSettlementOutput !TxIx
+
+-- SubTx: its own contribution and funding or settlement choice.
+data SubTxNetUTxODepositChange
+  = SubTxNoUTxODepositChange
+  | SubTxAllocateUTxODeposit !StrictlyPositiveCoin
+  | SubTxRequestUTxODepositFromTopTx !StrictlyPositiveCoin
+  | SubTxReleaseUTxODeposit !StrictlyPositiveCoin !SubTxReleaseTarget
+
+data SubTxReleaseTarget
+  = SubTxSettlementOutput !TxIx
+  | DelegateToTopTx
+```
+
+`TopTxUTxODepositDeclaration` and `SubTxUTxODepositDeclaration` wrap their respective
+payloads in `StrictMaybe`. This preserves the distinction between an absent field
+and an explicit zero: `NoUTxODepositChange` and `SubTxNoUTxODepositChange` are
+present zero declarations. The public `NoUTxODepositDeclaration` pattern in each
+module represents absence. The wrappers' constructors are private; builders use
+the exported patterns, as in the examples below. `StrictlyPositiveCoin` is a
+checked positive lovelace amount, and `TxIx` is a zero-based output index.
+
+[TopTx declaration types](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/UTxOs/Deposit/TopTx.hs) · [SubTx declaration types](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/UTxOs/Deposit/SubTx.hs)
+
+The declarations from §3.1.1 can be constructed through that public interface:
+
+```haskell
+import Cardano.Ledger.BaseTypes (TxIx (..))
+import Cardano.Ledger.Coin (Coin (..))
+import Cardano.Ledger.StrictlyPositiveCoin (mkStrictlyPositiveCoin)
+import qualified Cardano.Ledger.Dijkstra.UTxOs.Deposit.TopTx as TopTx
+import qualified Cardano.Ledger.Dijkstra.UTxOs.Deposit.SubTx as SubTx
+
+-- Standalone example: release 1.6 ADA into own output 0.
+-- The result is Maybe TopTxUTxODepositDeclaration.
+localRelease = do
+  amount <- mkStrictlyPositiveCoin (Coin 1600000)
+  pure $ TopTx.DeclaresNetUTxODepositRelease amount
+    (TopTx.TopTxSettlementOutput (TxIx 0))
+
+-- Composed example: SubTx A releases 3.2 ADA; SubTx B requests it.
+-- The result is Maybe (SubTx A declaration, SubTx B declaration, TopTx declaration).
+nettedBatch = do
+  amount <- mkStrictlyPositiveCoin (Coin 3200000)
+  pure
+    ( SubTx.DeclaresNetUTxODepositRelease amount SubTx.DelegateToTopTx
+    , SubTx.RequestsUTxODepositFromTopTx amount
+    , TopTx.DeclaresZeroNetUTxODeposit
+    )
+```
+
+**CBOR encoding (CDDL).** CDDL, the Concise Data Definition Language, describes
+the serialized data shape. `?` marks an optional map entry, `/` separates
+alternatives, and `[ ... ]` describes an array. Both body maps gain optional key
+`28`; the commented entries below are inserted into their existing map schemas.
+The Haskell constructors above encode to these tagged arrays.
 
 ```cddl
 ; Added to the transaction_body map
