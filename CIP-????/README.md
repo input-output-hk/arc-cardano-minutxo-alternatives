@@ -29,7 +29,9 @@ License: CC-BY-4.0
 - [1. Abstract](#1-abstract)
 - [2. Motivation: Why is this CIP necessary?](#2-motivation-why-is-this-cip-necessary)
 - [3. Specification](#3-specification)
-  - [3.1 Scope and terminology](#31-scope-and-terminology)
+  - [3.1 Resource protection and transaction construction](#31-resource-protection-and-transaction-construction)
+    - [3.1.1 Building a transaction](#311-building-a-transaction)
+    - [3.1.2 Scope and terminology](#312-scope-and-terminology)
   - [3.2 Deposit model](#32-deposit-model)
     - [3.2.1 Output representation](#321-output-representation)
     - [3.2.2 Deposit calculation](#322-deposit-calculation)
@@ -114,7 +116,61 @@ seven CPS use cases is evaluated in the [rationale](#4-rationale-how-does-this-c
 
 ## 3. Specification
 
-### 3.1 Scope and terminology
+### 3.1 Resource protection and transaction construction
+
+The resource being protected is the UTxO set: persistent ledger state that nodes
+must store and maintain. The existing minUTxO rule protects that resource through
+an **economic deterrence mechanism**. Keeping an output live requires ADA to remain
+committed to it, making the occupation of UTxO capacity carry a capital cost. This
+proposal preserves that deterrence principle. Its purpose is to reduce the
+friction that funding this protection creates for applications and transaction
+builders, while continuing to require backing for every live output.
+
+During normal ledger operation, changes to this resource occur through transaction
+execution: spending inputs removes live outputs, and creating outputs adds new
+ones. A transaction is therefore the natural boundary at which to account for and
+fund the change in required backing. The deposits released by its inputs can be
+netted against the deposits required by its outputs, and the difference can be
+settled as part of the transaction balance.
+
+The central change is to move deposit funding out of each new-form `TxOut`'s value
+and into **transaction balancing**. An output expresses the assets and application
+state intended for its recipient or script. The ledger records its deposit
+separately, and the transaction funds the aggregate deposit change. Each such
+output still has its own fully backed allocation for as long as it remains live.
+The following sections specify this separation, the netting rules and the
+preservation of backing through the output lifecycle.
+
+#### 3.1.1 Building a transaction
+
+With the existing minUTxO interface, a builder must include enough ADA in each
+output to meet its minimum, even when that ADA is unrelated to the intended
+payment or application state. Because the minimum depends on the encoded output,
+adjusting its ADA can also require recalculating that minimum.
+
+For the proposed store-backed outputs, the construction flow becomes:
+
+1. **Express the application intent.** Choose each output's recipient, assets,
+   datum and reference script. Its ADA amount expresses the intended application
+   value, which may be zero for a token transfer or application-state output.
+2. **Calculate the deposit change.** Calculate the requirements of the new
+   outputs and determine the historical deposits that spending the inputs will
+   release. Net the two totals. The proposed formula is independent of the
+   application ADA amount.
+3. **Balance the transaction.** Include the net deposit allocation or release
+   alongside application values, fees and the other ledger balance terms. Fund
+   a positive change from the transaction's ADA, or settle released ADA for a negative
+   change, under the rules below.
+
+This lets a builder fund the net requirement without adding backing ADA to each
+recipient's application value. In a composed transaction, a SubTx can describe a
+token transfer with zero application ADA and delegate its deposit funding to
+TopTx. The builder balances the complete transaction, including fees and the net
+deposit change. The construction interface separates application intent
+from resource funding while retaining the ADA commitment that protects the UTxO
+set. Legacy outputs remain available under their embedded minimum-ADA rules.
+
+#### 3.1.2 Scope and terminology
 
 The candidate is implemented in the prototype's Dijkstra era, which already
 provides enclosing transactions and sub-transactions. This CIP specifies their
