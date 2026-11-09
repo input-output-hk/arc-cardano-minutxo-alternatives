@@ -1,15 +1,21 @@
-# 04 — Validate and document prototype results
+# Review the Ledger prototype’s deposit rules and implementation
 
-**Milestone:** [M4 — Integrated cardano-ledger Prototyping](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/milestone/4) · **Status:** Proposed
+**Status:** Final detailed review by Nicolas. The prototype is nearly complete.
 
-## Outcome
+The integrated branch passed its latest completed [full CI run](https://github.com/nhenin/cardano-ledger-specs/actions/runs/42479739616) at `b77257163`,
+including all four compiler builds and the Dijkstra and conformance package tests.
+The newer `2298a0085` revision clarifies legacy deposit capping and rejects formula
+version downgrades. [Current code](https://github.com/nhenin/cardano-ledger-specs/commit/2298a008589d5a0a5ea70bd1ec87d8477e989422) · [9 November run](https://github.com/nhenin/cardano-ledger-specs/actions/runs/42592236836)
 
-A reviewable feasibility result documenting implementation cost, behavior, and limitations.
+**Remaining task.** Nicolas will check that the implementation behaves as intended
+in the details. The new transaction DSL, formula mechanism and underlying state
+logic are in place. Trace formula selection at allocation, extraction of the
+output fields, and the deposit calculation itself. Check whether any superseded
+minUTxO logic still runs on the new path, including the treatment of legacy
+outputs. Record any concrete issue found during that review.
+[Prototype rules](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-rules.md) ·
+[Verification record](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-verification.md)
 
-## Acceptance criteria
-
-- Build and test commands and results are reproducible.
-- Performance and state-impact observations are recorded where meaningful.
-- Deviations from the adopted specification are resolved or fed back into M3.
-- Known limitations and production work not covered by the prototype are explicit.
-- M4 is marked complete only after integration and the relevant test suite pass.
+**After the prototype review.** Assess how the reviewed version would integrate with
+Plutus in [Plutus assessment #23](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/23), then run the [private network test #60](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/60) and record the
+tested revision and observed result.

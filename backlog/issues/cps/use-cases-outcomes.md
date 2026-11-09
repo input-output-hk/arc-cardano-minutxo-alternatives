@@ -1,21 +1,25 @@
-# 04 — Document use cases and required outcomes
+# Document CPS use cases and required outcomes
 
-## Outcome
+**Status:** Done · **Parent:** [Problem Definition](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/7).
 
-Publicly citable examples connecting the technical problem to concrete application
-needs, followed by solution-neutral requirements.
+## Delivered
 
-## Work included
+[CPS-0037](https://github.com/cardano-foundation/CIPs/blob/master/CPS-0037/README.md),
+merged through [PR #1268](https://github.com/cardano-foundation/CIPs/pull/1268) on
+27 October 2026, documents seven use cases: minimally funded transitions, small
+payments, sender-funded outputs, non-staking state, balancing, high-fan-out
+distribution and successor-output top-ups.
 
-- [ ] Document a named high-fan-out distribution example.
-- [ ] Document a named token, CIP-68, or script-state flow.
-- [ ] Document economically stranded or unsolicited outputs.
-- [ ] Verify transaction/output shapes and quantitative assumptions.
-- [ ] Define the CPS goals and required outcomes.
-- [ ] Define explicit non-goals and scope boundaries.
+- [x] Explain each scenario, the current workaround and the remaining friction.
+- [x] Define testable, solution-neutral outcomes and explicit non-goals.
+- [x] Distinguish funding friction from protocol impossibility.
+- [x] Publish the use cases with the CPS references and review record.
 
-## Acceptance criteria
+## Scope split
 
-- Use cases rely on public sources and verified output structures.
-- Required outcomes are testable without selecting a solution.
-- Economic friction is not described as protocol impossibility.
+This closes **documentation of the use cases**, not empirical validation of deployed
+applications. The original requirements for named examples, verified transaction
+shapes and quantitative assumptions move to [application evidence](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/56).
+That task retains the high-fan-out, token/CIP-68/script-state and stranded/unsolicited
+output investigations. Parameter-change examples remain scenarios unless observations
+establish an actual occurrence.

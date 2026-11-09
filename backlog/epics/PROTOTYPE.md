@@ -1,24 +1,15 @@
-# Integrated `cardano-ledger` Prototyping
+# Ledger Prototype
 
-## Context
+**Status:** Nearly complete, 9 November 2026.
 
-The adopted specification must be validated in the Ledger implementation rather than
-only as a document or isolated model. Integration may expose type, serialization,
-transition, accounting, or compatibility constraints that require the design to change.
+[Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3) implements the DepositStore rules and integrates the Leios reference. Store-backed
+outputs carry application value while their deposits are funded separately. The Store uses
+the allocation's historical formula to determine the refund. The latest completed [full CI run](https://github.com/nhenin/cardano-ledger-specs/actions/runs/42479739616) passed.
 
-## Goal
+Nicolas is checking the implementation details in [review of deposit rules and implementation #29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29).
+That is the remaining work on this prototype.
 
-Implement the adopted specification in the appropriate `cardano-ledger` rules and
-test whether its intended behavior and invariants hold in the integrated system.
+## After verification
 
-## Approach
-
-1. Align the domain model with the adopted specification.
-2. Integrate the mechanism into Ledger rules and required state/serialization types.
-3. Implement invariant, compatibility, and integration tests.
-4. Validate the results and feed material findings back into the specification.
-
-## Outcome
-
-An integrated implementation with reproducible build and test results, documented
-limitations, and enough evidence to confirm or revise the design before CIP authoring.
+1. Assess how to integrate the prototype with Plutus, starting with Will's V4 work. [Plutus integration assessment #23](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/23)
+2. Run the [private network test #60](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/60) using the reviewed prototype and record what happens.

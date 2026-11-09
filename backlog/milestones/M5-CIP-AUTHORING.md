@@ -1,4 +1,4 @@
-# Milestone M5 — CIP Authoring & Submission
+# Milestone M5 — CIP
 
 ## Objective
 

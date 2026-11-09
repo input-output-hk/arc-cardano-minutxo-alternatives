@@ -1,4 +1,4 @@
-# Milestone M2 — Implementation Design Space Analysis & Policy Recommendation
+# Milestone M2 — Architecture Decision
 
 **State:** In progress
 
@@ -21,6 +21,9 @@ evidence-backed policy recommendation.
 - [02 — Construct complete candidate architectures](../issues/alternatives/ALT-02-candidate-architectures.md)
 - [03 — Analyze trade-offs and compare implementations](../issues/alternatives/ALT-03-tradeoff-analysis.md)
 - [04 — Write the final policy recommendation](../issues/alternatives/ALT-04-policy-report.md)
+
+- [Mainnet UTxO evidence #10](../issues/alternatives/mainnet-evidence.md) — deferred quantitative follow-up, separated from the completed CPS.
+- [Application evidence #56](../issues/alternatives/application-evidence.md) — named examples and reproducible transaction/builder traces.
 
 ## Acceptance criteria
 
