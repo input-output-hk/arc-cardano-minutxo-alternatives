@@ -15,7 +15,10 @@ In [Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3) at [`7b
 queries; shared state owns `UTxOStore`; accepted-input contracts and annotations
 use `Allocations`; whole-Store projections are removed.
 [The pinned representation](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-rules.md#ds-state-representation) records these completed
-slices. Later local stake/allocation changes are outside this checkpoint.
+slices. Subsequent published work separates [stored UTxOs from output proposals](https://github.com/nhenin/cardano-ledger-specs/commit/32217735a41d089bb2827ff178ae4bcf0ead1bbe),
+routes [stake deltas through output collections](https://github.com/nhenin/cardano-ledger-specs/commit/c256c439f93d7caa75d0ac74139f5d12299f3cfe), and
+[returns accounting effects from pure transaction projection](https://github.com/nhenin/cardano-ledger-specs/commit/72f53f2f557b69492d3340b9c6b2435962dbbc40).
+The consumer audit, mint and Plutus representation guarantees below remain open.
 
 ## Remaining migration
 
@@ -28,10 +31,8 @@ slices. Later local stake/allocation changes are outside this checkpoint.
   guarantees, ADA access/update, compact paths and exact encoding/hash equivalence.
 - [ ] Preserve behavior, failure payloads/order and era upgrades in each justified
   slice; publish clean commits, targeted results and residual exceptions.
-- [ ] Send validation findings to [#29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29). Its final CI result is four successful
-  compiler builds and 24 of 26 package jobs passing; Dijkstra and conformance each
-  report 27 failures whose origin remains unestablished. This issue owns interface
-  correctness, not a duplicate full-CI gate.
+- [ ] Send validation findings to [#29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29). The [8 November CI](https://github.com/nhenin/cardano-ledger-specs/actions/runs/42479739616) passed for the integrated branch at `b77257163`.
+  Associate subsequent interface regressions with the revision tested.
 
 ## Contracts to preserve
 

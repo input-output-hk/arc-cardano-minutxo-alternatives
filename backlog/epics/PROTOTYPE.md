@@ -5,20 +5,24 @@
 **Question:** can `cardano-ledger` execute the candidate's rules correctly while
 preserving the required compatibility?
 
-[Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3), head
-`7b9b274800e213a33bb2f55b1210e901d91034dc`, publishes the implementation.
+The 30 October Leios snapshot (`9df9f98cc`, 63 upstream commits) is integrated
+in [Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3). The [2 November integration run](https://github.com/nhenin/cardano-ledger-specs/actions/runs/41433981296) passed.
+The [8 November CI](https://github.com/nhenin/cardano-ledger-specs/actions/runs/42479739616) at `b77257163` passed all four compiler builds and the
+package tests, including Dijkstra and conformance. The 27 SubTx cases that failed
+on 30 October also passed locally after integration.
+
+The published head [`2298a0085`](https://github.com/nhenin/cardano-ledger-specs/commit/2298a008589d5a0a5ea70bd1ec87d8477e989422) adds the legacy deposit cap clarification and a check
+rejecting formula-version downgrades. Its [9 November CI](https://github.com/nhenin/cardano-ledger-specs/actions/runs/42592236836) was in progress at review.
 
 | Delivered | Remaining |
 |---|---|
 | [DepositStore model #26](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/26) | [Upstream integration #57](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/57) |
 | [Ledger rules #27](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/27) | [Coverage gaps #58](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/58) |
 | [209 business cases + 13 metadata/codec cases #28](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/28) | [Interface migration #43](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/43) |
-| Four GHC builds pass | [Full regression validation #29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29) |
+| Four GHC builds and the full package matrix passed on the rebased 8 November revision | [Full regression validation #29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29) |
 
-Full CI is **not green**: 24 of 26 package jobs pass; Dijkstra and conformance each
-report the same 27 SubTx cases failing. The cause is not yet attributed.
-The newer `leios-prototype-snapshot-30-10` has ten unresolved integration conflicts.
-Local unpublished changes are not counted in this checkpoint.
+The remaining integration task records the conflict review and sign-off.
+Coverage, interface compatibility and feasibility are tracked separately below.
 
 ## Done when
 

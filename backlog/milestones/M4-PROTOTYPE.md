@@ -2,10 +2,14 @@
 
 **State:** In progress · **Deliverable:** integrated, validated Ledger prototype.
 
-**Checkpoint:** [Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3)
-at `7b9b274800e213a33bb2f55b1210e901d91034dc`.
-The reference is `leios-prototype-snapshot-30-10` at
-`9df9f98cce86c5f2195142b2c02dd9b39dd9dc7c`; ten integration conflicts remain.
+The 30 October Leios snapshot (`9df9f98cc`, 63 upstream commits) is integrated
+in [Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3). The [2 November integration run](https://github.com/nhenin/cardano-ledger-specs/actions/runs/41433981296) passed.
+The [8 November CI](https://github.com/nhenin/cardano-ledger-specs/actions/runs/42479739616) at `b77257163` passed all four compiler builds and the
+package tests, including Dijkstra and conformance. The 27 SubTx cases that failed
+on 30 October also passed locally after integration.
+
+The published head [`2298a0085`](https://github.com/nhenin/cardano-ledger-specs/commit/2298a008589d5a0a5ea70bd1ec87d8477e989422) adds the legacy deposit cap clarification and a check
+rejecting formula-version downgrades. Its [9 November CI](https://github.com/nhenin/cardano-ledger-specs/actions/runs/42592236836) was in progress at review.
 
 ## Completed implementation slices
 
@@ -18,15 +22,13 @@ The reference is `leios-prototype-snapshot-30-10` at
 
 | Task | Completion evidence |
 |---|---|
-| [Upstream integration #57](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/57) | Reviewed conflict resolutions; resulting head builds and is tested. |
+| [Upstream integration #57](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/57) | Reference integrated and tested; document conflict review and sign-off. |
 | [Coverage gaps #58](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/58) | Pricing, distributions, Plutus and shared collateral cases accounted for. |
 | [Interface migration #43](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/43) | Reviewed residual consumers, invariants and compatibility evidence. |
 | [Regression validation #29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29) | Relevant suites pass at the integrated head; limitations and costs documented. |
 
-[CI run 41019013763](https://github.com/nhenin/cardano-ledger-specs/actions/runs/41019013763)
-finished with **24/26 package jobs passing**. Dijkstra and conformance each report
-27 failing SubTx cases; the cause is not yet attributed. The aggregate gate also
-fails because those suites failed. Test duration is not a production-performance measurement.
+Record full validation at the final implementation revision in #29, alongside
+coverage exclusions, memory/runtime costs and remaining protocol decisions.
 
 ## Completion criteria
 

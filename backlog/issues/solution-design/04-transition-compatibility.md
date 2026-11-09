@@ -38,3 +38,18 @@ These are implemented boundaries, not migration approval.
 
 A translated fixture or preserved legacy encoding is evidence for its stated scope;
 neither establishes complete ecosystem compatibility.
+
+## Evidence for review — 9 November 2026
+
+Will's 4 November integration preserved total output value and exposed backing
+and application value through both V4 libraries. Three live V4 spends passed.
+A local Conway-to-Dijkstra chain replayed, loaded its migrated snapshot and
+resumed after interruption. Earlier validator versions and mainnet replay costs
+still require evidence. [Pinned downstream integration](https://github.com/willjgould/cardano-minutxo-integration/commit/d2300267436d4cc6a4cb2dbc7898b9f98787192b)
+
+The Ledger prototype subsequently introduced allocation origins and formula
+history. Imported entries use the initial formula. Later changes leave existing
+allocations priced at their historical formula, and a V2 activation prevents a
+return to V1. Verify the downstream fixture on matching revisions and review
+these activation and refund semantics before adopting a compatibility contract.
+[Formula history](https://github.com/nhenin/cardano-ledger-specs/commit/660d0d96c24613a42cd3131a38a653ab1e39c6cf) · [Activation guard](https://github.com/nhenin/cardano-ledger-specs/commit/2298a008589d5a0a5ea70bd1ec87d8477e989422)

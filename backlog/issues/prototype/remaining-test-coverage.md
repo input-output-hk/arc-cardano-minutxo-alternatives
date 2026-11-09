@@ -1,6 +1,6 @@
 # Complete the remaining DepositStore test coverage
 
-**Milestone:** [M4 — Ledger Prototype](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/milestone/4) · **Status:** Open — coverage requirements identified; implementation outstanding
+**Milestone:** [M4 — Ledger Prototype](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/milestone/4) · **Status:** In progress — formula and lifecycle checks added; full coverage matrix open
 
 ## Scope and starting evidence — 30 October 2026
 
@@ -11,11 +11,19 @@ plus 13 passing metadata/codec examples. See the [pinned specification](https://
 and [verification record](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-verification.md).
 These results leave the following explicit coverage obligations.
 
+## 9 November evidence
+
+The current [pricing contract](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-rules.md#ds-pricing) prices assets, datum and script payloads using the formula
+applicable at allocation. Focused tests cover typed measurements, historical
+refunds, formula changes, zero pricing and minimum-coin admission of legacy outputs.
+The [verification record](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-verification.md#deposit-formula-history-on-6-november-2026) records 212 DepositStore-filter examples and 26 Store codec examples
+passing at the 6 November checkpoint. The full pricing matrix remains open.
+
 ## Required coverage
 
 | Area | Required cases and evidence |
 |---|---|
-| [Pricing: seven cases](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-rules.md#ds-pricing) | P01 and N01–N06: accepted-byte retention; `coinsPerUTxOByte * (160 + acceptedSize)`; collateral-return pricing; included address/assets/datum/script bytes; excluded external deposit/declaration; CBOR coin-size boundaries; no Store obligation for implicit outputs. Existing historical size/rate checks cover only part of this matrix. |
+| Seven cases in the current [pricing contract](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-rules.md#ds-pricing) | P01 and N01–N06: price each created output, count distinct assets, price applied collateral returns, measure datum/script payloads, vary the declaration independently, cross ADA encoding boundaries and retain the legacy reserve inside the output. Map focused tests against each case. |
 | [Stake: eight cases](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-rules.md#ds-stake) | N01–N08: implicit full ADA; Store-backed application ADA; no global Store weight; applied allocations and releases; inactive collateral on success; applied collateral on failure; unchanged eligibility, delegation and snapshot timing. |
 | [Voting: one case](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-rules.md#ds-voting) | N01: compare the complete distribution to an independent expectation, with positive eligible and ineligible/delegation controls, both execution outcomes and snapshot boundaries. Neither allocated deposits nor global Store balance adds weight. An all-zero result must fail positive controls. |
 | [Plutus contexts](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-rules.md#ds-plutus-compatibility) | Test the agreed projection and translation for V1–V4, respecting each version's feature restrictions. Context design remains under #23/#40; resolve it before choosing expectations or changing the current `unexpected NewTxOut` paths. |
@@ -48,8 +56,7 @@ fixup currently rejects `NewTxOut`; implicit fixtures alone do not cover Store r
   example/failure/pending counts and logs. Rerun affected earlier-era, binary
   and conformance suites after [upstream integration](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/57).
 - [ ] Deliver passing evidence and explicit exclusions to [validation #29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29).
-  The existing 27 Dijkstra/conformance failures require diagnosis and review there;
-  their cause is not inferred from the coverage gaps.
+  The [8 November CI](https://github.com/nhenin/cardano-ledger-specs/actions/runs/42479739616) passed both Dijkstra and conformance at `b77257163`.
 
 Formal design agreement remains in [#19](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/19),
 [#23](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/23) and

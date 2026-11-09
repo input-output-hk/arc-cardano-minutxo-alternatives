@@ -10,12 +10,12 @@ has been removed because it described a period rather than an outcome.
 
 ## Deliverables
 
-| Epic | Question it answers | Status on 30 October 2026 |
+| Epic | Question it answers | Status on 9 November 2026 |
 |---|---|---|
 | [Problem Definition](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/7) | What problem must an alternative solve? | Done: CPS-0037 published. |
 | [Architecture Decision](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/14) | Which complete mechanism should we choose, and why? | In progress: comparison and recommendation remain open. |
 | [Protocol Specification](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/19) | What are the exact rules of the candidate mechanism? | In progress: candidate contracts published; review and decisions remain. |
-| [Ledger Prototype](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/25) | Can the Ledger implement those rules correctly? | In progress: implementation and focused tests published; integration and full validation remain. |
+| [Ledger Prototype](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/25) | Can the Ledger implement those rules correctly? | In progress: integrated reference and [green 8 November CI](https://github.com/nhenin/cardano-ledger-specs/actions/runs/42479739616); agreed coverage and feasibility assessment remain. |
 | [CIP](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/30) | What proposal can implementers review and adopt? | Todo: requires reviewed specification and prototype findings. |
 
 Research, specification and prototyping inform each other. Publishing a prototype

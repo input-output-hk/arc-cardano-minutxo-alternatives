@@ -21,3 +21,11 @@ against the published CPS. This is the empirical work separated from completed
 
 A CIP reference alone does not prove a deployed application's behavior. Do not
 present hypothetical parameter changes as observed mainnet incidents.
+
+## Available fixture — 9 November 2026
+
+Will published three live V4 spending scenarios with backing and application
+value exposed to scripts. Use this pinned fixture as a starting point for the
+script-state example. Add a named application, a reproducible builder or
+transaction trace, and a comparison of deposit funding and recovery under each
+candidate before marking that example complete. [Scenario and fixture record](https://github.com/willjgould/cardano-minutxo-integration/commit/d2300267436d4cc6a4cb2dbc7898b9f98787192b)

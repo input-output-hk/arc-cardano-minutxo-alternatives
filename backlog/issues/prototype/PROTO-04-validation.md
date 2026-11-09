@@ -1,13 +1,28 @@
 # Validate the Ledger prototype
 
-**Milestone:** [M4 — Ledger Prototype](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/milestone/4) · **Status:** In progress — targeted checks passed; full validation open
+**Milestone:** [M4 — Ledger Prototype](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/milestone/4) · **Status:** In progress — integrated package matrix passed; full feasibility assessment open
 
-## Evidence — 30 October 2026
+## Integrated validation — 9 November 2026
+
+The 30 October Leios snapshot (`9df9f98cc`, 63 upstream commits) is integrated
+in [Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3). The [2 November integration run](https://github.com/nhenin/cardano-ledger-specs/actions/runs/41433981296) passed.
+The [8 November CI](https://github.com/nhenin/cardano-ledger-specs/actions/runs/42479739616) at `b77257163` passed all four compiler builds and the
+package tests, including Dijkstra and conformance. The 27 SubTx cases that failed
+on 30 October also passed locally after integration.
+
+The published head [`2298a0085`](https://github.com/nhenin/cardano-ledger-specs/commit/2298a008589d5a0a5ea70bd1ec87d8477e989422) adds the legacy deposit cap clarification and a check
+rejecting formula-version downgrades. Its [9 November CI](https://github.com/nhenin/cardano-ledger-specs/actions/runs/42592236836) was in progress at review.
+
+The 6 November [verification record](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-verification.md#deposit-formula-history-on-6-november-2026) records 172 core examples, 353 API examples,
+26 Store codec examples and 212 DepositStore-filter examples passing. These are local
+results for the documented checkpoint. One canonical-state external reference check was pending.
+
+## Historical evidence — 30 October 2026
 
 **Tested revision:** `7b9b274800e213a33bb2f55b1210e901d91034dc`, published in
 [Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3).
 **Newer reference:** `leios-prototype-snapshot-30-10` at
-`9df9f98cce86c5f2195142b2c02dd9b39dd9dc7c`; ten conflicts remain.
+`9df9f98cce86c5f2195142b2c02dd9b39dd9dc7c`; ten conflicts remained at this checkpoint.
 These results do not validate integration with that snapshot.
 
 | Check | Result |
@@ -40,12 +55,14 @@ with the baseline comparison and any proposed correction.
 
 ## Remaining work and completion criteria
 
-- [ ] Reproduce and account for every failed case against the corresponding pinned
-  upstream baseline before assigning cause; record commands, revisions, seeds and output.
+- [x] Verify the formerly failing SubTx cases after integration. The local rerun and passing
+  Dijkstra/conformance jobs are linked above. Retain the original seeds and logs for comparison.
+- [ ] Account for the historical failures against the pinned upstream baseline before attributing a cause.
 - [ ] Review proposed corrections before changing ledger behavior or test expectations.
-- [ ] After [upstream integration](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/57),
+- [x] After [upstream integration](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/57),
   rerun the compiler matrix and relevant existing, legacy, binary, conformance and
-  DepositStore suites at the exact resulting commit. Record the final outcome.
+  DepositStore suites at the exact resulting commit. The 2 and 8 November matrix results are linked above.
+- [ ] Review the final run on the revision used for the feasibility assessment.
 - [ ] Incorporate [remaining test coverage](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/58)
   and make remaining exclusions explicit; a focused pass cannot stand in for the full suite.
 - [ ] Record meaningful memory/runtime and state-impact observations with methods

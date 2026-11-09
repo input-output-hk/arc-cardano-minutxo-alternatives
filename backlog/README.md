@@ -23,21 +23,20 @@ The default **EPICS** view contains only these five peers. The programme and
 historical bootstrap are tracked separately. [Exploration #39](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/39) is superseded:
 its review tasks now belong directly to Protocol Specification or Ledger Prototype.
 
-## Published checkpoint — 30 October 2026
+## Published checkpoint — 9 November 2026
 
-[Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3),
-`7b9b274800e213a33bb2f55b1210e901d91034dc`:
+The 30 October Leios snapshot (`9df9f98cc`, 63 upstream commits) is integrated
+in [Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3). The [2 November integration run](https://github.com/nhenin/cardano-ledger-specs/actions/runs/41433981296) passed.
+The [8 November CI](https://github.com/nhenin/cardano-ledger-specs/actions/runs/42479739616) at `b77257163` passed all four compiler builds and the
+package tests, including Dijkstra and conformance. The 27 SubTx cases that failed
+on 30 October also passed locally after integration.
 
-| Delivered | Remaining |
-|---|---|
-| Explicit outputs, declarations, exact accounting and historical allocation storage | Protocol review, Plutus projection and interface migration |
-| 209 DepositStore business examples and 13 metadata/codec examples pass locally | Full pricing, stake/voting and shared collateral coverage |
-| Four GHC compiler builds pass | Full CI: Dijkstra and conformance fail; 24/26 package jobs pass |
+The published head [`2298a0085`](https://github.com/nhenin/cardano-ledger-specs/commit/2298a008589d5a0a5ea70bd1ec87d8477e989422) adds the legacy deposit cap clarification and a check
+rejecting formula-version downgrades. Its [9 November CI](https://github.com/nhenin/cardano-ledger-specs/actions/runs/42592236836) was in progress at review.
 
-The failing suites each report the same 27 SubTx cases. Their cause is not yet
-attributed; [validation #29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29) records the evidence.
-The newer `leios-prototype-snapshot-30-10` has ten unresolved integration conflicts.
-Unpublished local changes are not counted as delivered.
+Remaining work includes review of the integrated changes, coverage of the current
+pricing contract, stake, voting, shared collateral and Plutus, and a feasibility
+assessment with costs and compatibility limits.
 
 ## Problem Definition
 
