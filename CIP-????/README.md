@@ -9,7 +9,7 @@ Authors:
     - Polina Vinogradova <polina.vinogradova@iohk.io>
 Implementors: []
 Discussions:
-    - "Working draft: https://github.com/input-output-hk/arc-cardano-minutxo-alternatives"
+    - "CIP discussion: https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/pull/61"
     - "CPS review: https://github.com/cardano-foundation/CIPs/pull/1268"
     - "Ledger prototype: https://github.com/nhenin/cardano-ledger-specs/pull/3"
 Solution To:
@@ -17,12 +17,6 @@ Solution To:
 Created: 2026-08-03
 License: CC-BY-4.0
 ---
-
-> **Working draft, 9 November 2026.** This revision describes the candidate
-> implemented by the Dijkstra Ledger prototype at `2298a008589d5a0a5ea70bd1ec87d8477e989422`.
-> The specification and rationale below form a first proposal for review. The
-> [open questions](#46-open-questions) identify decisions needed to complete it.
-> The CIP number and submission pull request await submission.
 
 **Table of contents**
 
@@ -52,7 +46,7 @@ License: CC-BY-4.0
   - [4.3 Responses to the CPS questions](#43-responses-to-the-cps-questions)
   - [4.4 Alternatives considered](#44-alternatives-considered)
   - [4.5 Resource protection and implementation costs](#45-resource-protection-and-implementation-costs)
-  - [4.6 Open questions](#46-open-questions)
+  - [4.6 Author TODOs](#46-author-todos)
     - [4.6.1 Plutus compatibility](#461-plutus-compatibility)
     - [4.6.2 Local release guarantees](#462-local-release-guarantees)
     - [4.6.3 Pricing and activation](#463-pricing-and-activation)
@@ -92,10 +86,14 @@ Sub-transactions can delegate deposit funding or release accounting to the
 enclosing transaction, enabling native-asset transfers with zero application ADA
 while the enclosing transaction funds fees and any additional deposit requirement.
 
-A component-based formula and allocation history preserve original deposits
-across prospective parameter changes. Legacy and new output forms coexist. The
-proposal addresses CPS-0037's application and builder friction; remaining review
-covers script compatibility, local release settlement, pricing and integration.
+A new deposit formula prices each output using a fixed base cost, the number of
+distinct native assets, and the datum and reference-script payload sizes. Its
+result is independent of the output's ADA amount and outer CBOR encoding,
+removing the need to recalculate the deposit when that ADA amount changes. The
+ledger uses allocation origins and formula history to release each output's
+original deposit, while parameter changes price new allocations. Legacy and new
+output forms coexist. The proposal addresses CPS-0037's application and
+transaction-builder friction.
 
 ## 2. Motivation: Why is this CIP necessary?
 
@@ -239,7 +237,7 @@ TopTx is the enclosing transaction; SubTx is a body composed into it. A standalo
 transaction is a TopTx with no SubTxs. Each body carries a deposit declaration
 specific to its level. Amounts use lovelace.
 
-**Haskell interface.** The prototype adds the following fields to its body
+**Haskell interface.** The implementation adds the following fields to its body
 constructors. This excerpt shows only those fields; the existing input, output,
 fee and other fields are omitted.
 
@@ -256,7 +254,7 @@ data DijkstraTxBodyRaw l era where
 ```
 
 The declaration payloads describe zero, allocation or release, together with the
-funding or settlement choice. These are the prototype's actual types, with
+funding or settlement choice. These are the implementation's types, with
 deriving clauses omitted:
 
 ```haskell
@@ -355,7 +353,7 @@ sub_tx_release_target =
   / [1]
 ```
 
-[Prototype CDDL](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/eras/dijkstra/impl/cddl/data/dijkstra.cddl) · [Body fields and codecs](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/TxBody.hs)
+[Dijkstra CDDL](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/eras/dijkstra/impl/cddl/data/dijkstra.cddl) · [Body fields and codecs](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/TxBody.hs)
 
 TopTx declares the exact `Δbatch`. Each explicit SubTx declaration gives its exact
 own `Δb` and, for a nonzero contribution, its local or delegated accounting choice.
@@ -442,7 +440,7 @@ inputs and outputs contribute their full serialized value to the general balance
 The single signed deposit term moves ADA into or out of the Store. It is not an
 extra amount inserted into every new output's application value.
 
-The prototype calculates the batch declaration from each body's contribution
+The reference implementation calculates the batch declaration from each body's contribution
 with the following implementation excerpt:
 
 ```haskell
@@ -483,8 +481,10 @@ They cannot select a sibling's output, a parent's output, or a collateral return
 The declared outputs already include their settlement value. Checking a destination
 adds no second release to the Store or the transaction's available funds.
 
-These rules specify the prototype's destination and amount checks. The stronger
-economic guarantee for a local release remains an [open question](#46-open-questions).
+These checks constrain the settlement destination and amount. They do not by
+themselves establish the source of the selected output's coins or impose
+independent SubTx balance. Cross-body funding remains possible within the
+complete transaction's conservation rules.
 
 #### 3.1.5 An ADA-free SubTx under formula V1
 
@@ -564,8 +564,8 @@ collateral deposit effects directly from the collateral inputs and return.
 
 #### 3.1.7 Scope and terminology
 
-The candidate is implemented in the prototype's Dijkstra era, which already
-provides enclosing transactions and sub-transactions. This CIP specifies their
+The proposal extends the Dijkstra transaction model, which provides enclosing
+transactions and sub-transactions. This CIP specifies their
 UTxO-deposit behaviour. Activation requires an era transition and compatible
 transaction builders, node interfaces and script contexts.
 
@@ -590,7 +590,7 @@ releases ADA from it.
 #### 3.2.1 The live UTxO resource
 
 The resource is a persistent collection of live outputs indexed by their creating
-transaction ID and output index. The prototype stores it as a map of wrapped outputs. These are actual type
+transaction ID and output index. The reference implementation stores it as a map of wrapped outputs. These are actual type
 declarations, with deriving clauses omitted:
 
 ```haskell
@@ -641,7 +641,7 @@ flowchart LR
   T --> V["Live UTxO after<br/>c#0 → output C<br/>d#0 → output D<br/>d#1 → output E"]
 ```
 
-The prototype's ordinary state projection selects those changes directly from
+The reference implementation's ordinary state projection selects those changes directly from
 the body (implementation excerpt, signature omitted):
 
 ```haskell
@@ -663,12 +663,12 @@ fields. The selected form determines how ADA is accounted for.
 | Property | Legacy output | `NewTxOut` |
 | --- | --- | --- |
 | Serialized value | Full ADA and native assets | Application ADA and native assets |
-| Admission under the candidate era | Output ADA must cover the active deposit formula | The transaction must fund the full external deposit |
+| Admission in the supporting era | Output ADA must cover the active deposit formula | The transaction must fund the full external deposit |
 | External deposit | Zero | Full calculated requirement |
 | Value consumed on ordinary spending | Full serialized value | Application value, with the historical deposit released separately |
 
 A `NewTxOut` may contain native assets with zero application ADA. The
-prototype also accepts zero-ADA outputs carrying a datum, a reference script, or
+ledger also accepts zero-ADA outputs carrying a datum, a reference script, or
 only an address, subject to the remaining output-validity rules. Every occurrence
 has its own allocation, including equal outputs at different indices and outputs
 whose calculated deposit is zero.
@@ -681,7 +681,7 @@ to use the rules of its own era.
 
 The new output's implementation makes the separation explicit. Its fields carry
 application assets and spending information; the external deposit amount is
-accounted by the Store. This is the prototype's type declaration, with deriving
+accounted by the Store. This is the implementation's type declaration, with deriving
 clauses omitted:
 
 ```haskell
@@ -697,7 +697,7 @@ data DijkstraNewTxOut = DijkstraNewTxOut
 
 The corresponding output CDDL extends the existing output choices. `address`,
 `value`, `datum_option`, `script_ref` and the legacy productions retain their
-meanings in the enclosing Dijkstra schema. The prototype names the `NewTxOut`
+meanings in the enclosing Dijkstra schema. The implementation names the `NewTxOut`
 production `store_backed_transaction_output`; this is an encoding identifier.
 
 ```cddl
@@ -723,7 +723,7 @@ the external deposit amount nor the allocation origin.
 
 #### 3.2.3 Deposit calculation
 
-The candidate starts with formula V1. Let `p` be the effective
+The proposal starts with formula V1. Let `p` be the effective
 `coinsPerUTxOByte` parameter and let the output measurements be as follows.
 
 | Symbol | Measurement |
@@ -742,24 +742,21 @@ when a historical deposit is calculated. Re-encoding the whole output is
 unnecessary for this formula.
 
 The same measurement and formula apply to ordinary outputs and collateral returns,
-and to calculating the candidate era's minimum for newly created legacy outputs.
-The V1 coefficients are the current prototype choice. Their resource coverage and
-economic calibration remain part of the [pricing review](#46-open-questions).
-
-The prototype includes an experimental V2 to exercise formula evolution.
+and to calculating the supporting era's minimum for newly created legacy outputs.
+The formula-evolution example uses the following experimental V2, implemented
+as a test formula:
 
 ```math
 F_{2,p}(o) = p\left(260 + 80N(o) + D(o) + R(o)\right)
 ```
 
-V2 supplies the worked evolution example below. Its activation policy requires a
-future protocol decision. A new network or era transition initially selects V1
-with its effective protocol-parameter rate. The rate used in the examples is an
-explicit input to those examples.
+V2 is illustrative; this CIP does not activate it. A new network or era transition
+initially selects V1 with its effective protocol-parameter rate. The rate used in
+the examples is an explicit input to those examples.
 
 #### 3.2.4 Allocation history and the Store invariant
 
-The prototype represents the resource and its backing together. The CIP's
+The reference implementation represents the resource and its backing together. The CIP's
 conceptual `DepositStore` is named `UTxOStore` in the implementation. Its type
 combines the allocation map defined in §3.2.1 with pricing history and the total:
 
@@ -808,13 +805,13 @@ leave allocations in place. Rejection preserves the preceding state. The
 transaction's existing input and output-reference rules determine which
 occurrences may be consumed and created.
 
-The prototype reconstructs deposit amounts from output measurements, allocation
+The reference implementation reconstructs deposit amounts from output measurements, allocation
 origins and shared history. An implementation may use a different internal
 representation if it preserves these amounts and the same transitions. Snapshot,
 rollback and replay must retain enough information to reproduce them exactly.
 History survives an empty allocation map.
 
-For wallet and inspection queries, the candidate also defines a legacy backing
+For wallet and inspection queries, the proposal also defines a legacy backing
 view. If `C(u)` is the output's ADA, its embedded reserve is
 `min(C(u), P_H(u))`, and the corresponding application-ADA view is the remainder.
 Its entire serialized ADA still enters spending and conservation. This reserve
@@ -831,16 +828,15 @@ use the active formula and rate. Existing allocations retain their origins and
 historical deposits, and the cached Store total is preserved by activation alone.
 
 Activations append a later interval. They must preserve the prices of all existing
-allocations. The candidate rejects formula-version downgrades and permits rates
+allocations. The ledger rejects formula-version downgrades and permits rates
 to increase or decrease within a version. Reapplying the current formula is a
-no-op. The protocol mechanism selecting a future formula version requires further
-specification.
+no-op.
 
 At migration, translate existing UTxO references and their semantic address, value,
 datum and reference script into legacy entries marked `AtStoreMigration`. Initialise
 the formula baseline to V1 with the effective translated rate. The external Store
 total starts at zero. Existing ADA pots and output values retain their amounts.
-The baseline supplies the candidate's view of imported backing, whose amount is
+The baseline supplies the proposal's view of imported backing, whose amount is
 capped by each output's ADA. It does not reconstruct pre-fork creation prices.
 
 A transaction may spend both output forms and create either form after activation.
@@ -858,11 +854,11 @@ assets, no datum or script, and rate 4310.
 
 Restoring a snapshot and spending both under V2 releases 3,525,580 lovelace. A
 successor created at that time pays the active requirement. This experiment is
-covered by the prototype's historical-refund test. [Executable example](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-rules.md#ds-state-balance-p08)
+covered by the implementation's historical-refund test. [Executable example](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-rules.md#ds-state-balance-p08)
 
 #### 3.3.2 Stake, voting and monetary conservation
 
-The candidate applies existing staking eligibility and delegation rules to the
+The ledger applies existing staking eligibility and delegation rules to the
 full ADA of legacy outputs and to the application ADA of `NewTxOut` outputs.
 External deposits add no stake or voting weight. Store ADA remains part of total
 ADA conservation and is counted once, alongside output ADA and the existing fees,
@@ -870,9 +866,7 @@ deposits, rewards, treasury, reserves and donation pots.
 
 For example, an eligible legacy output containing 10 ADA contributes 10 ADA. An
 eligible `NewTxOut` containing 8 application ADA with a 2 ADA external
-deposit contributes 8 ADA. This policy is part of the candidate under review.
-Dedicated stake and voting checks remain to be completed in the prototype's
-verification scope. [Distribution rules](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-rules.md#derived-distributions)
+deposit contributes 8 ADA. [Distribution rules](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-rules.md#derived-distributions)
 
 #### 3.3.3 Encoding validation and versioning
 
@@ -881,11 +875,10 @@ They reject unknown constructor tags, incorrect field counts, zero or out-of-ran
 amounts in amount-bearing forms, and indices outside `0..65535`. Ledger validation
 also verifies that each selected index exists in the declaring body's outputs.
 
-The candidate encodings require activation in a supporting era. Final protocol
-version assignment and future formula-version selection remain open. Implementation
-snapshot formats must preserve the semantic state described above. The prototype's
-internal Store snapshot uses MemPack for some entries, and its outer shape alone
-is insufficient to define an interoperable snapshot format.
+These encodings require activation in a supporting era. Snapshot formats must
+preserve the semantic state described above, including allocation origins and
+formula history. The reference implementation uses MemPack for some Store entries;
+its outer snapshot shape alone does not specify those entries' encoding.
 
 ## 4. Rationale: How does this CIP achieve its goals?
 
@@ -914,7 +907,7 @@ interface.
 
 ### 4.2 Evaluation against the CPS use cases
 
-| CPS use case | Candidate effect | Remaining burden or trade-off |
+| CPS use case | Effect of the proposal | Remaining burden or trade-off |
 | --- | --- | --- |
 | Frozen wallet | Released backing can fund replacement deposits. TopTx can sponsor a SubTx's fee and additional deposit funding. | An equally priced replacement frees no spare ADA for the fee. A sponsor or another ADA source is still needed. |
 | Payment below minUTxO | A `NewTxOut` can contain an exact small ADA payment or tokens with zero application ADA. | The full external deposit and transaction fees require funding. |
@@ -924,10 +917,9 @@ interface.
 | High fan-out distribution | The batch funds the net sum, with optional sponsorship. | Each new output still incurs its full requirement. More outputs can require more capital. |
 | Successor-output top-up | The old historical deposit is available toward the new active-price requirement. | Any shortfall needs funding. A decrease releases value through the spending transaction's settlement rules. |
 
-These effects need quantitative comparison using representative transactions,
-including current wallet workarounds. The comparison must count application ADA,
-external deposits and fees without double counting ADA that serves both roles in
-a legacy output. [CPS evaluation requirements](../CPS-0037/README.md#evaluation-requirements)
+A quantitative comparison uses representative transactions and wallet workflows.
+It must count application ADA, external deposits and fees without double counting
+ADA that serves both roles in a legacy output. [CPS evaluation requirements](../CPS-0037/README.md#evaluation-requirements)
 
 ### 4.3 Responses to the CPS questions
 
@@ -935,34 +927,35 @@ a legacy output. [CPS evaluation requirements](../CPS-0037/README.md#evaluation-
    amount. A successor pays the current requirement. The transaction funds an
    increase and disposes of a release under its spending and settlement rules.
    Historical funding creates no independent entitlement.
-2. **Existing validators.** A complete script-context contract remains to be
-   specified for each supported Plutus version. The intended compatibility and
-   available integration evidence are described below.
-3. **Uneconomic cleanup.** Spending releases the historical backing. The candidate
+2. **Existing validators.** **TODO:** Specify the script-context projection for
+   each supported Plutus version and its effect on validators that check exact
+   ADA amounts; see [the author TODO](#461-plutus-compatibility).
+3. **Uneconomic cleanup.** Spending releases the historical backing. The proposal
    adds no expiry or extra cleanup reward. An output can remain indefinitely when
    consumption costs exceed the value its controller can recover.
 4. **Deposit organisation.** The ledger maintains an individual allocation per
    output and an exact aggregate total. Transaction-level funding can be shared,
-   while output spending authority remains individual. Storage costs and effects
-   on transaction construction require measurement.
+   while output spending authority remains individual. The resource costs are
+   described in §4.5.
 5. **Exact allocation and encoding boundaries.** The full external deposit is
    calculated independently of application ADA and the outer output encoding.
-   Its exact amount enters the Store invariant. The candidate allows no
+   Its exact amount enters the Store invariant. The proposal allows no
    unallocated Store surplus. Legacy embedded ADA is consumed once through value.
 
 ### 4.4 Alternatives considered
 
-| Alternative | Reason for evaluating it | Trade-off motivating the candidate |
+| Alternative | Reason for evaluating it | Trade-off motivating the proposal |
 | --- | --- | --- |
 | Formula-only change | Simplify the minimum calculation while keeping the existing output interface | It can reduce builder calculations, while token-only outputs still need ADA in their value. |
 | Application/deposit split inside each output | Make the two roles explicit within the transferred output | A size formula over that same encoded split can create a fixed-point allocation problem. Deposit representation and pricing must be evaluated together. |
-| External deposit for only the shortfall `max(0, requirement − applicationADA)` | Preserve overlap between intended ADA and backing, as explored in an earlier draft | Application ADA affects the external amount and requires its own lifecycle and compatibility analysis. The current prototype uses a full external deposit for the new form. |
+| External deposit for only the shortfall `max(0, requirement − applicationADA)` | Preserve overlap between intended ADA and backing, as an alternative representation | Application ADA affects the external amount and requires its own lifecycle and compatibility analysis. The proposal uses a full external deposit for the new form. |
 | Funder-controlled account obligation | Give the funder a continuing claim while state occupies capacity | Account ownership, authorisation, shared obligations and independently spendable outputs require additional rules. |
 | Redistribute backing across outputs | Relax each output's minimum while retaining ADA in output values | Allocation and recovery rights still need definition, and backing continues to participate in the transferred values. |
 
-The comparative assessment is continuing. The prototype supplies concrete rules
-and executable examples for the current candidate. Architectural review must weigh
-these alternatives against the same CPS use cases and resource-protection goals.
+The full external deposit separates the backing requirement from application ADA.
+This gives each new output an exact, individual allocation while
+allowing transactions to net their funding. The capital and implementation costs
+of this choice are described below.
 
 ### 4.5 Resource protection and implementation costs
 
@@ -987,58 +980,60 @@ selected execution path, and all consumers of ledger state must agree on the two
 output forms. Release authority, price changes and migration are therefore part
 of the validation and compatibility contract.
 
-### 4.6 Open questions
+### 4.6 Author TODOs
+
+> **TODO — Editorial:** Resolve the items below, incorporate the resulting rules
+> and rationale into the appropriate sections, and remove this author checklist
+> before publication.
 
 #### 4.6.1 Plutus compatibility
 
-The target is support across the supported Plutus
-versions, respecting each version's existing feature restrictions. The reviewed
-Ledger source leaves context projection and translations unfinished, including
-legacy translation paths with `unexpected NewTxOut` errors. Will's separate V4
-integration fixture preserves total value and exposes backing and application
-value, providing evidence for the review. The team must agree what each script
-version sees, whether transaction-level deposit information is exposed, and how
-validators that check exact ADA amounts behave. [Ledger compatibility work](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-rules.md#ds-plutus-compatibility) · [V4 integration fixture](https://github.com/willjgould/cardano-minutxo-integration/commit/d2300267436d4cc6a4cb2dbc7898b9f98787192b)
+> **TODO:** Specify the context projection for each supported Plutus version,
+> including application value, backing, transaction-level deposit information and
+> validators that check exact ADA amounts. Resolve the `NewTxOut` translation
+> paths. Use the V4 integration fixture as supporting evidence, without treating
+> it as a contract for other versions.
+>
+> Sources: [Ledger context work](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-rules.md#ds-plutus-compatibility) · [V4 integration fixture](https://github.com/willjgould/cardano-minutxo-integration/commit/d2300267436d4cc6a4cb2dbc7898b9f98787192b)
 
 #### 4.6.2 Local release guarantees
 
-Requiring a destination to contain at least the
-release amount does not establish the source of its coins or distinguish an
-intended contribution to another body from redirected release value. A SubTx
-consuming 10 application ADA and releasing 2 ADA may produce 12 ADA locally, or
-produce 10 ADA and contribute 2 ADA to TopTx fees when that contribution is
-intended. Independent SubTx balance would prevent useful cross-body funding.
-The review must define the stronger guarantee and its expression in the signed
-transaction. [Settlement discussion](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-rules.md#ds-tx-settlement-refinement)
+> **TODO:** Decide whether the destination-and-amount checks need an additional
+> guarantee about the source or permitted use of released ADA. Define how the
+> signed body expresses that guarantee while allowing intentional cross-body
+> funding. Cover the case where a SubTx consumes 10 application ADA and releases
+> 2 ADA: either 12 ADA goes to its own output, or 10 ADA goes there and 2 ADA is
+> intentionally contributed to TopTx fees. Update §3.1.4 with the resulting rule.
+>
+> Source: [Settlement analysis](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-rules.md#ds-tx-settlement-refinement)
 
 #### 4.6.3 Pricing and activation
 
-Review V1's resource coverage and coefficients, the
-future version-selection mechanism, and the final activation conditions. The
-experimental V2 establishes a test scenario for historical refunds. A production
-version requires its own reviewed formula and activation rule.
+> **TODO:** Confirm V1's coefficients against measured resource costs and document
+> the calibration rationale. Specify the protocol mechanism selecting a new
+> formula version and assign the activation version. Keep experimental V2 clearly
+> separated from the production formula.
 
 #### 4.6.4 Declarations
 
-The prototype explicitly checks numeric net amounts. Review
-whether those signed amounts provide sufficient value to retain, and what changes
-would be needed if the ledger computed them without numeric declarations. Funding
-and settlement choices still require an explicit representation.
+> **TODO:** Confirm the use of explicit numeric net declarations and document the
+> reason for retaining them. Any alternative in which the ledger computes the
+> amount must still represent the signed funding and settlement choices.
 
 #### 4.6.5 Stake and voting
 
-Review the external-deposit exclusion and its effect on
-capital efficiency and migration incentives. Complete the dedicated distribution
-checks through ordinary execution, collateral and snapshot boundaries.
+> **TODO:** Confirm the external-deposit exclusion, document its implications for
+> capital efficiency and migration, and record verification of the distributions
+> through ordinary execution, collateral and snapshot boundaries.
 
 #### 4.6.6 Integration and validation
 
-Complete downstream output handling, wallet and
-indexer queries, private-network flows, and rollback/replay checks. The current
-history decoder recognises formula versions and checks interval ordering, while
-version-downgrade rejection is implemented at activation. Review persisted-state
-validation against the final history contract and verify the remaining shared
-collateral cases. [Verification record](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-verification.md)
+> **TODO:** Incorporate evidence for wallet/indexer handling, private-network flows
+> and rollback/replay. Check that persisted-history validation enforces the same
+> contract as formula activation, including version-downgrade rejection. Cover
+> shared-collateral cases and document the interoperable snapshot format.
+>
+> Source: [Verification record](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-verification.md)
 
 ## 5. Path to Active
 
@@ -1052,7 +1047,7 @@ collateral cases. [Verification record](https://github.com/nhenin/cardano-ledger
       resource growth and measured storage costs.
 - [ ] Demonstrate interoperable encoding, validation, migration, snapshots and
       rollback/replay against independent expectations.
-- [ ] Complete the dedicated stake/voting and remaining collateral verification,
+- [ ] Complete the dedicated stake/voting and collateral verification,
       with results tied to the final implementation revision.
 - [ ] Demonstrate native-token transfers, small ADA payments, continuing-script
       transitions and sponsored SubTxs across the wallet, builder and node stack
@@ -1064,28 +1059,29 @@ collateral cases. [Verification record](https://github.com/nhenin/cardano-ledger
 
 ### 5.2 Implementation Plan
 
-The first implementation is the Haskell Ledger prototype in PR #3. Its executable
-business specification covers output forms, declarations, net accounting,
-authority, settlement, collateral, historical deposits and state transitions.
-This draft is based on revision `2298a008589d5a0a5ea70bd1ec87d8477e989422`.
-[Ledger prototype](https://github.com/nhenin/cardano-ledger-specs/pull/3)
+The Haskell Ledger implementation in PR #3 provides executable rules for output
+forms, declarations, net accounting, authority, settlement, collateral,
+historical deposits and state transitions. The code excerpts and implementation
+references in this CIP are pinned to revision
+`2298a008589d5a0a5ea70bd1ec87d8477e989422`.
+[Ledger implementation](https://github.com/nhenin/cardano-ledger-specs/pull/3)
 
-The full CI run at `b77257163` passed on 8 November. The later 9 November revision
-adds the formula-downgrade guard. The reporting checkpoint records that later run
-as still in progress. Verification results apply to their recorded revisions and
-scopes. [Passing 8 November run](https://github.com/nhenin/cardano-ledger-specs/actions/runs/42479739616) · [9 November reporting checkpoint](../biweekly-reports/2026-11-02-to-2026-11-13.md)
+Deployment requires support across the Ledger, node, cardano-api, transaction
+builders, wallets and indexers. Integrated validation must cover native-token
+transfers, small ADA payments, continuing-script transitions and sponsored SubTxs,
+including accepted script failure, parameter changes, snapshots and rollback.
+Results must identify the implementation revision and protocol parameters used.
 
-The next implementation work is to review the Ledger lifecycle against these
-rules, resolve the Plutus and settlement decisions, and run the integrated flows
-on a private network. Those findings feed back into this draft, its reference
-implementation and the formal model. Performance and compatibility results then
-support author review and submission. [Ledger review](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29) · [Plutus review](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/23) · [Private-network validation](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/60)
+Activation follows the acceptance criteria above and the supporting era's
+protocol transition. Nodes and downstream tools must agree on the output forms,
+deposit declarations, state representation and script-context contract before
+activation.
 
 ## 6. References
 
 - [CIP-0001 and the CIP process](https://cips.cardano.org/cip/CIP-0001)
 - [CPS-0037 and its cited prior work](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0037)
-- [DepositStore business specification at the draft baseline](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-rules.md)
+- [DepositStore business specification at the referenced revision](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-rules.md)
 - [Verification record at the same baseline](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-verification.md)
 - [Formula implementation](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/UTxOs/Deposit/Formula.hs)
 - [Transaction accounting implementation](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/Rules/DepositStore/Accounting.hs)
