@@ -2,9 +2,9 @@
 
 **Deliverable:** Cardano Problem Statement
 
-**Working artifact:** `CPS-0037/README.md`
+**Published artifact:** [CPS-0037](../../CPS-0037/README.md)
 
-**State:** In progress
+**State:** CPS published on 27 October 2026 through [CIPs PR #1268](https://github.com/cardano-foundation/CIPs/pull/1268).
 
 ## Objective
 

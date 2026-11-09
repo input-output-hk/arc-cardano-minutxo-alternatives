@@ -1,5 +1,10 @@
 # Problem Statement Definition (CPS)
 
+## Publication
+
+[CPS-0037](../../CPS-0037/README.md) was published on 27 October 2026 through
+[CIPs PR #1268](https://github.com/cardano-foundation/CIPs/pull/1268).
+
 ## Context
 
 The current min-UTxO mechanism protects Cardano against uncontrolled persistent-state

@@ -5,10 +5,8 @@ The split form models an experimental output, not the deployed Babbage/Conway
 format: {0: address, 1: applicationAda, 4: deposit}. It preserves total ADA while
 moving funds between the last two fields. All integers use shortest CBOR widths.
 
-Historical provenance: the local cardano-ledger prototype at commit
-3c0614f26767ebe222d350b1b3f5f8688169175d, specifically Dijkstra/TxOut/Codec.hs
-and Transition/InitialFundsSpec.hs with its Fixture.hs. This self-contained
-encoding reconstruction is not a compiled Ledger integration test.
+This self-contained encoding reconstruction is not a compiled Ledger integration
+test.
 
 Run from the repository root:
     python3 'CPS-0037/evidence/deposit_fixed_point.py'
