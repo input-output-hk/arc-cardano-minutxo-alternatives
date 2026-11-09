@@ -385,10 +385,10 @@ deposits released by spending its input entries that contain `NewTxOut`.
 
 ```math
 \begin{aligned}
-A_b &= \sum_{o\in\operatorname{newOutputs}(b)} F_{\mathrm{active}}(o) \\
-R_b &= \sum_{i\in\operatorname{spentInputs}(b)} E_H(U[i]) \\
+A_b &= \sum_{o\in\mathrm{newOutputs}(b)} F_{\mathrm{active}}(o) \\
+R_b &= \sum_{i\in\mathrm{spentInputs}(b)} E_H(U[i]) \\
 \Delta_b &= A_b-R_b \\
-\Delta_{\mathrm{batch}} &= \sum_{b\in\operatorname{batch}}\Delta_b.
+\Delta_{\mathrm{batch}} &= \sum_{b\in\mathrm{batch}}\Delta_b.
 \end{aligned}
 ```
 
@@ -412,7 +412,7 @@ For a SubTx `b`, let `L_b = Δ_b` when its contribution is locally accounted and
 responsibility is
 
 ```math
-T = \Delta_{\mathrm{batch}} - \sum_{b\in\operatorname{SubTxs}}L_b.
+T = \Delta_{\mathrm{batch}} - \sum_{b\in\mathrm{SubTxs}}L_b.
 ```
 
 Delegation changes this responsibility while preserving each body's required
@@ -530,7 +530,7 @@ a &= \max(0,d_Q-d_I) \\
 s &= \max(0,d_I-d_Q) \\
 f_{\mathrm{coin}} &= C-Q-a \\
 f_{\min} &= \left\lceil
-\frac{\operatorname{txFee}\cdot\operatorname{collateralPercentage}}{100}
+\frac{\mathrm{txFee}\cdot\mathrm{collateralPercentage}}{100}
 \right\rceil.
 \end{aligned}
 ```
