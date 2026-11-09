@@ -3,7 +3,8 @@
 **Parent:** [Protocol Specification](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/19).
 
 **Next step after prototype verification:** assess how the reviewed Ledger prototype
-would integrate with Plutus. Nicolas asked Will to lead a review with Polina, Philip DiSarro and Nicolas.
+would integrate with Plutus. The review with Philip DiSarro, Will, Polina and Nicolas is planned for the
+week of 16 November. Nicolas asked Will to lead it.
 Start with Will's V4 results, including the values and
 backing exposed to scripts, and identify what carries over to the reviewed revision.
 One option to evaluate is a new script version that reads both legacy and new
