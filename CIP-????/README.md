@@ -1,11 +1,15 @@
 ---
 CIP: "?"
-Title: Ledger-managed deposits for UTxO state
+Title: UTxO Deposit Netting for ADA-Free SubTxs
 Category: Ledger
 Status: Proposed
 Authors:
     - Nicolas Henin <nicolas.henin@iohk.io>
+    - Will Gould <will.gould@iohk.io>
+    - Polina Vinogradova <polina.vinogradova@iohk.io>
 Implementors: []
+Solution To:
+    - "CPS-0037: https://github.com/cardano-foundation/CIPs/tree/master/CPS-0037"
 Discussions:
     - "Working draft: https://github.com/input-output-hk/arc-minutxo"
 Created: 2026-08-03
@@ -62,6 +66,10 @@ assets, scripts, and application state no longer need an unrelated ada amount
 embedded in every output.
 
 ## 2. Motivation: why is this CIP necessary?
+
+This proposal addresses [CPS-0037 — Application and transaction friction in
+minUTxO implementation](../CPS-0037/README.md), published on 27 October 2026.
+The official text is maintained in the [Cardano CIPs repository](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0037).
 
 The current rule combines two concerns in one `TxOut`:
 
@@ -496,7 +504,7 @@ The following questions should be resolved before this becomes a submission:
 
 ### 6.1 Acceptance Criteria
 
-- [ ] The companion CPS is accepted and linked from the preamble.
+- [x] CPS-0037 is published and linked from the preamble.
 - [ ] The Ledger Working Group agrees on the release beneficiary and reserve scope.
 - [ ] A formal ledger transition preserves value conservation and reserve solvency.
 - [ ] Adversarial analysis shows that the UTxO-growth cost is no weaker than under

@@ -17,7 +17,7 @@ sub-issues, following the structure used by the PubSub stream.
 
 | Milestone | Deliverable | Current state | Exit condition |
 |---|---|---|---|
-| [M1 — Problem Statement Definition (CPS)](milestones/M1-CPS.md) | Cardano Problem Statement | In progress | Reviewed and submission-ready |
+| [M1 — Problem Statement Definition (CPS)](milestones/M1-CPS.md) | Cardano Problem Statement | Published | CPS-0037 published on 27 October 2026 |
 | [M2 — Implementation Design Space Analysis & Policy Recommendation](milestones/M2-ALTERNATIVES-REPORT.md) | Design-space analysis and final policy recommendation | In progress | Recommendation reviewed and approved |
 | [M3 — Adopted Solution Design & Specification](milestones/M3-SOLUTION-DESIGN.md) | Complete technical solution specification | Blocked by M2 recommendation | Reviewed implementation contract |
 | [M4 — Integrated `cardano-ledger` Prototyping](milestones/M4-PROTOTYPE.md) | Integrated Ledger prototype | Exploratory checkpoint | Adopted semantics integrated and tested |
@@ -80,6 +80,9 @@ used by the first bi-weekly report.
 3. [Collect solution proposals and define the exploration plan](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/6) — completed
 
 ### M1 — Problem Statement Definition (CPS)
+
+[CPS-0037](../CPS-0037/README.md) was published through
+[CIPs PR #1268](https://github.com/cardano-foundation/CIPs/pull/1268).
 
 - [01 — Document the current mechanism and its provenance](issues/cps/current-mechanism-provenance.md) ([#8](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/8))
 - [02 — Define the min-UTxO problem and formal model](issues/cps/problem-formal-model.md) ([#9](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/9))

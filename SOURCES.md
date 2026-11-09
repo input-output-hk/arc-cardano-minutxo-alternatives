@@ -1,5 +1,14 @@
 # Sources and reconstruction method
 
+## CPS publication and local synchronisation — 9 November 2026
+
+CPS-0037 was published on 27 October 2026 in
+[commit 9cebacf9](https://github.com/cardano-foundation/CIPs/commit/9cebacf9dab2030dd0322219577cd2b24ed6e4f0)
+through [CIPs PR #1268](https://github.com/cardano-foundation/CIPs/pull/1268).
+The local [CPS text](CPS-0037/README.md) and
+[evidence script](CPS-0037/evidence/deposit_fixed_point.py) match that publication.
+The CIP links to CPS-0037 through its `Solution To` metadata and motivation.
+
 ## Source repository
 
 - Repository: [`input-output-hk/arc-cardano-minutxo-alternatives`](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives)
