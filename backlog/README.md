@@ -12,7 +12,7 @@ preserving protection against adversarial Ledger-state growth.
 | [Problem Definition #7](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/7) | What must an alternative solve? | **Done** | CPS-0037 published; merged 27 October. |
 | [Architecture Decision #14](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/14) | Which mechanism should we choose? | In progress | Alternatives compared; recommendation reviewed. |
 | [Protocol Specification #19](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/19) | What are its exact rules? | In progress | Candidate contracts reviewed; material decisions resolved. |
-| [Ledger Prototype #25](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/25) | Does the Ledger implement those rules correctly? | In progress | Reference integrated; agreed coverage and regressions pass. |
+| [Ledger Prototype #25](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/25) | Does the Ledger implement those rules correctly? | Nearly complete | Nicolas completes his detailed implementation review. |
 | [CIP #30](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/30) | What proposal can implementers review? | Todo | Author-approved submission package. |
 
 These are deliverables, not sequential time periods. Research, specification and
@@ -25,18 +25,12 @@ its review tasks now belong directly to Protocol Specification or Ledger Prototy
 
 ## Published checkpoint — 9 November 2026
 
-The 30 October Leios snapshot (`9df9f98cc`, 63 upstream commits) is integrated
-in [Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3). The [2 November integration run](https://github.com/nhenin/cardano-ledger-specs/actions/runs/41433981296) passed.
-The [8 November CI](https://github.com/nhenin/cardano-ledger-specs/actions/runs/42479739616) at `b77257163` passed all four compiler builds and the
-package tests, including Dijkstra and conformance. The 27 SubTx cases that failed
-on 30 October also passed locally after integration.
+The Ledger prototype is nearly complete. Nicolas's remaining task is to check the implementation
+details. The latest completed [full CI run](https://github.com/nhenin/cardano-ledger-specs/actions/runs/42479739616) passed on the integrated prototype, including all four
+compiler builds, Dijkstra and conformance. [Ledger PR #3](https://github.com/nhenin/cardano-ledger-specs/pull/3) includes the Leios reference and the versioned deposit calculation.
 
-The published head [`2298a0085`](https://github.com/nhenin/cardano-ledger-specs/commit/2298a008589d5a0a5ea70bd1ec87d8477e989422) adds the legacy deposit cap clarification and a check
-rejecting formula-version downgrades. Its [9 November CI](https://github.com/nhenin/cardano-ledger-specs/actions/runs/42592236836) was in progress at review.
-
-Remaining work includes review of the integrated changes, coverage of the current
-pricing contract, stake, voting, shared collateral and Plutus, and a feasibility
-assessment with costs and compatibility limits.
+After that review, assess how the prototype fits into Plutus, then run a private network
+test. Will's [V4 integration experiments](https://github.com/willjgould/cardano-minutxo-integration/commit/d2300267436d4cc6a4cb2dbc7898b9f98787192b) provide a starting point for the assessment.
 
 ## Problem Definition
 
@@ -80,14 +74,12 @@ Decision. CPS publication does not complete that research.
 
 ## Ledger Prototype
 
-**[M4](milestones/M4-PROTOTYPE.md)** — implementation delivered; integration and validation open.
+**[M4](milestones/M4-PROTOTYPE.md)** — the [model](issues/prototype/PROTO-01-domain-model.md), [Ledger rules](issues/prototype/PROTO-02-ledger-integration.md), [business suite](issues/prototype/PROTO-03-tests.md) and [upstream integration](issues/prototype/upstream-integration.md) are delivered.
 
-| Completed at the published checkpoint | Remaining work |
-|---|---|
-| [Model #26](issues/prototype/PROTO-01-domain-model.md) | [Upstream integration #57](issues/prototype/upstream-integration.md) |
-| [Ledger rules #27](issues/prototype/PROTO-02-ledger-integration.md) | [Coverage gaps #58](issues/prototype/remaining-test-coverage.md) |
-| [Business suite #28](issues/prototype/PROTO-03-tests.md) | [Interface migration #43](issues/prototype/accounting-refactor.md) |
-| — | [Regression validation #29](issues/prototype/PROTO-04-validation.md) |
+[Final detailed review #29](issues/prototype/PROTO-04-validation.md) tracks Nicolas's verification.
+[Plutus assessment #23](issues/solution-design/04-transition-compatibility.md) and a private network test follow.
+The [interface](issues/prototype/accounting-refactor.md) and [coverage](issues/prototype/remaining-test-coverage.md)
+tickets retain possible extensions for later work.
 
 ## CIP
 

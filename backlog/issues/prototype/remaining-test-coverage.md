@@ -1,15 +1,7 @@
 # Complete the remaining DepositStore test coverage
 
-**Milestone:** [M4 — Ledger Prototype](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/milestone/4) · **Status:** In progress — formula and lifecycle checks added; full coverage matrix open
-
-## Scope and starting evidence — 30 October 2026
-
-This task receives the broader invariant and compatibility acceptance criteria from
-#26–28. At `7b9b274800e213a33bb2f55b1210e901d91034dc`, the delivered business suite
-has 209 passing examples (178 transaction, seven Store collateral, 24 ledger effects),
-plus 13 passing metadata/codec examples. See the [pinned specification](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-rules.md)
-and [verification record](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-verification.md).
-These results leave the following explicit coverage obligations.
+**Status:** Coverage follow-up. [Final review #29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29) tracks the remaining detailed
+verification of the prototype. This ticket retains broader test ideas for future work.
 
 ## 9 November evidence
 
@@ -17,11 +9,11 @@ The current [pricing contract](https://github.com/nhenin/cardano-ledger-specs/bl
 applicable at allocation. Focused tests cover typed measurements, historical
 refunds, formula changes, zero pricing and minimum-coin admission of legacy outputs.
 The [verification record](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-verification.md#deposit-formula-history-on-6-november-2026) records 212 DepositStore-filter examples and 26 Store codec examples
-passing at the 6 November checkpoint. The full pricing matrix remains open.
+passing at the 6 November checkpoint. The matrix below records cases for potential extension.
 
-## Required coverage
+## Possible extensions to the existing suite
 
-| Area | Required cases and evidence |
+| Area | Cases to consider |
 |---|---|
 | Seven cases in the current [pricing contract](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-rules.md#ds-pricing) | P01 and N01–N06: price each created output, count distinct assets, price applied collateral returns, measure datum/script payloads, vary the declaration independently, cross ADA encoding boundaries and retain the legacy reserve inside the output. Map focused tests against each case. |
 | [Stake: eight cases](https://github.com/nhenin/cardano-ledger-specs/blob/7b9b274800e213a33bb2f55b1210e901d91034dc/docs/dijkstra-deposit-store-rules.md#ds-stake) | N01–N08: implicit full ADA; Store-backed application ADA; no global Store weight; applied allocations and releases; inactive collateral on success; applied collateral on failure; unchanged eligibility, delegation and snapshot timing. |
@@ -37,7 +29,7 @@ existing [Minimum coin N03 control](https://github.com/nhenin/cardano-ledger-spe
 to assert empty redeemers and collateral explicitly. The inherited Babbage return
 fixup currently rejects `NewTxOut`; implicit fixtures alone do not cover Store returns.
 
-## Completion criteria and original acceptance traceability
+## Reference criteria for future test work
 
 - [ ] Map every case above to its owning executable test, existing evidence or
   reviewed design dependency. Add meaningful cases for identified gaps; do not

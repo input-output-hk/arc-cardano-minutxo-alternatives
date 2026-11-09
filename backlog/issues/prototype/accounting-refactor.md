@@ -2,7 +2,7 @@
 
 **Parent:** [Ledger Prototype](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/25).
 
-**Status:** In progress — published interface slices exist; residual migration remains open.
+**Status:** Follow-up. The prototype already uses the published interfaces. Nicolas is checking the implementation details in [#29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29).
 
 ## Responsibility
 
@@ -20,7 +20,7 @@ routes [stake deltas through output collections](https://github.com/nhenin/carda
 [returns accounting effects from pure transaction projection](https://github.com/nhenin/cardano-ledger-specs/commit/72f53f2f557b69492d3340b9c6b2435962dbbc40).
 The consumer audit, mint and Plutus representation guarantees below remain open.
 
-## Remaining migration
+## Broader interface migration follow-up
 
 - [ ] Inventory declarations, exports and consumers across core, eras, APIs,
   translations, tools and tests; explain every retained representation adapter.
@@ -47,7 +47,7 @@ Review `MultiAsset`/`PolicyID`/`AssetName` ownership, generic signatures and
 legacy migration against consumers. Record aggregate requirements and counterexamples;
 a global rename does not establish an appropriate interface.
 
-## Acceptance criteria retained
+## Criteria for future migration work
 
 - [ ] Domain, genericity, module ownership and compatibility decisions are reviewed;
   no new catch-all abstraction or silent read/write allocation rule is introduced.

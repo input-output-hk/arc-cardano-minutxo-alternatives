@@ -2,7 +2,13 @@
 
 **Parent:** [Protocol Specification](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/19).
 
-**Status:** Todo — candidate translation exists; compatibility decisions remain open.
+**Next step after prototype verification:** assess how the reviewed Ledger prototype
+would integrate with Plutus. Start with Will's V4 results, including the values and
+backing exposed to scripts, and identify what carries over to the reviewed revision.
+One option to evaluate is a new script version that reads both legacy and new
+inputs, exposes their backing and application value separately, and allows a
+validator to inspect transaction-level deposit netting. Check the effect on
+earlier script versions. A private network test follows this assessment. [Prototype verification #29](https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/issues/29)
 
 ## Responsibility
 
@@ -17,7 +23,7 @@ as legacy allocations with zero external deposits. Its
 experimental Dijkstra snapshots; imported legacy size/rate metadata is provisional.
 These are implemented boundaries, not migration approval.
 
-## Remaining deliverables
+## Wider protocol compatibility work
 
 - [ ] Classify supported transitions and old outputs; prove or explicitly constrain
   the absence of duplicate/unfunded claims and preserve intended spendability.
