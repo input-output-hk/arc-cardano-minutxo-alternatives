@@ -86,14 +86,10 @@ Sub-transactions can delegate deposit funding or release accounting to the
 enclosing transaction, enabling native-asset transfers with zero application ADA
 while the enclosing transaction funds fees and any additional deposit requirement.
 
-A new deposit formula prices each output using a fixed base cost, the number of
-distinct native assets, and the datum and reference-script payload sizes. Its
-result is independent of the output's ADA amount and outer CBOR encoding,
-removing the need to recalculate the deposit when that ADA amount changes. The
-ledger uses allocation origins and formula history to release each output's
-original deposit, while parameter changes price new allocations. Legacy and new
-output forms coexist. The proposal addresses CPS-0037's application and
-transaction-builder friction.
+A new deposit formula eliminates the fixed-point problem and the need for
+byte-perfect output sizing when calculating deposits. Historical accounting
+preserves original deposits across parameter changes, and legacy outputs remain
+supported.
 
 ## 2. Motivation: Why is this CIP necessary?
 
