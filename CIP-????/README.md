@@ -84,12 +84,11 @@ proposal.
 *And to everyone who has ever sighed at yet another minUTxO top-up: this one's for
 you. We're working to make your life a little easier from here on.*
 
-This proposal introduces deposit-backed TxOuts alongside minimum-ADA TxOuts, with
-explicit UTxO capacity deposits and transaction-level netting. A deposit-backed
-TxOut carries application assets, including zero ADA, with its full deposit
-accounted for separately by the ledger. Spending releases its original deposit
-through the output's spending authority. Both output forms can be created and
-spent after activation.
+This proposal introduces deposit-backed TxOuts alongside the current minimum-ADA
+TxOuts. It adds explicit UTxO capacity deposits and transaction-level netting.
+A deposit-backed TxOut carries application assets, including zero ADA, with its
+full deposit accounted for separately by the ledger. Spending releases its
+original deposit through the output's spending authority.
 
 Transactions fund the difference between new deposits and released deposits.
 Sub-transactions can delegate deposit funding or release accounting to the
