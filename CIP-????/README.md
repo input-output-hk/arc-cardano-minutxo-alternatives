@@ -10,6 +10,8 @@ Authors:
 Implementors: []
 Discussions:
     - "CIP discussion: https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/pull/61"
+    - "Motivation refinements: https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/pull/62"
+    - "Formula separation: https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/pull/63"
     - "CPS review: https://github.com/cardano-foundation/CIPs/pull/1268"
     - "Ledger prototype: https://github.com/nhenin/cardano-ledger-specs/pull/3"
 Solution To:
