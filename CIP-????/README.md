@@ -22,6 +22,12 @@ License: CC-BY-4.0
 
 - [1. Abstract](#1-abstract)
 - [2. Motivation: Why is this CIP necessary?](#2-motivation-why-is-this-cip-necessary)
+  - [2.1 Application value independent of resource funding](#21-application-value-independent-of-resource-funding)
+  - [2.2 Transaction-level netting](#22-transaction-level-netting)
+  - [2.3 ADA-free SubTxs](#23-ada-free-subtxs)
+  - [2.4 Asset-free TxOuts](#24-asset-free-txouts)
+  - [2.5 A predictable deposit calculation](#25-a-predictable-deposit-calculation)
+  - [2.6 Pricing evolution and compatibility](#26-pricing-evolution-and-compatibility)
 - [3. Specification](#3-specification)
   - [3.1 Moving minUTxO accounting from TxOuts to transactions](#31-moving-minutxo-accounting-from-txouts-to-transactions)
     - [3.1.1 Builder experience: consolidating token outputs](#311-builder-experience-consolidating-token-outputs)
@@ -87,34 +93,107 @@ enclosing transaction, enabling native-asset transfers with zero application ADA
 while the enclosing transaction funds fees and any additional deposit requirement.
 
 A new deposit formula eliminates the fixed-point problem and the need for
-byte-perfect output sizing when calculating deposits. Historical accounting
-preserves original deposits across parameter changes, and legacy outputs remain
-supported.
+byte-perfect output sizing when calculating deposits. A new accounting mechanism
+starts at the hard fork with this formula and supports future formula versions
+and parameter changes while preserving each deposit's original amount. Legacy
+outputs remain supported.
 
 ## 2. Motivation: Why is this CIP necessary?
 
-[CPS-0037 — Application and transaction friction in minUTxO implementation](../CPS-0037/README.md)
-describes how ordinary output ADA currently serves both application value and
-backing for persistent state. A token payment can require the sender to supply ADA
-controlled by the recipient. An application-state transition can require a top-up.
-Builders must accommodate these requirements while constructing and balancing
-outputs. The minimum itself depends on the output's encoded size, including the
-ADA amount being chosen. The CPS was published on 27 October 2026. [Published CPS](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0037)
+Cardano nodes retain and maintain every live UTxO. Requiring ADA to remain committed
+while an output occupies that resource provides an economic deterrent against
+excessive use. [CPS-0037](../CPS-0037/README.md) distinguishes this necessary resource
+cost from the application friction caused by requiring the ADA inside each output.
 
-The proposed interface lets a builder express the assets intended for each
-recipient, calculate the deposits, and settle their aggregate change. Its two
-principal operations are allocating a deposit when a new output enters the UTxO
-set and releasing that deposit when an authorised transaction consumes the output.
+This CIP preserves that deterrence principle while changing how applications
+express and fund their use of UTxO capacity. The objective is to make resource
+funding a transaction-level concern, allowing application outputs to describe the
+assets and state they are intended to carry.
 
-For sub-transactions, the funding choice becomes explicit. A user can author a
-token transfer and ask the enclosing transaction to fund its positive deposit
-contribution. The enclosing transaction can combine that request with deposits
-released elsewhere in the batch and with its own funds. Such a flow requires a
-participant willing to assemble and fund the enclosing transaction.
+### 2.1 Application value independent of resource funding
 
-ADA remains committed for the lifetime of each funded output. The proposal changes
-its representation, calculation and transaction accounting. Its effect on all
-seven CPS use cases is evaluated in the [rationale](#4-rationale-how-does-this-cip-achieve-its-goals).
+Under the current rule, the ADA in an output serves both the application and the
+minimum-ADA requirement. A token payment must therefore include ADA controlled by
+the recipient, and an application must manage backing ADA alongside its state.
+These obligations affect what the application can express:
+
+| Application intent | Current output requirement | With the proposed output form |
+| --- | --- | --- |
+| Transfer native tokens | Include ADA even when no ADA payment is intended. | Express the token payment with zero application ADA. |
+| Transfer ADA below the current minimum | Increase the payment to the output's minimum. | Preserve the intended payment amount. |
+| Maintain a datum or reference script | Carry backing ADA in the application's output value. | Keep the backing separate from application value. |
+
+In each case, the creating transaction funds a full deposit outside the output's
+application value. This separation gives applications control over the values they
+transfer; it does not remove the cost of keeping an output live. An ADA-bearing
+output using the new form commits its application ADA **plus** its deposit, whereas
+ADA in a legacy output can serve both roles.
+
+### 2.2 Transaction-level netting
+
+A transaction consumes and creates outputs together. ADA from consumed outputs
+can already fund new outputs under the current rules. This CIP makes the resource
+funding explicit at that same boundary: deposits released by spent outputs offset
+deposits required by new outputs, and the transaction settles the difference.
+
+The builder accounts for a single net deposit change in the transaction balance.
+This applies to standalone transactions as well as batches containing SubTxs.
+
+### 2.3 ADA-free SubTxs
+
+A SubTx can ask the enclosing transaction to fund its deposit requirement,
+allowing a user to author a token operation with zero application ADA in its inputs
+and outputs. It can also delegate a deposit release for use elsewhere in the batch.
+For example, one user's consolidation can release backing needed by another user's
+split into several outputs.
+
+Users can therefore separate the token operation they author from its ADA funding.
+The enclosing transaction combines the deposit contributions; funding for fees and
+any remaining shortfall must be arranged when assembling the complete transaction.
+
+### 2.4 Asset-free TxOuts
+
+Some outputs exist to publish a datum or make a reference script available. A
+`NewTxOut` can serve this purpose with **zero application ADA and no native tokens**.
+Applications can therefore represent data or code without adding ADA to the output
+solely to satisfy minUTxO.
+
+These outputs still occupy UTxO capacity. Their full calculated deposit enters the
+creating transaction's deposit balance, including the base requirement and any
+datum or script payload charges. Spending the output releases its historical
+deposit under the same spending and settlement rules as other `NewTxOut` outputs.
+
+### 2.5 A predictable deposit calculation
+
+Separating the deposit also needs a calculation that is straightforward for wallets
+and transaction builders. The current minimum depends on the output's serialized
+size, including the ADA amount being chosen. Adding ADA can change that size and
+raise the minimum again. Independently, reproducing the exact size couples deposit
+calculation to the output's serialization details.
+
+The new formula removes both sources of complexity from deposit calculation. It
+uses a fixed base, a per-asset allowance, and datum and script payload lengths.
+Builders can calculate the requirement without a fixed-point calculation over
+the funded ADA or byte-perfect sizing of the whole output. Payload measurements,
+transaction-fee calculation and final balancing still apply.
+
+### 2.6 Pricing evolution and compatibility
+
+The cost assigned to UTxO capacity must be able to evolve without changing the
+amount recoverable from an existing deposit. This CIP introduces a new accounting
+mechanism at the hard fork, starting with the proposed formula V1. It retains the
+information needed to release each deposit at its original amount, while allowing
+future formula versions and parameter changes to price new allocations.
+
+An application replacing an output can use its released deposit toward the new
+requirement. Any shortfall needs funding; any excess is handled by the transaction's
+release rules. Legacy outputs remain supported, and migration does not attempt to
+reconstruct their pre-fork creation prices.
+
+The [specification](#3-specification) begins with concrete transaction-construction
+examples, then defines the body fields, output representation and accounting rules.
+The [rationale](#4-rationale-how-does-this-cip-achieve-its-goals) evaluates the benefits
+and trade-offs against all seven CPS use cases.
 
 ## 3. Specification
 
@@ -719,7 +798,14 @@ the external deposit amount nor the allocation origin.
 
 #### 3.2.3 Deposit calculation
 
-The proposal starts with formula V1. Let `p` be the effective
+The new formula addresses two separate construction problems:
+
+| Current minimum-ADA calculation | Formula V1 |
+| --- | --- |
+| Adding ADA can change the output's encoded size and therefore its required minimum, creating a fixed-point problem. | The deposit calculation does not depend on application ADA. |
+| Builders must reproduce the exact serialized output size. | Builders use fixed base and per-asset allowances, plus datum and script payload lengths. |
+
+The proposal activates formula V1 at the hard fork. Let `p` be the effective
 `coinsPerUTxOByte` parameter and let the output measurements be as follows.
 
 | Symbol | Measurement |
@@ -732,10 +818,17 @@ The proposal starts with formula V1. Let `p` be the effective
 F_{1,p}(o) = p\left(250 + 74N(o) + D(o) + R(o)\right)
 ```
 
+The constants `250` and `74` are pricing allowances, not exact encoded sizes.
+Shorter asset names and shared policy IDs do not reduce the per-asset charge;
+changing quantities without changing asset identities leaves `N(o)` unchanged.
 The output address, application ADA, and enclosing CBOR fields contribute no
-additional term. The original datum and script payload bytes must be available
-when a historical deposit is calculated. Re-encoding the whole output is
-unnecessary for this formula.
+additional term. This trades byte-level pricing precision for a predictable
+deposit calculation.
+
+The original datum and script payload bytes must still be available when a
+historical deposit is calculated. V1 removes the need to size or re-encode the
+whole output for deposit calculation; it does not remove the payload-length
+terms or change transaction-fee sizing.
 
 The same measurement and formula apply to ordinary outputs and collateral returns,
 and to calculating the supporting era's minimum for newly created legacy outputs.
@@ -746,11 +839,15 @@ as a test formula:
 F_{2,p}(o) = p\left(260 + 80N(o) + D(o) + R(o)\right)
 ```
 
-V2 is illustrative; this CIP does not activate it. A new network or era transition
-initially selects V1 with its effective protocol-parameter rate. The rate used in
-the examples is an explicit input to those examples.
+V2 is illustrative; this CIP does not activate it. The rate used in the examples
+is an explicit input to those examples.
 
 #### 3.2.4 Allocation history and the Store invariant
+
+This CIP introduces allocation history at the hard fork, with V1 as its initial
+formula. Subsequent formula versions and rate changes extend this history while
+preserving the original amounts of deposits allocated under earlier rules.
+Pre-fork outputs enter through the migration rules in §3.3.1.
 
 The reference implementation represents the resource and its backing together. The CIP's
 conceptual `DepositStore` is named `UTxOStore` in the implementation. Its type
@@ -828,7 +925,7 @@ allocations. The ledger rejects formula-version downgrades and permits rates
 to increase or decrease within a version. Reapplying the current formula is a
 no-op.
 
-At migration, translate existing UTxO references and their semantic address, value,
+At the hard fork, translate existing UTxO references and their semantic address, value,
 datum and reference script into legacy entries marked `AtStoreMigration`. Initialise
 the formula baseline to V1 with the effective translated rate. The external Store
 total starts at zero. Existing ADA pots and output values retain their amounts.
