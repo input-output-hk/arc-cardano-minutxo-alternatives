@@ -25,8 +25,9 @@ License: CC-BY-4.0
   - [2.1 Application value independent of resource funding](#21-application-value-independent-of-resource-funding)
   - [2.2 Transaction-level netting](#22-transaction-level-netting)
   - [2.3 ADA-free SubTxs](#23-ada-free-subtxs)
-  - [2.4 A predictable deposit calculation](#24-a-predictable-deposit-calculation)
-  - [2.5 Pricing evolution and compatibility](#25-pricing-evolution-and-compatibility)
+  - [2.4 Asset-free TxOuts](#24-asset-free-txouts)
+  - [2.5 A predictable deposit calculation](#25-a-predictable-deposit-calculation)
+  - [2.6 Pricing evolution and compatibility](#26-pricing-evolution-and-compatibility)
 - [3. Specification](#3-specification)
   - [3.1 Moving minUTxO accounting from TxOuts to transactions](#31-moving-minutxo-accounting-from-txouts-to-transactions)
     - [3.1.1 Builder experience: consolidating token outputs](#311-builder-experience-consolidating-token-outputs)
@@ -150,7 +151,19 @@ Users can therefore separate the token operation they author from its ADA fundin
 The enclosing transaction combines the deposit contributions; funding for fees and
 any remaining shortfall must be arranged when assembling the complete transaction.
 
-### 2.4 A predictable deposit calculation
+### 2.4 Asset-free TxOuts
+
+Some outputs exist to publish a datum or make a reference script available. A
+`NewTxOut` can serve this purpose with **zero application ADA and no native tokens**.
+Applications can therefore represent data or code without adding ADA to the output
+solely to satisfy minUTxO.
+
+These outputs still occupy UTxO capacity. Their full calculated deposit enters the
+creating transaction's deposit balance, including the base requirement and any
+datum or script payload charges. Spending the output releases its historical
+deposit under the same spending and settlement rules as other `NewTxOut` outputs.
+
+### 2.5 A predictable deposit calculation
 
 Separating the deposit also needs a calculation that is straightforward for wallets
 and transaction builders. The current minimum depends on the output's serialized
@@ -164,7 +177,7 @@ Builders can calculate the requirement without a fixed-point calculation over
 the funded ADA or byte-perfect sizing of the whole output. Payload measurements,
 transaction-fee calculation and final balancing still apply.
 
-### 2.5 Pricing evolution and compatibility
+### 2.6 Pricing evolution and compatibility
 
 The cost assigned to UTxO capacity must be able to evolve without changing the
 amount recoverable from an existing deposit. This CIP introduces a new accounting
