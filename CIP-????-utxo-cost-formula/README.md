@@ -24,8 +24,11 @@ the output.
 
 The current minutxo formula is challenging to calculate and has been explicitly 
 referenced as a pain point by community members; specifically, the 
-recursive nature of the calculation. This CIP seeks to change the formula to 
-simplify calculation.
+recursive nature of the calculation. 
+
+This CIP seeks to change the formula to simplify calculation: the suggested 
+formula calculates minimum ADA from the address size, the number of distinct 
+native assets, and the sizes of any datum and reference script.
 
 ## 2. Motivation: Why is this CIP necessary?
 
@@ -39,42 +42,56 @@ The current formula is:
 To calculate `serializedOutputBytes`, we serialise the output. Note that the 
 output itself contains the total ADA value.
 
-Let's assume an output with `n` ADA, where `n < minutxo` for that 
+Let's assume an output with `n` lovelace, where `n < minutxo` for that 
 output. We serialise the output and plug it into the formula to get:
 
-`coinsPerUTxOByte * (160 + so1) == result1`
+`coinsPerUTxOByte * (160 + serializedOutputBytes) == result1`
 
 So we add `result1 - n` to the ADA value of the output. We must now calculate a 
 new `serializedOutputBytes`, since the ADA value has changed, meaning the size 
 of the serialised output may differ. If it does differ, we must now recalculate 
 minutxo.
 
-This is the primary problem that we seek to simplify through this reformulation.
-
-Additionally, doing so while minimising the dependence upon serialisation for 
-simplicity's sake is ideal.
+This is the primary problem that we seek to solve through this CIP's formula 
+change.
 
 ## 3. Specification
 
 ### 3.1 Formula
 
 ```
-coinsPerUTxOByte × (250 + 74 × numberOfNativeAssets
+coinsPerUTxOByte * (193 + 74 * numberOfNativeAssets
+                    + serializedAddressBytes
                     + serializedDatumBytes
                     + serializedReferenceScriptBytes)
 ```
 
-See the following for some examples, with `coinsPerUTxOByte = 4310` as it 
-currently is on mainnet.
+The address size is required because bootstrap addresses can be significantly 
+larger than other address types, up to 4.7KB, most of which can come from 
+custom attributes. An attacker can specify up to 254, each of which costs up to 
+18 bytes if maximally padded; the ledger does have a 64-byte limit on 
+attributes, but it only counts the derivation path and custom attribute values,
+so none of these 18 bytes count toward it. So, this would offer exactly the kind 
+of attack surface minutxo exists to curb, if we were to omit the address size.
 
-| Output measurements | Pricing units | Required lovelace | Current formula |
-| --- | ---: | ---: | ---: |
-| No native assets, datum or script | `250` | 1,077,500 | 969,750 |
-| One native asset, no datum or script | `250 + 74` | 1,396,440 | 1,120,600–1,297,310 |
-| Two native assets, no datum or script | `250 + 74 * 2` | 1,715,380 | 1,133,530–1,616,250 |
-| Ten native assets, no datum or script | `250 + 74 * 10` | 4,266,900 | 1,236,970–4,167,770 |
-| One native asset and a 32-byte datum hash | `250 + 74 + 32` | 1,534,360 | 1,267,140–1,443,850 |
-| One native asset, a 100-byte serialised inline datum and a 200-byte serialised reference script | `250 + 74 + 100 + 200` | 2,689,440 | 2,491,180–2,667,890 |
+See the following for some examples, with `coinsPerUTxOByte = 4310` as it 
+currently is on mainnet. Note that the current formula column shows ranges 
+because outputs with the same asset count can differ in size depending on the 
+lengths of the asset names, the encoded sizes of the quantities, and the number 
+of distinct policy IDs.
+
+| Address | Other output measurements | Pricing units | Required lovelace | Alternative formula (§4.1) | Current formula |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Base (57 bytes) | No native assets, datum or script | `193 + 57` | 1,077,500 | 1,077,500 | 969,750 |
+| Base (57 bytes) | One native asset, no datum or script | `193 + 57 + 74` | 1,396,440 | 1,396,440 | 1,120,600–1,297,310 |
+| Base (57 bytes) | Two native assets, no datum or script | `193 + 57 + 74 * 2` | 1,715,380 | 1,715,380 | 1,133,530–1,616,250 |
+| Base (57 bytes) | Ten native assets, no datum or script | `193 + 57 + 74 * 10` | 4,266,900 | 4,266,900 | 1,236,970–4,167,770 |
+| Base (57 bytes) | One native asset and a 32-byte datum hash | `193 + 57 + 74 + 32` | 1,534,360 | 1,534,360 | 1,267,140–1,443,850 |
+| Base (57 bytes) | One native asset, a 100-byte serialised inline datum and a 200-byte serialised reference script | `193 + 57 + 74 + 100 + 200` | 2,689,440 | 2,689,440 | 2,491,180–2,667,890 |
+| Enterprise (29 bytes) | No native assets, datum or script | `193 + 29` | 956,820 | 1,077,500 | 849,070 |
+| Bootstrap, Icarus style (43 bytes) | No native assets, datum or script | `193 + 43` | 1,017,160 | 1,017,160 | 909,410 |
+| Bootstrap, Daedalus style (76 bytes) | No native assets, datum or script | `193 + 76` | 1,159,390 | 1,159,390 | 1,051,640 |
+| Bootstrap, padded (4,721 bytes) | No native assets, datum or script | `193 + 4721` | 21,179,340 | 21,179,340 | 21,075,900 |
 
 ### 3.2 Formula inputs
 
@@ -82,18 +99,19 @@ currently is on mainnet.
   lovelace per byte.
 - `numberOfNativeAssets`: the number of distinct pairs of policy ID and asset 
   name in the output, excluding ADA.
-- `serializedDatumBytes`: the byte length of the datum hash or serialised
-  inline datum; zero if absent.
-- `serializedReferenceScriptBytes`: the byte length of the serialised
-  reference script; zero if absent.
+- `serializedAddressBytes`: the size of the address, in bytes: the bytes its
+  bech32 or base58 text encodes (57 for a base address).
+- `serializedDatumBytes`: the size of the datum, in bytes: 32 when the output 
+  carries a datum hash, and the length of the serialised datum itself when the 
+  output carries an inline datum; zero if absent.
+- `serializedReferenceScriptBytes`: the size of the reference script, in bytes,
+  as measured for the reference-script fee; zero if absent.
 
-Datum and reference script lengths are measured on the bytes as they appear in 
-the transaction, which is how the ledger stores and hashes them.
+Each size is measured on the bytes as they appear in the transaction.
 
 ### 3.3 Enforcement and compatibility
 
-The new formula will be enforced by the ledger for new outputs. Existing outputs 
-are entirely unaffected.
+The ledger applies the new formula to outputs created after activation.
 
 ### 3.4 Versioning
 
@@ -102,16 +120,13 @@ supersedes this one.
 
 ## 4. Rationale: How does this CIP achieve its goals?
 
-We achieve the primary goal of avoiding recursive calculation by omitting ADA 
-quantity from the formula.
+We achieve the goal of avoiding recursive calculation by omitting ADA quantity 
+from the formula.
 
-We achieve the secondary goal of decreasing the dependence upon serialisation
-by omitting most of the output fields.
-
-We achieve both of these in balance with keeping overestimates close "enough" 
+We achieve this in balance with keeping overestimates close "enough" 
 to the current formula, and while keeping underestimates to a minimum.
 
-The constant 250 consists of the existing 160, plus 90, approximating the 
+The constant 193 consists of the existing 160, plus 33, approximating the 
 additional components of a near-worst-case output. The constant 74 is made up 
 of: 
 - 30 for the policy ID (a 28-byte hash and a 2-byte header)
@@ -123,25 +138,43 @@ We tested this against the 229 million outputs created on mainnet from the
 Babbage hard fork, which introduced the current formula, to 28 October 2026.
 Each output is compared with what the current formula required:
 
-| Formula (* `coinsPerUTxOByte`) | Outputs below the current requirement | Median excess | 95th-percentile excess | Mean requirement | Largest shortfall |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| `160 + serializedOutputBytes` (current) | – | – | – | 1.49 ADA | – |
-| `250 + 74 * numberOfNativeAssets + serializedDatumBytes + serializedReferenceScriptBytes` (this CIP) | 6,756 (0.003%) | 13.7% | 61.6% | 2.21 ADA | 2.36 ADA |
-| `175 + serializedAddressFieldBytes + 12 * numberOfNativeAssets + 30 * numberOfMintingPolicies + totalAssetNameBytes + serializedDatumFieldBytes + serializedReferenceScriptFieldBytes` | 9,422 (0.004%) | 4.0% | 12.8% | 1.64 ADA | 3.00 ADA |
-| `250 + 74 * numberOfNativeAssets + serializedDatumBytes` | 21,013 (0.009%) | 13.7% | 61.6% | 2.21 ADA | 69.33 ADA |
-| `160 + serializedOutputBytes - serializedAdaAmountBytes + 9` | 0 | 1.5% | 2.0% | 1.51 ADA | none |
+| Name | Formula (* `coinsPerUTxOByte`) | Outputs below the current requirement | Median excess | 95th-percentile excess | Mean requirement | Largest shortfall |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| Current | `160 + serializedOutputBytes` | – | – | – | 1.49 ADA | – |
+| No address term | `250 + 74 * numberOfNativeAssets + serializedDatumBytes + serializedReferenceScriptBytes` | 6,756 (0.003%) | 13.7% | 61.6% | 2.21 ADA | 2.36 ADA |
+| Asset and policy counts with address, asset-name, datum and script sizes (§4.2) | `175 + serializedAddressFieldBytes + 12 * numberOfNativeAssets + 30 * numberOfMintingPolicies + totalAssetNameBytes + serializedDatumFieldBytes + serializedReferenceScriptFieldBytes` | 9,422 (0.004%) | 4.0% | 12.8% | 1.64 ADA | 3.00 ADA |
+| Token count and datum size only (§4.2) | `250 + 74 * numberOfNativeAssets + serializedDatumBytes` | 21,013 (0.009%) | 13.7% | 61.6% | 2.21 ADA | 69.33 ADA |
+| Byte-based formula with a fixed ADA encoding allowance (§4.2) | `160 + serializedOutputBytes - serializedAdaAmountBytes + 9` | 0 | 1.5% | 2.0% | 1.51 ADA | none |
+| Primary alternative (§4.1) | `(193 + serializedAddressBytes if bootstrap address, else 250) + 74 * numberOfNativeAssets + serializedDatumBytes + serializedReferenceScriptBytes` | 6,755 (0.003%) | 12.9% | 61.6% | 2.22 ADA | 2.36 ADA |
+| This CIP (§3.1) | `193 + 74 * numberOfNativeAssets + serializedAddressBytes + serializedDatumBytes + serializedReferenceScriptBytes` | 8,034 (0.004%) | 11.1% | 61.6% | 2.19 ADA | 2.36 ADA |
 
-Method, full results and reproduction: [historical backtest](https://github.com/willjgould/cardano-minutxo-integration/blob/9b5a105905611ee8d56c0fbc483eb7e40f14df98/docs/minutxo-calibration/history-formulas.md).
+Method, full results and reproduction: [historical backtest](https://github.com/willjgould/cardano-minutxo-integration/blob/7fb7c5f744e4973d058e7e0219a6d4a5c00a44c7/docs/minutxo-calibration/history-formulas.md).
 
-### 4.1 Alternative formulae considered
+### 4.1 Primary alternative for community consideration
+
+An alternative can be adopted, if there's a community desire to avoid address 
+serialisation in most cases:
+
+```
+coinsPerUTxOByte * ((193 + serializedAddressBytes if bootstrap address, else 250)
+                    + 74 * numberOfNativeAssets
+                    + serializedDatumBytes
+                    + serializedReferenceScriptBytes)
+```
+
+Here, we consider the address only if it's a bootstrap address. Remember: 
+bootstrap addresses can be up to 4.7KB, so a formula that doesn't consider 
+the address size is vulnerable to a potential attack.
+
+### 4.2 Alternative formulae considered
 
 | Alternative | Formula | Trade-off |
 | --- | --- | --- |
-| Asset and policy counts with address, asset-name, datum and script sizes | `coinsPerUTxOByte × (175 + serializedAddressFieldBytes + 12 × numberOfNativeAssets + 30 × numberOfMintingPolicies + totalAssetNameBytes + serializedDatumFieldBytes + serializedReferenceScriptFieldBytes)` | Close to the current formula results, but still a large amount of serialisation dependency |
-| Token count and datum size only | `coinsPerUTxOByte × (250 + 74 × numberOfNativeAssets + serializedDatumBytes)` | Less serialisation dependency, but underestimates too much |
-| Byte-based formula with a fixed ADA encoding allowance | `coinsPerUTxOByte × (160 + serializedOutputBytes - serializedAdaAmountBytes + 9)` | Very close to the current formula, but still dependent on serialising the whole output |
+| Asset and policy counts with address, asset-name, datum and script sizes | `coinsPerUTxOByte * (175 + serializedAddressFieldBytes + 12 * numberOfNativeAssets + 30 * numberOfMintingPolicies + totalAssetNameBytes + serializedDatumFieldBytes + serializedReferenceScriptFieldBytes)` | Close to the current formula results, but more complex |
+| Token count and datum size only | `coinsPerUTxOByte * (250 + 74 * numberOfNativeAssets + serializedDatumBytes)` | Simple, but underestimates too much |
+| Byte-based formula with a fixed ADA encoding allowance | `coinsPerUTxOByte * (160 + serializedOutputBytes - serializedAdaAmountBytes + 9)` | Very close to the current formula, but depends on the whole output |
 
-### 4.2 Alternative implementation considered
+### 4.3 Alternative implementation considered
 
 The same benefits could be obtained by simply disseminating one of the 
 alternatives, which never underestimates, throughout tooling only, thus leaving 
