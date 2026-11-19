@@ -202,21 +202,36 @@ each original deposit when its output is spent, including after pricing changes.
 
 ## 3. Specification
 
-The transaction-building DSL combines an application flow with funding and refund
-choices. Helpers prepare a transaction body that expresses those choices through
-inputs, outputs and deposit declarations. The ledger validates the declarations
-and applies the resulting changes to the live UTxO set.
+Consider a **20-euro banknote**. Its face value gives the holder 20 euros of
+spending power. Producing the banknote also requires paper, ink and printing.
+The value used for a payment and the cost of its physical representation have
+different meanings.
 
-The proposal extends the Dijkstra model of an enclosing transaction (`TopTx`)
-and its sub-transactions (`SubTxs`). A standalone transaction is a TopTx with no
-SubTxs. The complete batch consists of TopTx and its SubTx bodies, each counted
-once. Activation requires an era transition and compatible node, transaction
-construction and script-context interfaces.
+![A banknote distinguishes face value from production cost, and a deposit-backed output distinguishes application value from resource backing](images/01-application-value-and-deposit.png)
 
-Amounts use lovelace, and the pricing rate uses lovelace per byte. Calculations
-use exact integer arithmetic. A positive net deposit change allocates ADA, a
-negative change releases ADA, and an explicit zero records a balanced deposit
-contribution.
+A **deposit-backed output** gives application value and resource backing their
+own accounting. In this example, the application transfers **1,000 tokens and
+20 ADA**. An illustrative **32 ADA deposit** backs the output's place in the live
+UTxO set, giving **52 ADA committed for this output**, alongside the tokens. The
+deposit stays associated with the output while it is unspent. Spending the output
+releases that deposit through the transaction balance.
+
+With the current **minimum-ADA form**, the same ADA can serve both as payment and
+resource backing. For the same intended transfer and minimum, the output carries
+32 ADA and the tokens. The extra 12 ADA needed to meet the minimum is included
+in that value. A deposit-backed output records the intended 20 ADA payment and
+accounts for the full 32 ADA deposit separately. The transaction builder chooses
+the form of each new output.
+
+There is also a choice in how assets are grouped. **20 coins of 1 euro** can be
+exchanged for **1 banknote of 20 euros**. The spending power stays the same while
+the number of physical objects changes. Similarly, combining assets into fewer
+outputs or distributing them across several outputs changes the resources
+occupied in the live UTxO set and the deposits required.
+
+The transaction builder can express those application transfers and review their
+combined resource effect as a **net deposit change**. Funding and refund choices
+then determine how the transaction handles that difference.
 
 <a id="31-moving-minutxo-accounting-from-txouts-to-transactions"></a>
 <a id="31-transaction-builder-experience"></a>
@@ -226,8 +241,9 @@ contribution.
 The construction interface lets a transaction builder describe the **application
 flow** and supply a **funding and refund policy**. The builder selects the
 application inputs, chooses the new outputs and identifies a reserve input for
-top-ups and an output for refunds. Helper functions derive the net deposit change
-and prepare the transaction body from those choices.
+top-ups and an output for refunds. In the reference API, `computeNetBalance`
+derives the deposit declaration from those choices. `updateTxBodyWithNetBalance` returns a transaction
+body containing the selected input/output additions and that declaration.
 
 The following example uses an illustrative **1.6 ADA deposit per deposit-backed
 output**. The token inputs and outputs carry zero application ADA.
@@ -236,8 +252,8 @@ output**. The token inputs and outputs carry zero application ADA.
 
 In this example, the application consolidates 3 token inputs into 1 token output.
 Its policy names `reserve#0` as a funding candidate and output 0 as the refund
-destination. The helper finds a **1.6 ADA net release**. The builder can review
-that amount and adjust the application flow before completing the transaction.
+destination. The calculation yields a **1.6 ADA net release**. The builder can
+review that amount and adjust the application flow before completing the transaction.
 
 The 3 inputs and 2 outputs depicted here all use the deposit-backed form, with
 an illustrative deposit of 1.6 ADA each. The calculation includes the deposit
@@ -275,8 +291,8 @@ explicitly separate. These examples account for the selected output's funding.
 
 #### 3.1.2 Computing and reviewing the net
 
-The helper recovers the historical external deposits of the selected inputs and
-calculates the requirements for new deposit-backed outputs. Their difference is
+The net calculation recovers the historical external deposits of the selected
+inputs and calculates the requirements for new deposit-backed outputs. Their difference is
 the adjustment the complete transaction must fund or receive.
 
 ```math
@@ -302,8 +318,8 @@ change outputs use the same form and also contribute zero external-deposit chang
 
 The net makes the resource effect of splitting, consolidating or changing output
 contents visible. The transaction builder can compare alternative flows and
-choose an acceptable result. A helper repeats the calculation whenever a change
-affects the deposits involved.
+choose an acceptable result. The transaction builder repeats the calculation
+whenever a change affects the deposits involved.
 
 For the opening example, historical releases total 4.8 ADA and new requirements
 total 3.2 ADA, including the deposit-backed refund output. The resulting 1.6 ADA
@@ -314,21 +330,21 @@ release is available for that output's application value.
 An application can reuse a reserve policy across its workflows. The reference
 construction API supports the following choices.
 
-| Policy choice | Helper behavior |
+| Policy choice | Transaction-body update |
 | --- | --- |
 | Funding already included | Calculate using the selected ordinary inputs |
 | Funding candidate | Add the specified input when the body's attributed allocation requires funding |
 | Existing refund output | Select an output already present in the body |
 | New refund output | Append the supplied output when a refund is required and its own deposit leaves a positive release |
 
-The helper includes every added input and output in its final calculation.
+The final calculation includes every selected input and output addition.
 Adding a funding input may itself release a historical deposit. A new
 minimum-ADA refund output uses its own ADA for backing. A new deposit-backed
 refund output also requires an external deposit.
 
 `computeNetBalance` calculates the resulting deposit declaration.
 `updateTxBodyWithNetBalance` applies the selected input/output additions and
-writes the declaration into the body. The helper retains the refund output's
+writes the declaration into the body. The refund output is inserted with its
 supplied value. The transaction builder sets that value and completes ordinary
 asset, change and fee balancing before signing.
 
@@ -338,12 +354,17 @@ Individual deposit allocations are recorded when the ledger applies the transact
 
 ### 3.2 SubTx composition and delegation
 
+The proposal extends the Dijkstra model of an enclosing transaction (`TopTx`)
+and its sub-transactions (`SubTxs`). A standalone transaction is a TopTx with no
+SubTxs. The complete batch consists of TopTx and its SubTx bodies, each counted
+once.
+
 #### 3.2.1 Local accounting or delegation to TopTx
 
 A SubTx author can use the same construction flow and provide a local funding
 and refund policy. The additional choice is to **delegate deposit accounting to
-TopTx**. The SubTx helper calculates the body's own net change and applies the
-chosen policy.
+TopTx**. `computeSubTxNetBalance` calculates the body's own net change and returns
+a declaration expressing the chosen local or delegated accounting policy.
 
 ![A SubTx handles its net locally or delegates its allocation or release to TopTx](images/05-dsl-subtx-delegation.png)
 
@@ -357,9 +378,9 @@ TopTx already coordinates transaction fees. With this proposal it can also
 coordinate deposit top-ups and refunds. A SubTx can therefore express a token
 operation with zero application ADA in its inputs and outputs.
 
-Prepare each SubTx before its enclosing TopTx. The SubTx helpers calculate their
-own contributions. The TopTx helper then calculates the complete batch change
-and its attributed share, using the prepared SubTx declarations. Changing a
+Prepare each SubTx with `updateSubTxBodyWithNetBalance` before preparing its
+enclosing TopTx. `computeNetBalance` then calculates the complete batch change
+and TopTx's attributed share, using the prepared SubTx declarations. Changing a
 SubTx's inputs, outputs or accounting choice requires recalculating the enclosing
 transaction.
 
@@ -373,7 +394,7 @@ release and allocation to TopTx.
 ![A SubTx release funds another SubTx allocation and the batch has zero net change](images/06-dsl-batch-netting.png)
 
 All depicted SubTx inputs and outputs have zero application ADA. Their deposit
-changes cancel, so the TopTx helper prepares **explicit zero** for the batch.
+changes cancel, so `computeNetBalance` returns **explicit zero** for the batch.
 TopTx funds fees through minimum-ADA inputs and change outputs, which contribute
 zero external-deposit change. Delegation lets the enclosing transaction
 coordinate resource funding across the application flows.
@@ -398,9 +419,10 @@ deposit-backed outputs.
 | Create Carol's one-asset output | $`4310 \times (193 + 57 + 74)`$ | 1,396,440 allocated |
 | Net SubTx contribution | $`2{,}792{,}880 - 1{,}715{,}380`$ | 1,077,500 allocated |
 
-Alice chooses delegation. The SubTx helper prepares a request for TopTx to
-account for the **1,077,500 lovelace allocation**. Assume TopTx's other inputs
-and outputs use the minimum-ADA form and contribute zero external-deposit change.
+Alice chooses delegation. `updateSubTxBodyWithNetBalance` writes a declaration
+requesting that TopTx account for the **1,077,500 lovelace allocation**. Assume
+TopTx's other inputs and outputs use the minimum-ADA form and contribute zero
+external-deposit change.
 TopTx's net is that same positive amount, and its available ADA funds the deposit
 and fee. The complete transaction also conserves both native assets.
 
@@ -414,6 +436,12 @@ its external-deposit release is zero.
 <a id="33-txbody-declarations-and-encoding"></a>
 
 ### 3.3 Ledger interface and TxBody declarations
+
+Amounts use lovelace, and the pricing rate uses lovelace per byte. Calculations
+use exact integer arithmetic. A positive net deposit change allocates ADA, a
+negative change releases ADA, and an explicit zero records a balanced deposit
+contribution. Activation requires an era transition and compatible node,
+transaction-construction and script-context interfaces.
 
 The construction choices above become ordinary spending inputs, ordinary outputs
 and a deposit declaration in the signed transaction body. The reserve policy is
@@ -1332,8 +1360,8 @@ of the validation and compatibility contract.
 The Haskell Ledger implementation in PR #3 provides executable rules for output
 forms, declarations, net accounting, authority, settlement, collateral,
 historical deposits and state transitions. Its transaction-construction API
-provides funding and settlement strategies and body-update helpers. Implementation
-references and excerpts in this CIP use revision
+provides funding and settlement strategies and transaction-body update functions.
+Implementation references and excerpts in this CIP use revision
 `1c22597b03e950e14d86e1d5ad86284ee5d7c1f3`, including the `MinAdaTxOut` and
 `DepositBackedTxOut` names. Excerpts omit surrounding code where indicated.
 The prototype uses the earlier fixed-base pricing formula. Adapting it to
@@ -1391,17 +1419,18 @@ updateSubTxBodyWithNetBalance ::
 ```
 
 `computeNetBalance` and `computeSubTxNetBalance` take the corresponding inputs and
-return the declaration payload. Both calculation and update helpers include any
-input or output additions selected by the strategy. Update helpers also apply
-those additions to the body.
+return the declaration payload. Their calculations include any input or output
+additions selected by the strategy. `updateTxBodyWithNetBalance` and
+`updateSubTxBodyWithNetBalance` also apply those additions and write the declaration
+into the returned body.
 
-Prepare each SubTx before TopTx. The TopTx helper combines its own calculated
+Prepare each SubTx before TopTx. `computeNetBalance` combines TopTx's calculated
 contribution with the prepared SubTx declarations. Ledger validation independently
 recalculates every contribution from the actual inputs, outputs and history.
 
-The helpers retain the ADA values supplied for refund outputs. Their own deposits
-enter the calculation. Adding a TopTx refund output must leave both the batch and
-TopTx's attributed share in release. Adding a SubTx refund output must leave that
+Refund outputs are inserted with the ADA values supplied by the transaction
+builder. Their own deposits enter the calculation. Adding a TopTx refund output
+must leave both the batch and TopTx's attributed share in release. Adding a SubTx refund output must leave that
 SubTx's own contribution in release. Rebalancing a body that already contains the
 refund uses the existing-output strategy.
 

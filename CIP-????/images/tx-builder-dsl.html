@@ -152,12 +152,12 @@ strong { font-weight: 600; }
 .accounting p { font-size: 18px; color: var(--muted); }
 .accounting strong { display: block; margin-top: 4px; font-size: 30px; }
 .accounting .operator { font-size: 30px; color: #8b8b86; }
-.helper-band { display: grid; grid-template-columns: 1fr 40px 1fr; gap: 22px; align-items: center; margin-top: 34px; padding-top: 24px; border-top: 1px solid var(--line); }
+.calculation-band { display: grid; grid-template-columns: 1fr 40px 1fr; gap: 22px; align-items: center; margin-top: 34px; padding-top: 24px; border-top: 1px solid var(--line); }
 .policy { display: flex; gap: 28px; }
 .policy div { flex: 1; }
-.policy span, .helper-band .helper span { display: block; font-size: 18px; color: var(--muted); margin-bottom: 4px; }
-.policy strong, .helper-band .helper strong { font-size: 22px; font-weight: 600; }
-.helper-band .helper { border-left: 3px solid var(--red); padding-left: 19px; }
+.policy span, .calculation-band .calculation-result span { display: block; font-size: 18px; color: var(--muted); margin-bottom: 4px; }
+.policy strong, .calculation-band .calculation-result strong { font-size: 22px; font-weight: 600; }
+.calculation-band .calculation-result { border-left: 3px solid var(--red); padding-left: 19px; }
 .cases { display: grid; grid-template-columns: repeat(3,1fr); gap: 26px; margin-top: 30px; }
 .case { border-top: 3px solid var(--ink); padding-top: 18px; }
 .case h2 { font-size: 27px; }
@@ -273,11 +273,47 @@ strong { font-weight: 600; }
 .applied-tx .operation strong { font-size:26px; }
 .block-origin { margin-top:25px; border-top:1px solid var(--line); padding-top:20px; font-size:21px; color:var(--muted); }
 .block-origin strong { color:var(--ink); }
+.value-analogy { display:grid; grid-template-columns:1fr 1fr; gap:48px; margin-top:32px; }
+.value-analogy h2 { font-size:26px; margin-bottom:20px; }
+.face-value, .application-value { height:186px; border:1.5px solid var(--line); padding:26px; display:flex; flex-direction:column; justify-content:center; }
+.face-value { outline:1px solid var(--line); outline-offset:-10px; background:var(--paper); }
+.face-value strong { font-size:64px; line-height:1; }
+.face-value span { font-size:22px; color:var(--muted); margin-top:15px; }
+.application-value span { font-size:19px; color:var(--muted); margin-bottom:9px; }
+.application-value strong { font-size:33px; line-height:1.15; }
+.application-value p { font-size:20px; color:var(--muted); margin-top:10px; }
+.backing-connector { height:30px; width:2px; background:var(--line); margin-left:28px; }
+.note-cost, .explicit-deposit { min-height:146px; border-left:3px solid var(--line); background:var(--paper); padding:22px 26px; }
+.note-cost strong, .explicit-deposit strong { font-size:29px; display:block; margin-bottom:9px; }
+.note-cost p, .explicit-deposit p { font-size:21px; line-height:1.35; }
+.note-cost p { color:var(--muted); }
+.explicit-deposit { border-color:var(--red); background:var(--red-soft); }
+.explicit-deposit strong { color:var(--red); }
+.output-commitment { margin-top:24px; border-top:1px solid var(--line); padding-top:17px; font-size:22px; color:var(--muted); }
+.output-commitment strong { color:var(--ink); }
 @media print { body { background:#fff; } .figure { break-after:page; margin:0; } }
 </style>
 </head>
 <body>
 <!-- Render each .figure separately at deviceScaleFactor 2 for the Markdown PNGs. -->
+<section class="figure" id="01-application-value-and-deposit">
+  <h1>Application value and resource backing</h1>
+  <div class="value-analogy">
+    <div>
+      <h2>A banknote</h2>
+      <div class="face-value"><strong>€20</strong><span>Face value · spending power</span></div>
+      <div class="backing-connector"></div>
+      <div class="note-cost"><strong>Production cost</strong><p>Paper, ink and printing</p></div>
+    </div>
+    <div>
+      <h2>A deposit-backed output</h2>
+      <div class="application-value"><span>TxOut.Value</span><strong>1,000 tokens + 20 ADA</strong><p>The application's transfer</p></div>
+      <div class="backing-connector"></div>
+      <div class="explicit-deposit"><strong>32 ADA deposit</strong><p>Held while the output is unspent.<br>Released when the output is spent.</p></div>
+      <p class="output-commitment"><strong>52 ADA</strong> committed for this output, plus the tokens.</p>
+    </div>
+  </div>
+</section>
 <section class="figure with-deposits" id="02-dsl-deposit-view">
   <h1>Deposits associated with the transaction’s outputs</h1>
   <p class="caption">Application assets in the outputs · storage deposits associated by the ledger</p>
@@ -300,7 +336,7 @@ strong { font-weight: 600; }
 
 <section class="figure" id="03-dsl-net-declaration">
   <h1>Build the application flow. Review the net.</h1>
-  <p class="caption">The helper computes the deposit adjustment from the selected inputs and outputs.</p>
+  <p class="caption">The net deposit change is calculated from the selected inputs and outputs.</p>
   <div class="flow">
     <div><h3 class="column-title">Application inputs</h3><div class="output-stack input-stack">
       <div class="token-card"><span class="value">1 Token C</span><span class="application">0 application ADA</span></div>
@@ -315,7 +351,7 @@ strong { font-weight: 600; }
       <div class="token-card refund"><span class="name">Output 0 · Refund</span><span class="value">1.6 ADA</span><span class="application">Receives the released surplus</span></div>
     </div></div>
   </div>
-  <div class="helper-band"><div class="policy"><div><span>Funding candidate</span><strong>reserve#0</strong></div><div><span>Refund destination</span><strong>output 0</strong></div></div><i class="arrow"></i><div class="helper"><span>Helper functions</span><strong>Calculate the net and prepare the declaration</strong></div></div>
+  <div class="calculation-band"><div class="policy"><div><span>Funding candidate</span><strong>reserve#0</strong></div><div><span>Refund destination</span><strong>output 0</strong></div></div><i class="arrow"></i><div class="calculation-result"><span>computeNetBalance</span><strong>Calculate the net deposit declaration</strong></div></div>
 </section>
 
 <section class="figure" id="04-dsl-funding-refund">
@@ -347,10 +383,10 @@ strong { font-weight: 600; }
 </section>
 <section class="figure" id="07-dsl-ledger-interface">
   <h1>From construction choices to the signed transaction</h1>
-  <p class="caption">The helper prepares the inputs, outputs and deposit declaration that the ledger receives.</p>
+  <p class="caption">updateTxBodyWithNetBalance returns the prepared body with its deposit declaration.</p>
   <div class="interface">
     <div class="interface-panel"><h2>Above the ledger</h2><div class="field"><span>Application flow</span><strong>3 token inputs → 1 token output</strong></div><div class="field"><span>Funding candidate</span><strong>reserve#0</strong></div><div class="field"><span>Supplied refund output</span><strong>output 0 · 1.6 ADA</strong></div><div class="field"><span>Calculated deposit change</span><strong class="red">Release 1.6 ADA</strong></div></div>
-    <div class="interface-arrow"><span>Helper</span><i class="arrow"></i></div>
+    <div class="interface-arrow"><span>Prepare<br>TxBody</span><i class="arrow"></i></div>
     <div class="interface-panel signed"><h2>TxBody</h2><div class="field"><span>Ordinary inputs</span><strong>3 application input references</strong></div><div class="field"><span>Ordinary outputs</span><p><strong>output 0</strong> &nbsp; 1.6 ADA</p><p><strong>output 1</strong> &nbsp; 3 Token C</p></div><div class="field"><span>Net deposit declaration</span><strong class="red">Release 1,600,000 lovelace</strong><p>Settlement index &nbsp; <strong>0</strong></p></div></div>
   </div>
 </section>
