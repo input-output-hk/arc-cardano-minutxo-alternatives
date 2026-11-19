@@ -226,7 +226,7 @@ A deposit-backed output gives application value and resource backing similarly
 distinct roles. The output records the assets the application transfers. Its
 associated ADA deposit backs the resources it occupies in the live UTxO set.
 
-![A banknote distinguishes face value from production cost, and a deposit-backed output distinguishes application value from resource backing](images/01-application-value-and-deposit.png)
+![A banknote distinguishes face value from production cost, and a deposit-backed output distinguishes application value from resource backing](images/01-application-value-and-deposit.png?v=b2dfef87)
 
 In the example, the application transfers **1,000 tokens and 20 ADA**. An
 illustrative **32 ADA deposit** gives **52 ADA committed for this output**,
