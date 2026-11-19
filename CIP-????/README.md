@@ -206,6 +206,16 @@ each original deposit when its output is spent, including after pricing changes.
 
 ## 3. Specification
 
+The specification starts with the distinction between application value and
+resource backing, using the banknote analogy to introduce minimum-ADA and
+deposit-backed outputs. It then follows the transaction builder's workflow,
+from application inputs and outputs to net deposit accounting, funding choices
+and SubTx delegation.
+
+The ledger interface makes these choices explicit in the signed transaction.
+The remaining parts define how the ledger validates and applies them, recovers
+original deposits across pricing changes, and supports both output forms.
+
 ### 3.1 Application value and resource backing
 
 Two amounts are involved when an application creates an output. The application
