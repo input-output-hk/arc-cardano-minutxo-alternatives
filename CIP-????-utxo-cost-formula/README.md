@@ -32,28 +32,62 @@ native assets, and the sizes of any datum and reference script.
 
 ## 2. Motivation: Why is this CIP necessary?
 
-[CPS-0037](../CPS-0037/README.md) describes the problem in full, but here, we'll 
-describe the core of the issue.
+Cardano’s minimum-ADA requirement gives users an economic incentive to use the live UTxO
+set efficiently. Creating more outputs, or larger outputs, requires more ADA to remain
+committed while those outputs are unspent. This funding requirement is an intended part
+of protecting the resource maintained by nodes.
 
-The current formula is:
+Community feedback collected in CPS-0037 also identifies difficulties caused by the
+calculation itself. Developers must handle a requirement that can change as they fund an
+output, and reproduce detailed output-sizing rules wherever transactions are
+constructed. This CIP aims to reduce that development burden while preserving the
+economic deterrent.
+[CPS-0037](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0037)
 
-`coinsPerUTxOByte * (160 + serializedOutputBytes)`
+### 2.1 Funding an output can change the amount it needs
 
-To calculate `serializedOutputBytes`, we serialise the output. Note that the 
-output itself contains the total ADA value.
+Consider an application preparing an output to send a native token. It needs to
+determine how much ADA must accompany that token.
 
-Let's assume an output with `n` lovelace, where `n < minutxo` for that 
-output. We serialise the output and plug it into the formula to get:
+With the current calculation, the following sequence can occur.
 
-`coinsPerUTxOByte * (160 + serializedOutputBytes) == result1`
+1. The application constructs the output with a provisional ADA amount and calculates
+   its minimum.
+2. It adds enough ADA to meet that minimum.
+3. The new ADA amount takes more bytes to encode. The output becomes larger, increasing
+   its minimum again.
 
-So we add `result1 - n` to the ADA value of the output. We must now calculate a 
-new `serializedOutputBytes`, since the ADA value has changed, meaning the size 
-of the serialised output may differ. If it does differ, we must now recalculate 
-minutxo.
+The application has followed the first calculation, yet the resulting output can still
+contain insufficient ADA. Transaction-building software must account for this dependency
+and adjust the amount until the final output satisfies the rule.
 
-This is the primary problem that we seek to solve through this CIP's formula 
-change.
+This complicates the task of deciding how much ADA to allocate to recipients and how
+much to return as change. The same dependency must be handled for every output being
+constructed, including change outputs.
+
+The proposed calculation makes the minimum independent of the ADA amount being chosen.
+Once the output’s other contents are determined, software can calculate its requirement
+and fund it without that funding increasing the requirement again.
+
+### 2.2 The calculation must be reproduced throughout the ecosystem
+
+Minimum ADA must be calculated before a transaction reaches a node. Wallets, SDKs,
+applications, backend services and scripts all need access to a calculation that agrees
+with the ledger.
+
+Today, that means obtaining the exact encoded size of the complete output. The result
+depends on details such as the lengths of asset names, the encoding of quantities and
+how assets are grouped under policy IDs. Software must either use a suitable serializer
+or reproduce its sizing rules accurately.
+
+This requirement carries implementation and maintenance work into every environment
+where transactions are built, including TypeScript, Rust and other languages. A sizing
+error can leave an output underfunded and cause the transaction to fail validation.
+
+The proposed formula uses fixed allowances, counts distinct native assets and measures
+the address, datum and reference script. This gives transaction-building tools a smaller
+set of measurements to implement and verify, making the minimum-ADA rule easier to
+support consistently across the ecosystem.
 
 ## 3. Specification
 
