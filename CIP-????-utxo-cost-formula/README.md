@@ -122,16 +122,16 @@ of distinct policy IDs.
 
 | Address | Other output measurements | Pricing units | Required lovelace | Alternative formula (§4.1) | Current formula |
 | --- | --- | ---: | ---: | ---: | ---: |
-| Base (57 bytes) | No native assets, datum or script | `193 + 57` | 1,077,500 | 1,077,500 | 969,750 |
-| Base (57 bytes) | One native asset, no datum or script | `193 + 57 + 74` | 1,396,440 | 1,396,440 | 1,120,600–1,297,310 |
-| Base (57 bytes) | Two native assets, no datum or script | `193 + 57 + 74 * 2` | 1,715,380 | 1,715,380 | 1,133,530–1,616,250 |
-| Base (57 bytes) | Ten native assets, no datum or script | `193 + 57 + 74 * 10` | 4,266,900 | 4,266,900 | 1,236,970–4,167,770 |
-| Base (57 bytes) | One native asset and a 32-byte datum hash | `193 + 57 + 74 + 32` | 1,534,360 | 1,534,360 | 1,267,140–1,443,850 |
-| Base (57 bytes) | One native asset, a 100-byte serialised inline datum and a 200-byte serialised reference script | `193 + 57 + 74 + 100 + 200` | 2,689,440 | 2,689,440 | 2,491,180–2,667,890 |
-| Enterprise (29 bytes) | No native assets, datum or script | `193 + 29` | 956,820 | 1,077,500 | 849,070 |
-| Bootstrap, Icarus style (43 bytes) | No native assets, datum or script | `193 + 43` | 1,017,160 | 1,017,160 | 909,410 |
-| Bootstrap, Daedalus style (76 bytes) | No native assets, datum or script | `193 + 76` | 1,159,390 | 1,159,390 | 1,051,640 |
-| Bootstrap, padded (4,721 bytes) | No native assets, datum or script | `193 + 4721` | 21,179,340 | 21,179,340 | 21,075,900 |
+| Base (57 bytes) | No native assets, datum or script | $`193 + 57`$ | 1,077,500 | 1,077,500 | 969,750 |
+| Base (57 bytes) | One native asset, no datum or script | $`193 + 57 + 74`$ | 1,396,440 | 1,396,440 | 1,120,600–1,297,310 |
+| Base (57 bytes) | Two native assets, no datum or script | $`193 + 57 + 74 \times 2`$ | 1,715,380 | 1,715,380 | 1,133,530–1,616,250 |
+| Base (57 bytes) | Ten native assets, no datum or script | $`193 + 57 + 74 \times 10`$ | 4,266,900 | 4,266,900 | 1,236,970–4,167,770 |
+| Base (57 bytes) | One native asset and a 32-byte datum hash | $`193 + 57 + 74 + 32`$ | 1,534,360 | 1,534,360 | 1,267,140–1,443,850 |
+| Base (57 bytes) | One native asset, a 100-byte serialised inline datum and a 200-byte serialised reference script | $`193 + 57 + 74 + 100 + 200`$ | 2,689,440 | 2,689,440 | 2,491,180–2,667,890 |
+| Enterprise (29 bytes) | No native assets, datum or script | $`193 + 29`$ | 956,820 | 1,077,500 | 849,070 |
+| Bootstrap, Icarus style (43 bytes) | No native assets, datum or script | $`193 + 43`$ | 1,017,160 | 1,017,160 | 909,410 |
+| Bootstrap, Daedalus style (76 bytes) | No native assets, datum or script | $`193 + 76`$ | 1,159,390 | 1,159,390 | 1,051,640 |
+| Bootstrap, padded (4,721 bytes) | No native assets, datum or script | $`193 + 4721`$ | 21,179,340 | 21,179,340 | 21,075,900 |
 
 ### 3.2 Formula inputs
 
@@ -178,15 +178,15 @@ We tested this against the 229 million outputs created on mainnet from the
 Babbage hard fork, which introduced the current formula, to 28 October 2026.
 Each output is compared with what the current formula required:
 
-| Name | Formula (* `coinsPerUTxOByte`) | Outputs below the current requirement | Median excess | 95th-percentile excess | Mean requirement | Largest shortfall |
+| Name | Formula ($`\times \mathrm{coinsPerUTxOByte}`$) | Outputs below the current requirement | Median excess | 95th-percentile excess | Mean requirement | Largest shortfall |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| Current | `160 + serializedOutputBytes` | – | – | – | 1.49 ADA | – |
-| No address term | `250 + 74 * numberOfNativeAssets + serializedDatumBytes + serializedReferenceScriptBytes` | 6,756 (0.003%) | 13.7% | 61.6% | 2.21 ADA | 2.36 ADA |
-| Asset and policy counts with address, asset-name, datum and script sizes (§4.2) | `175 + serializedAddressFieldBytes + 12 * numberOfNativeAssets + 30 * numberOfMintingPolicies + totalAssetNameBytes + serializedDatumFieldBytes + serializedReferenceScriptFieldBytes` | 9,422 (0.004%) | 4.0% | 12.8% | 1.64 ADA | 3.00 ADA |
-| Token count and datum size only (§4.2) | `250 + 74 * numberOfNativeAssets + serializedDatumBytes` | 21,013 (0.009%) | 13.7% | 61.6% | 2.21 ADA | 69.33 ADA |
-| Byte-based formula with a fixed ADA encoding allowance (§4.2) | `160 + serializedOutputBytes - serializedAdaAmountBytes + 9` | 0 | 1.5% | 2.0% | 1.51 ADA | none |
-| Primary alternative (§4.1) | `(193 + serializedAddressBytes if bootstrap address, else 250) + 74 * numberOfNativeAssets + serializedDatumBytes + serializedReferenceScriptBytes` | 6,755 (0.003%) | 12.9% | 61.6% | 2.22 ADA | 2.36 ADA |
-| This CIP (§3.1) | `193 + 74 * numberOfNativeAssets + serializedAddressBytes + serializedDatumBytes + serializedReferenceScriptBytes` | 8,034 (0.004%) | 11.1% | 61.6% | 2.19 ADA | 2.36 ADA |
+| Current | $`160 + \mathrm{serializedOutputBytes}`$ | – | – | – | 1.49 ADA | – |
+| No address term | $`\begin{aligned} & 250 \\ & {}+ 74 \times \mathrm{numberOfNativeAssets} \\ & {}+ \mathrm{serializedDatumBytes} \\ & {}+ \mathrm{serializedReferenceScriptBytes} \end{aligned}`$ | 6,756 (0.003%) | 13.7% | 61.6% | 2.21 ADA | 2.36 ADA |
+| Asset and policy counts with address, asset-name, datum and script sizes (§4.2) | $`\begin{aligned} & 175 \\ & {}+ \mathrm{serializedAddressFieldBytes} \\ & {}+ 12 \times \mathrm{numberOfNativeAssets} \\ & {}+ 30 \times \mathrm{numberOfMintingPolicies} \\ & {}+ \mathrm{totalAssetNameBytes} \\ & {}+ \mathrm{serializedDatumFieldBytes} \\ & {}+ \mathrm{serializedReferenceScriptFieldBytes} \end{aligned}`$ | 9,422 (0.004%) | 4.0% | 12.8% | 1.64 ADA | 3.00 ADA |
+| Token count and datum size only (§4.2) | $`\begin{aligned} & 250 \\ & {}+ 74 \times \mathrm{numberOfNativeAssets} \\ & {}+ \mathrm{serializedDatumBytes} \end{aligned}`$ | 21,013 (0.009%) | 13.7% | 61.6% | 2.21 ADA | 69.33 ADA |
+| Byte-based formula with a fixed ADA encoding allowance (§4.2) | $`\begin{aligned} & 160 \\ & {}+ \mathrm{serializedOutputBytes} \\ & {}- \mathrm{serializedAdaAmountBytes} \\ & {}+ 9 \end{aligned}`$ | 0 | 1.5% | 2.0% | 1.51 ADA | none |
+| Primary alternative (§4.1) | $`\begin{aligned} & \mathrm{baseAllowance} \\ & {}+ 74 \times \mathrm{numberOfNativeAssets} \\ & {}+ \mathrm{serializedDatumBytes} \\ & {}+ \mathrm{serializedReferenceScriptBytes} \end{aligned}`$ | 6,755 (0.003%) | 12.9% | 61.6% | 2.22 ADA | 2.36 ADA |
+| This CIP (§3.1) | $`\begin{aligned} & 193 \\ & {}+ 74 \times \mathrm{numberOfNativeAssets} \\ & {}+ \mathrm{serializedAddressBytes} \\ & {}+ \mathrm{serializedDatumBytes} \\ & {}+ \mathrm{serializedReferenceScriptBytes} \end{aligned}`$ | 8,034 (0.004%) | 11.1% | 61.6% | 2.19 ADA | 2.36 ADA |
 
 Method, full results and reproduction: [historical backtest](https://github.com/willjgould/cardano-minutxo-integration/blob/7fb7c5f744e4973d058e7e0219a6d4a5c00a44c7/docs/minutxo-calibration/history-formulas.md).
 
@@ -222,9 +222,9 @@ the address size is vulnerable to a potential attack.
 
 | Alternative | Formula | Trade-off |
 | --- | --- | --- |
-| Asset and policy counts with address, asset-name, datum and script sizes | `coinsPerUTxOByte * (175 + serializedAddressFieldBytes + 12 * numberOfNativeAssets + 30 * numberOfMintingPolicies + totalAssetNameBytes + serializedDatumFieldBytes + serializedReferenceScriptFieldBytes)` | Close to the current formula results, but more complex |
-| Token count and datum size only | `coinsPerUTxOByte * (250 + 74 * numberOfNativeAssets + serializedDatumBytes)` | Simple, but underestimates too much |
-| Byte-based formula with a fixed ADA encoding allowance | `coinsPerUTxOByte * (160 + serializedOutputBytes - serializedAdaAmountBytes + 9)` | Very close to the current formula, but depends on the whole output |
+| Asset and policy counts with address, asset-name, datum and script sizes | $`\begin{aligned} & \mathrm{coinsPerUTxOByte} \times \bigl( \\ & 175 \\ & {}+ \mathrm{serializedAddressFieldBytes} \\ & {}+ 12 \times \mathrm{numberOfNativeAssets} \\ & {}+ 30 \times \mathrm{numberOfMintingPolicies} \\ & {}+ \mathrm{totalAssetNameBytes} \\ & {}+ \mathrm{serializedDatumFieldBytes} \\ & {}+ \mathrm{serializedReferenceScriptFieldBytes}\bigr) \end{aligned}`$ | Close to the current formula results, but more complex |
+| Token count and datum size only | $`\begin{aligned} & \mathrm{coinsPerUTxOByte} \times \bigl( \\ & 250 \\ & {}+ 74 \times \mathrm{numberOfNativeAssets} \\ & {}+ \mathrm{serializedDatumBytes}\bigr) \end{aligned}`$ | Simple, but underestimates too much |
+| Byte-based formula with a fixed ADA encoding allowance | $`\begin{aligned} & \mathrm{coinsPerUTxOByte} \times \bigl( \\ & 160 \\ & {}+ \mathrm{serializedOutputBytes} \\ & {}- \mathrm{serializedAdaAmountBytes} \\ & {}+ 9\bigr) \end{aligned}`$ | Very close to the current formula, but depends on the whole output |
 
 ### 4.3 Alternative implementation considered
 
