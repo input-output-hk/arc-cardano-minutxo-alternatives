@@ -26,9 +26,11 @@ The current minutxo formula is challenging to calculate and has been explicitly
 referenced as a pain point by community members; specifically, the 
 recursive nature of the calculation. 
 
-This CIP seeks to change the formula to simplify calculation: the suggested 
-formula calculates minimum ADA from the address size, the number of distinct 
-native assets, and the sizes of any datum and reference script.
+This CIP seeks to simplify the calculation and remove the need to measure the complete
+serialised TxOut. The suggested formula calculates minimum ADA from the address size,
+the number of distinct native assets, and the sizes of any datum and reference script.
+This makes the calculation easier to reproduce consistently across the tools and
+programming languages used to construct transactions.
 
 ## 2. Motivation: Why is this CIP necessary?
 
