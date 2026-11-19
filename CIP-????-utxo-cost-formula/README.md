@@ -95,11 +95,15 @@ support consistently across the ecosystem.
 
 ### 3.1 Formula
 
-```
-coinsPerUTxOByte * (193 + 74 * numberOfNativeAssets
-                    + serializedAddressBytes
-                    + serializedDatumBytes
-                    + serializedReferenceScriptBytes)
+```math
+\begin{aligned}
+\mathrm{minimumAda}
+  ={}& \mathrm{coinsPerUTxOByte} \times \bigl( \\
+     & 193 + 74 \times \mathrm{numberOfNativeAssets} \\
+     & {}+ \mathrm{serializedAddressBytes} \\
+     & {}+ \mathrm{serializedDatumBytes} \\
+     & {}+ \mathrm{serializedReferenceScriptBytes}\bigr)
+\end{aligned}
 ```
 
 The address size is required because bootstrap addresses can be significantly 
@@ -188,14 +192,26 @@ Method, full results and reproduction: [historical backtest](https://github.com/
 
 ### 4.1 Primary alternative for community consideration
 
-An alternative can be adopted, if there's a community desire to avoid address 
-serialisation in most cases:
+An alternative can be adopted if there is a community desire to avoid address
+serialisation in most cases. Its base allowance depends on the address type.
 
+```math
+\mathrm{baseAllowance} =
+\begin{cases}
+193 + \mathrm{serializedAddressBytes} & \text{for a bootstrap address} \\
+250 & \text{otherwise}
+\end{cases}
 ```
-coinsPerUTxOByte * ((193 + serializedAddressBytes if bootstrap address, else 250)
-                    + 74 * numberOfNativeAssets
-                    + serializedDatumBytes
-                    + serializedReferenceScriptBytes)
+
+```math
+\begin{aligned}
+\mathrm{minimumAda}
+  ={}& \mathrm{coinsPerUTxOByte} \times \bigl( \\
+     & \mathrm{baseAllowance} \\
+     & {}+ 74 \times \mathrm{numberOfNativeAssets} \\
+     & {}+ \mathrm{serializedDatumBytes} \\
+     & {}+ \mathrm{serializedReferenceScriptBytes}\bigr)
+\end{aligned}
 ```
 
 Here, we consider the address only if it's a bootstrap address. Remember: 
