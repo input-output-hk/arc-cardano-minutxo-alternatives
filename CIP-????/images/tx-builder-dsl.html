@@ -228,6 +228,51 @@ strong { font-weight: 600; }
 .interface-panel.signed .field:last-child { border-top:1px solid var(--line); margin-top:22px; }
 .interface-arrow { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:15px; }
 .interface-arrow span { font-size:18px; color:var(--muted); }
+.lookup-header { display:flex; align-items:center; gap:24px; margin-top:30px; }
+.lookup-key { border:1.5px solid var(--line); padding:14px 24px; }
+.lookup-key span { color:var(--muted); font-size:18px; display:block; }
+.lookup-key strong { font-size:28px; }
+.lookup-header .arrow { flex-shrink:0; }
+.stored-entry { margin-top:22px; border:1.5px solid var(--line); padding:24px; background:var(--paper); }
+.stored-columns { display:grid; grid-template-columns:1fr 1fr; gap:32px; }
+.stored-field { background:#fff; border:1px solid var(--line); padding:22px; }
+.field-name { display:block; font-size:19px; color:var(--muted); margin-bottom:7px; }
+.stored-field strong { font-size:27px; }
+.output-fields { list-style:none; padding:0; margin:20px 0 0; font-size:22px; display:grid; grid-template-columns:1fr 1fr; gap:0 20px; }
+.output-fields li { padding:9px 0; border-top:1px solid var(--line); }
+.origin-flow { display:flex; flex-direction:column; }
+.origin-flow .stored-field { flex:1; display:flex; flex-direction:column; justify-content:center; }
+.history-lookup { display:flex; align-items:center; gap:24px; margin-top:26px; }
+.history-lookup > span { flex:1; font-size:24px; }
+.history-lookup .arrow { flex-shrink:0; }
+.history-lookup .historical-formula { width:480px; }
+.historical-formula { border-left:3px solid var(--red); padding:16px 20px; background:#fff; }
+.historical-formula span { display:block; font-size:19px; color:var(--muted); }
+.historical-formula strong { display:block; font-size:24px; margin-top:6px; }
+.recovery-operation { display:flex; align-items:center; gap:22px; margin-top:26px; }
+.recovery-operation .formula-call { flex:1; padding:22px; background:var(--paper); font-size:25px; text-align:center; }
+.recovery-operation .arrow { flex-shrink:0; }
+.deposit-result { border:1.5px solid var(--red); background:var(--red-soft); padding:18px 22px; min-width:330px; }
+.deposit-result span { display:block; font-size:19px; color:var(--red); }
+.deposit-result strong { display:block; font-size:31px; color:var(--red); margin-top:4px; }
+.ledger-transition { display:grid; grid-template-columns:300px 48px 336px 48px 300px; margin-top:32px; }
+.state-heading { font-size:24px; margin-bottom:18px; }
+.state-rows { display:flex; flex-direction:column; gap:12px; }
+.state-row { border:1.5px solid var(--line); background:var(--paper); padding:18px; }
+.state-row .entry { display:flex; justify-content:space-between; align-items:center; gap:12px; font-size:23px; }
+.state-row small { display:block; color:var(--muted); font-size:18px; margin-top:9px; }
+.state-row.consumed { background:#fff; }
+.state-row.consumed .entry { text-decoration:line-through; color:#888; }
+.state-row.created { border-color:#f1bdb6; background:var(--red-soft); }
+.state-row.created .entry, .state-row.created small { color:var(--red); }
+.transition-arrow { display:flex; align-items:center; justify-content:center; }
+.applied-tx { margin-top:49px; border:1.5px solid var(--line); background:var(--paper); padding:26px; display:flex; flex-direction:column; justify-content:center; }
+.applied-tx h2 { font-size:28px; margin-bottom:26px; }
+.applied-tx .operation { border-top:1px solid var(--line); padding:16px 0; }
+.applied-tx .operation span { color:var(--muted); display:block; font-size:19px; margin-bottom:5px; }
+.applied-tx .operation strong { font-size:26px; }
+.block-origin { margin-top:25px; border-top:1px solid var(--line); padding-top:20px; font-size:21px; color:var(--muted); }
+.block-origin strong { color:var(--ink); }
 @media print { body { background:#fff; } .figure { break-after:page; margin:0; } }
 </style>
 </head>
@@ -308,6 +353,54 @@ strong { font-weight: 600; }
     <div class="interface-arrow"><span>Helper</span><i class="arrow"></i></div>
     <div class="interface-panel signed"><h2>TxBody</h2><div class="field"><span>Ordinary inputs</span><strong>3 application input references</strong></div><div class="field"><span>Ordinary outputs</span><p><strong>output 0</strong> &nbsp; 1.6 ADA</p><p><strong>output 1</strong> &nbsp; 3 Token C</p></div><div class="field"><span>Net deposit declaration</span><strong class="red">Release 1,600,000 lovelace</strong><p>Settlement index &nbsp; <strong>0</strong></p></div></div>
   </div>
+</section>
+<section class="figure" id="08-ledger-deposit-recovery">
+  <h1>Recover a deposit from its allocation origin</h1>
+  <p class="caption">Deposit-backed output · the ledger stores the output and when it was allocated.</p>
+  <div class="lookup-header">
+    <div class="lookup-key"><span>TxIn</span><strong>a#0</strong></div>
+    <i class="arrow"></i>
+    <h2>Unspent (TxOut era)</h2>
+  </div>
+  <div class="stored-entry">
+    <div class="stored-columns">
+      <div class="stored-field">
+        <span class="field-name">output</span>
+        <strong>DepositBackedTxOut</strong>
+        <ul class="output-fields"><li>Address</li><li>Application assets</li><li>Datum</li><li>Reference script</li></ul>
+      </div>
+      <div class="origin-flow">
+        <div class="stored-field"><span class="field-name">allocatedAt</span><strong>AtSlot s</strong></div>
+      </div>
+    </div>
+  </div>
+  <div class="history-lookup"><span>Use slot <strong>s</strong> to look up shared history</span><i class="arrow"></i><div class="historical-formula"><span>Selected pricing rules</span><strong>Formula and parameters<br>at allocation slot s</strong></div></div>
+  <div class="recovery-operation">
+    <div class="formula-call">Apply the selected formula to <strong>output</strong></div>
+    <i class="arrow"></i>
+    <div class="deposit-result"><span>Historical external deposit</span><strong>Original ADA amount</strong></div>
+  </div>
+</section>
+
+<section class="figure" id="09-ledger-state-transition">
+  <h1>Apply the transaction to the live UTxO set</h1>
+  <p class="caption">Accepted ordinary-success path</p>
+  <div class="ledger-transition">
+    <div><h2 class="state-heading">Before</h2><div class="state-rows">
+      <div class="state-row consumed"><div class="entry"><strong>a#0</strong><span>Unspent A</span></div><small>Consumed</small></div>
+      <div class="state-row consumed"><div class="entry"><strong>b#1</strong><span>Unspent B</span></div><small>Consumed</small></div>
+      <div class="state-row"><div class="entry"><strong>c#0</strong><span>Unspent C</span></div><small>Existing allocation origin</small></div>
+    </div></div>
+    <div class="transition-arrow"><i class="arrow"></i></div>
+    <div class="applied-tx"><h2>Transaction d</h2><div class="operation"><span>Spend</span><strong>a#0 + b#1</strong></div><div class="operation"><span>Create</span><strong>d#0 + d#1</strong></div></div>
+    <div class="transition-arrow"><i class="arrow"></i></div>
+    <div><h2 class="state-heading">After</h2><div class="state-rows">
+      <div class="state-row"><div class="entry"><strong>c#0</strong><span>Unspent C</span></div><small>Existing allocation origin</small></div>
+      <div class="state-row created"><div class="entry"><strong>d#0</strong><span>Unspent D</span></div><small>AtSlot blockSlot</small></div>
+      <div class="state-row created"><div class="entry"><strong>d#1</strong><span>Unspent E</span></div><small>AtSlot blockSlot</small></div>
+    </div></div>
+  </div>
+  <p class="block-origin"><strong>blockSlot</strong> is the allocation slot of the block containing transaction d.</p>
 </section>
 </body>
 </html>

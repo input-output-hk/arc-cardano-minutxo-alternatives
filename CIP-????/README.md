@@ -828,15 +828,7 @@ records the allocation origin. That origin selects a historical formula, which i
 applied to the wrapped output to recover its deposit. The Store also maintains
 the aggregate external ADA total.
 
-```mermaid
-flowchart LR
-  I["TxIn<br/>transaction ID + output index"] --> U["Unspent (TxOut era)<br/>ledger entry"]
-  U --> O["output: DepositBackedTxOut<br/>application assets<br/>address, datum, reference script"]
-  U --> A["allocatedAt<br/>migration origin or slot"]
-  A --> H["Formula history<br/>select allocation-time formula"]
-  H --> D["Historical deposit<br/>apply selected formula to output"]
-  O --> D
-```
+![Recover the historical external deposit from the wrapped output, its allocation origin and shared formula history](images/08-ledger-deposit-recovery.png)
 
 This lookup shows the `DepositBackedTxOut` case. A min-ADA entry contributes zero external
 deposit, because its full ADA remains inside its value. Both variants are wrapped
@@ -850,11 +842,7 @@ occupy node resources.
 In ordinary successful execution, a transaction removes its spent entries and
 adds its newly created outputs. Entries outside the spending inputs remain in place.
 
-```mermaid
-flowchart LR
-  U["Live UTxO before<br/>a#0 → output A<br/>b#1 → output B<br/>c#0 → output C"] --> T["Accepted transaction d<br/>spend a#0 and b#1<br/>create d#0 and d#1"]
-  T --> V["Live UTxO after<br/>c#0 → output C<br/>d#0 → output D<br/>d#1 → output E"]
-```
+![An accepted transaction consumes two entries and creates two entries with the containing block's allocation slot](images/09-ledger-state-transition.png)
 
 After validation selects the execution path, the ledger applies its corresponding
 inputs and outputs. The collateral path uses the collateral inputs and return.
