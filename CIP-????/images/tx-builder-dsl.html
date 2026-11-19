@@ -273,44 +273,75 @@ strong { font-weight: 600; }
 .applied-tx .operation strong { font-size:26px; }
 .block-origin { margin-top:25px; border-top:1px solid var(--line); padding-top:20px; font-size:21px; color:var(--muted); }
 .block-origin strong { color:var(--ink); }
-.value-analogy { display:grid; grid-template-columns:1fr 1fr; gap:48px; margin-top:32px; }
-.value-analogy h2 { font-size:26px; margin-bottom:20px; }
-.face-value, .application-value { height:186px; border:1.5px solid var(--line); padding:26px; display:flex; flex-direction:column; justify-content:center; }
-.face-value { outline:1px solid var(--line); outline-offset:-10px; background:var(--paper); }
-.face-value strong { font-size:64px; line-height:1; }
-.face-value span { font-size:22px; color:var(--muted); margin-top:15px; }
-.application-value span { font-size:19px; color:var(--muted); margin-bottom:9px; }
-.application-value strong { font-size:33px; line-height:1.15; }
-.application-value p { font-size:20px; color:var(--muted); margin-top:10px; }
-.backing-connector { height:30px; width:2px; background:var(--line); margin-left:28px; }
-.note-cost, .explicit-deposit { min-height:146px; border-left:3px solid var(--line); background:var(--paper); padding:22px 26px; }
-.note-cost strong, .explicit-deposit strong { font-size:29px; display:block; margin-bottom:9px; }
-.note-cost p, .explicit-deposit p { font-size:21px; line-height:1.35; }
-.note-cost p { color:var(--muted); }
-.explicit-deposit { border-color:var(--red); background:var(--red-soft); }
-.explicit-deposit strong { color:var(--red); }
-.output-commitment { margin-top:24px; border-top:1px solid var(--line); padding-top:17px; font-size:22px; color:var(--muted); }
-.output-commitment strong { color:var(--ink); }
+[id="01-application-value-and-deposit"] { padding:30px 44px; color:#1e2b34; }
+.value-analogy { display:grid; grid-template-columns:320px 1fr; gap:72px; }
+.analogy-column-title { font-size:23px; font-weight:600; margin-bottom:20px; }
+.banknote-object { position:relative; height:180px; border:1px solid #a9bbc7; background:#eef3f6; overflow:hidden; }
+.banknote-object::before { content:''; position:absolute; inset:9px; border:1px solid #b9c9d3; }
+.banknote-object::after { content:''; position:absolute; inset:14px; border:1px solid #d5dfe6; }
+.banknote-rosette { position:absolute; width:172px; height:208px; right:3px; top:-14px; border-radius:50%; background:repeating-radial-gradient(ellipse at center, transparent 0 5px, #c6d4de 5px 6px, transparent 6px 10px); transform:rotate(-18deg); opacity:.65; }
+.banknote-face-label { position:absolute; z-index:1; top:27px; left:27px; color:#536d7e; font-size:18px; }
+.banknote-value { position:absolute; z-index:1; left:24px; bottom:26px; font-size:65px; line-height:1; letter-spacing:-2px; color:#304e62; font-weight:600; }
+.production-backing { height:92px; margin-top:20px; padding-top:16px; border-top:1px solid #dce3e7; }
+.analogy-role { display:block; color:#65747f; font-size:18px; }
+.production-backing p { font-size:22px; margin-top:8px; }
+.application-boundary { height:180px; border:1px solid #bac7cf; padding:23px 26px; }
+.output-field-header { display:flex; align-items:baseline; justify-content:space-between; gap:20px; }
+.output-field-header code { font:15px/1.3 ui-monospace, monospace; color:#65747f; }
+.application-amounts { display:flex; align-items:baseline; gap:24px; margin-top:31px; white-space:nowrap; }
+.ada-amount { font-size:40px; font-weight:600; line-height:1.1; font-variant-numeric:tabular-nums; }
+.ada-amount span { font-size:23px; font-weight:400; margin-left:4px; }
+.asset-plus { font-size:25px; color:#8a969e; }
+.token-amount { font-size:30px; font-weight:600; }
+.token-amount span { font-size:23px; font-weight:400; margin-left:3px; }
+.external-backing { display:flex; justify-content:space-between; align-items:center; gap:24px; height:92px; margin-top:20px; border-left:2px solid #bd5047; padding:15px 25px; background:#fcf3f1; }
+.external-backing .analogy-role { color:#a14a42; }
+.external-backing p { color:#8b706c; font-size:16px; margin-top:4px; }
+.external-backing .ada-amount { color:#aa3b32; font-size:32px; white-space:nowrap; }
+.external-backing .ada-amount span { font-size:22px; }
+.output-total { display:flex; align-items:baseline; justify-content:space-between; gap:20px; padding:18px 0 0; margin-top:20px; border-top:1px solid #dce3e7; }
+.output-total span { color:#65747f; font-size:17px; }
+.output-total strong { font-size:25px; font-weight:600; white-space:nowrap; }
 @media print { body { background:#fff; } .figure { break-after:page; margin:0; } }
 </style>
 </head>
 <body>
 <!-- Render each .figure separately at deviceScaleFactor 2 for the Markdown PNGs. -->
-<section class="figure" id="01-application-value-and-deposit">
-  <h1>Application value and resource backing</h1>
+<section class="figure" id="01-application-value-and-deposit" aria-label="Banknote face value and production cost compared with application assets and their storage deposit">
   <div class="value-analogy">
     <div>
-      <h2>A banknote</h2>
-      <div class="face-value"><strong>€20</strong><span>Face value · spending power</span></div>
-      <div class="backing-connector"></div>
-      <div class="note-cost"><strong>Production cost</strong><p>Paper, ink and printing</p></div>
+      <h2 class="analogy-column-title">Banknote</h2>
+      <div class="banknote-object" role="img" aria-label="Illustrative banknote with a face value of 20 euros">
+        <div class="banknote-rosette"></div>
+        <span class="banknote-face-label">Face value</span>
+        <span class="banknote-value">€20</span>
+      </div>
+      <div class="production-backing">
+        <span class="analogy-role">Production cost</span>
+        <p>Paper, ink and printing</p>
+      </div>
     </div>
     <div>
-      <h2>A deposit-backed output</h2>
-      <div class="application-value"><span>TxOut.Value</span><strong>1,000 tokens + 20 ADA</strong><p>The application's transfer</p></div>
-      <div class="backing-connector"></div>
-      <div class="explicit-deposit"><strong>32 ADA deposit</strong><p>Held while the output is unspent.<br>Released when the output is spent.</p></div>
-      <p class="output-commitment"><strong>52 ADA</strong> committed for this output, plus the tokens.</p>
+      <h2 class="analogy-column-title">Deposit-backed output</h2>
+      <div class="application-boundary">
+        <div class="output-field-header">
+          <span class="analogy-role">Application assets</span>
+          <code>TxOut.Value</code>
+        </div>
+        <div class="application-amounts">
+          <div class="ada-amount">20 <span>ADA</span></div>
+          <span class="asset-plus">+</span>
+          <div class="token-amount">1,000 <span>tokens</span></div>
+        </div>
+      </div>
+      <div class="external-backing">
+        <div><span class="analogy-role">Storage deposit</span><p>Outside the TxOut</p></div>
+        <div class="ada-amount">32 <span>ADA</span></div>
+      </div>
+      <div class="output-total">
+        <span>ADA committed for this output</span>
+        <strong>52 ADA</strong>
+      </div>
     </div>
   </div>
 </section>
