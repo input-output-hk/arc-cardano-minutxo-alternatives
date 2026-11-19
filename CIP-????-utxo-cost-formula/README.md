@@ -226,7 +226,7 @@ the address size is vulnerable to a potential attack.
 | Token count and datum size only | $`\begin{aligned} & \mathrm{coinsPerUTxOByte} \times \bigl( \\ & 250 \\ & {}+ 74 \times \mathrm{numberOfNativeAssets} \\ & {}+ \mathrm{serializedDatumBytes}\bigr) \end{aligned}`$ | Simple, but underestimates too much |
 | Byte-based formula with a fixed ADA encoding allowance | $`\begin{aligned} & \mathrm{coinsPerUTxOByte} \times \bigl( \\ & 160 \\ & {}+ \mathrm{serializedOutputBytes} \\ & {}- \mathrm{serializedAdaAmountBytes} \\ & {}+ 9\bigr) \end{aligned}`$ | Very close to the current formula, but depends on the whole output |
 
-### 4.3 Alternative implementation considered
+### 4.3 Alternative implementation
 
 The same benefits could be obtained by simply disseminating one of the 
 alternatives, which never underestimates, throughout tooling only, thus leaving 
