@@ -28,37 +28,41 @@ License: CC-BY-4.0
   - [2.2 Composition multiplies the funding work](#22-composition-multiplies-the-funding-work)
   - [2.3 Explicit deposits with a choice of output form](#23-explicit-deposits-with-a-choice-of-output-form)
 - [3. Specification](#3-specification)
-  - [3.1 Transaction-building DSL](#31-transaction-building-dsl)
-    - [3.1.1 Choosing each output form](#311-choosing-each-output-form)
-    - [3.1.2 Computing and reviewing the net](#312-computing-and-reviewing-the-net)
-    - [3.1.3 Funding and refund policies](#313-funding-and-refund-policies)
-  - [3.2 SubTx composition and delegation](#32-subtx-composition-and-delegation)
-    - [3.2.1 Local accounting or delegation to TopTx](#321-local-accounting-or-delegation-to-toptx)
-    - [3.2.2 Netting across SubTxs](#322-netting-across-subtxs)
-    - [3.2.3 An ADA-free SubTx using the storage cost formula](#323-an-ada-free-subtx-using-the-storage-cost-formula)
-  - [3.3 Ledger interface and TxBody declarations](#33-ledger-interface-and-txbody-declarations)
-    - [3.3.1 Declaration meaning and presence](#331-declaration-meaning-and-presence)
-    - [3.3.2 Haskell representation](#332-haskell-representation)
-    - [3.3.3 CBOR encoding](#333-cbor-encoding)
-  - [3.4 Transaction accounting and validation](#34-transaction-accounting-and-validation)
-    - [3.4.1 Netting and the transaction balance](#341-netting-and-the-transaction-balance)
-    - [3.4.2 Release authority and settlement](#342-release-authority-and-settlement)
-    - [3.4.3 Script outcomes and collateral](#343-script-outcomes-and-collateral)
-  - [3.5 Output representation and ledger application](#35-output-representation-and-ledger-application)
-    - [3.5.1 The two TxOut forms](#351-the-two-txout-forms)
-    - [3.5.2 Unspent entries and allocation origins](#352-unspent-entries-and-allocation-origins)
-    - [3.5.3 Applying the transaction](#353-applying-the-transaction)
-  - [3.6 Deterministic deposit recovery](#36-deterministic-deposit-recovery)
-    - [3.6.1 Dependency on UTxO Storage Cost Formula](#361-dependency-on-utxo-storage-cost-formula)
-    - [3.6.2 Formula history and the Store invariant](#362-formula-history-and-the-store-invariant)
-    - [3.6.3 Recovering deposits outside the node](#363-recovering-deposits-outside-the-node)
-  - [3.7 Migration and compatibility](#37-migration-and-compatibility)
-    - [3.7.1 Activation and the migration baseline](#371-activation-and-the-migration-baseline)
-    - [3.7.2 Legacy outputs below the new minimum](#372-legacy-outputs-below-the-new-minimum)
-    - [3.7.3 Formula and parameter changes](#373-formula-and-parameter-changes)
-    - [3.7.4 Stake, voting and monetary conservation](#374-stake-voting-and-monetary-conservation)
-    - [3.7.5 Encoding validation and persistence](#375-encoding-validation-and-persistence)
-    - [3.7.6 Script contexts and legacy Plutus mode](#376-script-contexts-and-legacy-plutus-mode)
+  - [3.1 Application value and resource backing](#31-application-value-and-resource-backing)
+    - [3.1.1 The banknote analogy](#311-the-banknote-analogy)
+    - [3.1.2 Minimum-ADA and deposit-backed outputs](#312-minimum-ada-and-deposit-backed-outputs)
+    - [3.1.3 From individual deposits to transaction netting](#313-from-individual-deposits-to-transaction-netting)
+  - [3.2 Transaction-building DSL](#32-transaction-building-dsl)
+    - [3.2.1 Describing the application flow](#321-describing-the-application-flow)
+    - [3.2.2 Computing and reviewing the net](#322-computing-and-reviewing-the-net)
+    - [3.2.3 Funding and refund policies](#323-funding-and-refund-policies)
+  - [3.3 SubTx composition and delegation](#33-subtx-composition-and-delegation)
+    - [3.3.1 Local accounting or delegation to TopTx](#331-local-accounting-or-delegation-to-toptx)
+    - [3.3.2 Netting across SubTxs](#332-netting-across-subtxs)
+    - [3.3.3 An ADA-free SubTx using the storage cost formula](#333-an-ada-free-subtx-using-the-storage-cost-formula)
+  - [3.4 Ledger interface and TxBody declarations](#34-ledger-interface-and-txbody-declarations)
+    - [3.4.1 Declaration meaning and presence](#341-declaration-meaning-and-presence)
+    - [3.4.2 Haskell representation](#342-haskell-representation)
+    - [3.4.3 CBOR encoding](#343-cbor-encoding)
+  - [3.5 Transaction accounting and validation](#35-transaction-accounting-and-validation)
+    - [3.5.1 Netting and the transaction balance](#351-netting-and-the-transaction-balance)
+    - [3.5.2 Release authority and settlement](#352-release-authority-and-settlement)
+    - [3.5.3 Script outcomes and collateral](#353-script-outcomes-and-collateral)
+  - [3.6 Output representation and ledger application](#36-output-representation-and-ledger-application)
+    - [3.6.1 The two TxOut forms](#361-the-two-txout-forms)
+    - [3.6.2 Unspent entries and allocation origins](#362-unspent-entries-and-allocation-origins)
+    - [3.6.3 Applying the transaction](#363-applying-the-transaction)
+  - [3.7 Deterministic deposit recovery](#37-deterministic-deposit-recovery)
+    - [3.7.1 Dependency on UTxO Storage Cost Formula](#371-dependency-on-utxo-storage-cost-formula)
+    - [3.7.2 Formula history and the Store invariant](#372-formula-history-and-the-store-invariant)
+    - [3.7.3 Recovering deposits outside the node](#373-recovering-deposits-outside-the-node)
+  - [3.8 Migration and compatibility](#38-migration-and-compatibility)
+    - [3.8.1 Activation and the migration baseline](#381-activation-and-the-migration-baseline)
+    - [3.8.2 Legacy outputs below the new minimum](#382-legacy-outputs-below-the-new-minimum)
+    - [3.8.3 Formula and parameter changes](#383-formula-and-parameter-changes)
+    - [3.8.4 Stake, voting and monetary conservation](#384-stake-voting-and-monetary-conservation)
+    - [3.8.5 Encoding validation and persistence](#385-encoding-validation-and-persistence)
+    - [3.8.6 Script contexts and legacy Plutus mode](#386-script-contexts-and-legacy-plutus-mode)
 - [4. Rationale: How does this CIP achieve its goals?](#4-rationale-how-does-this-cip-achieve-its-goals)
   - [4.1 Application value and funding](#41-application-value-and-funding)
   - [4.2 Evaluation against the CPS use cases](#42-evaluation-against-the-cps-use-cases)
@@ -202,70 +206,42 @@ each original deposit when its output is spent, including after pricing changes.
 
 ## 3. Specification
 
-Consider a **20-euro banknote**. Its face value gives the holder 20 euros of
-spending power. Producing the banknote also requires paper, ink and printing.
-The value used for a payment and the cost of its physical representation have
-different meanings.
+### 3.1 Application value and resource backing
+
+Two amounts are involved when an application creates an output. The application
+chooses the value it intends to transfer. The storage cost formula determines
+the ADA backing required for the output to occupy the live UTxO set. This proposal
+introduces a deposit-backed output that accounts for each amount separately.
+
+#### 3.1.1 The banknote analogy
+
+A **20-euro banknote** gives its holder 20 euros of spending power. Producing the
+note also requires paper, ink and printing. Its face value expresses what it can
+buy. Its production cost expresses the resources needed to create the physical
+object used for that payment.
+
+A deposit-backed output gives application value and resource backing similarly
+distinct roles. The output records the assets the application transfers. Its
+associated ADA deposit backs the resources it occupies in the live UTxO set.
 
 ![A banknote distinguishes face value from production cost, and a deposit-backed output distinguishes application value from resource backing](images/01-application-value-and-deposit.png)
 
-A **deposit-backed output** gives application value and resource backing their
-own accounting. In this example, the application transfers **1,000 tokens and
-20 ADA**. An illustrative **32 ADA deposit** backs the output's place in the live
-UTxO set, giving **52 ADA committed for this output**, alongside the tokens. The
-deposit stays associated with the output while it is unspent. Spending the output
-releases that deposit through the transaction balance.
+In the example, the application transfers **1,000 tokens and 20 ADA**. An
+illustrative **32 ADA deposit** gives **52 ADA committed for this output**,
+alongside the tokens. The deposit is held while the output is unspent. Spending
+the output releases that deposit through the transaction balance.
 
-With the current **minimum-ADA form**, the same ADA can serve both as payment and
-resource backing. For the same intended transfer and minimum, the output carries
-32 ADA and the tokens. The extra 12 ADA needed to meet the minimum is included
-in that value. A deposit-backed output records the intended 20 ADA payment and
-accounts for the full 32 ADA deposit separately. The transaction builder chooses
-the form of each new output.
+<a id="311-choosing-each-output-form"></a>
 
-There is also a choice in how assets are grouped. **20 coins of 1 euro** can be
-exchanged for **1 banknote of 20 euros**. The spending power stays the same while
-the number of physical objects changes. Similarly, combining assets into fewer
-outputs or distributing them across several outputs changes the resources
-occupied in the live UTxO set and the deposits required.
+#### 3.1.2 Minimum-ADA and deposit-backed outputs
 
-The transaction builder can express those application transfers and review their
-combined resource effect as a **net deposit change**. Funding and refund choices
-then determine how the transaction handles that difference.
+The proposal supports both the current minimum-ADA form and the deposit-backed
+form. They account for resource backing differently.
 
-<a id="31-moving-minutxo-accounting-from-txouts-to-transactions"></a>
-<a id="31-transaction-builder-experience"></a>
-
-### 3.1 Transaction-building DSL
-
-The construction interface lets a transaction builder describe the **application
-flow** and supply a **funding and refund policy**. The builder selects the
-application inputs, chooses the new outputs and identifies a reserve input for
-top-ups and an output for refunds. In the reference API, `computeNetBalance`
-derives the deposit declaration from those choices. `updateTxBodyWithNetBalance` returns a transaction
-body containing the selected input/output additions and that declaration.
-
-The following example uses an illustrative **1.6 ADA deposit per deposit-backed
-output**. The token inputs and outputs carry zero application ADA.
-
-![Construct the application flow and use a funding and refund policy to calculate the net](images/03-dsl-net-declaration.png)
-
-In this example, the application consolidates 3 token inputs into 1 token output.
-Its policy names `reserve#0` as a funding candidate and output 0 as the refund
-destination. The calculation yields a **1.6 ADA net release**. The builder can
-review that amount and adjust the application flow before completing the transaction.
-
-The 3 inputs and 2 outputs depicted here all use the deposit-backed form, with
-an illustrative deposit of 1.6 ADA each. The calculation includes the deposit
-needed for the refund output itself. Fee-funding inputs and change outputs use
-the minimum-ADA form and contribute zero external-deposit change.
-
-#### 3.1.1 Choosing each output form
-
-Selected inputs retain their recorded forms. For every new output, the
-transaction builder chooses the current minimum-ADA form or the deposit-backed
-form. Both can appear in the same transaction, and the calculation follows those
-choices.
+For the intended 20 ADA payment above, a minimum-ADA output carries **32 ADA**
+and the tokens. The extra **12 ADA** needed to meet the minimum is included in
+its value. A deposit-backed output carries the intended **20 ADA** and the tokens,
+with the full **32 ADA deposit** accounted for separately.
 
 | Property | `MinAdaTxOut` | `DepositBackedTxOut` |
 | --- | --- | --- |
@@ -286,10 +262,60 @@ The minimum-ADA form lets the payment's ADA satisfy the resource requirement.
 The deposit-backed form keeps the application value and full resource deposit
 explicitly separate. These examples account for the selected output's funding.
 
+#### 3.1.3 From individual deposits to transaction netting
+
+The choice of representation also affects how many objects carry the value.
+**20 coins of 1 euro** can be exchanged for **1 banknote of 20 euros**. The holder
+has 20 euros to spend in either case. Similarly, a transaction builder can group
+assets into fewer outputs or distribute them across several outputs. These
+choices change the resources occupied in the live UTxO set and the deposits
+required.
+
+Spending deposit-backed outputs releases their deposits. Creating new ones
+requires new allocations. A transaction combines those releases and allocations,
+so resource funding can be expressed as a **single net deposit change**. The
+transaction builder describes the application transfers, reviews that net
+change, and chooses where additional funding comes from or released ADA goes.
+
+<a id="31-moving-minutxo-accounting-from-txouts-to-transactions"></a>
+<a id="31-transaction-builder-experience"></a>
+
+<a id="31-transaction-building-dsl"></a>
+
+### 3.2 Transaction-building DSL
+
+#### 3.2.1 Describing the application flow
+
+The transaction builder selects the application inputs and describes the outputs
+the application needs. Selected inputs retain their recorded forms. For each new
+output, the builder chooses the current minimum-ADA form or the deposit-backed
+form. Both can appear in the same transaction.
+
+The builder also supplies a **funding and refund policy**, identifying a reserve
+input for top-ups and an output for refunds. The net deposit calculation accounts
+for the selected inputs, the chosen output forms and this policy.
+
+The following example uses an illustrative **1.6 ADA deposit per deposit-backed
+output**. The token inputs and outputs carry zero application ADA.
+
+![Construct the application flow and use a funding and refund policy to calculate the net](images/03-dsl-net-declaration.png)
+
+In this example, the application consolidates 3 token inputs into 1 token output.
+Its policy names `reserve#0` as a funding candidate and output 0 as the refund
+destination. The calculation yields a **1.6 ADA net release**. The builder can
+review that amount and adjust the application flow before completing the transaction.
+
+The 3 inputs and 2 outputs depicted here all use the deposit-backed form, with
+an illustrative deposit of 1.6 ADA each. The calculation includes the deposit
+needed for the refund output itself. Fee-funding inputs and change outputs use
+the minimum-ADA form and contribute zero external-deposit change.
+
 <a id="311-builder-experience-consolidating-token-outputs"></a>
 <a id="312-consolidation-and-the-net-declaration"></a>
 
-#### 3.1.2 Computing and reviewing the net
+<a id="312-computing-and-reviewing-the-net"></a>
+
+#### 3.2.2 Computing and reviewing the net
 
 The net calculation recovers the historical external deposits of the selected
 inputs and calculates the requirements for new deposit-backed outputs. Their difference is
@@ -321,11 +347,13 @@ contents visible. The transaction builder can compare alternative flows and
 choose an acceptable result. The transaction builder repeats the calculation
 whenever a change affects the deposits involved.
 
-For the opening example, historical releases total 4.8 ADA and new requirements
+For the token-consolidation example, historical releases total 4.8 ADA and new requirements
 total 3.2 ADA, including the deposit-backed refund output. The resulting 1.6 ADA
 release is available for that output's application value.
 
-#### 3.1.3 Funding and refund policies
+<a id="313-funding-and-refund-policies"></a>
+
+#### 3.2.3 Funding and refund policies
 
 An application can reuse a reserve policy across its workflows. The reference
 construction API supports the following choices.
@@ -352,14 +380,18 @@ The selected reserve input becomes an ordinary spending input. The refund choice
 identifies an ordinary output. Both are part of the signed transaction.
 Individual deposit allocations are recorded when the ledger applies the transaction.
 
-### 3.2 SubTx composition and delegation
+<a id="32-subtx-composition-and-delegation"></a>
+
+### 3.3 SubTx composition and delegation
 
 The proposal extends the Dijkstra model of an enclosing transaction (`TopTx`)
 and its sub-transactions (`SubTxs`). A standalone transaction is a TopTx with no
 SubTxs. The complete batch consists of TopTx and its SubTx bodies, each counted
 once.
 
-#### 3.2.1 Local accounting or delegation to TopTx
+<a id="321-local-accounting-or-delegation-to-toptx"></a>
+
+#### 3.3.1 Local accounting or delegation to TopTx
 
 A SubTx author can use the same construction flow and provide a local funding
 and refund policy. The additional choice is to **delegate deposit accounting to
@@ -384,7 +416,9 @@ and TopTx's attributed share, using the prepared SubTx declarations. Changing a
 SubTx's inputs, outputs or accounting choice requires recalculating the enclosing
 transaction.
 
-#### 3.2.2 Netting across SubTxs
+<a id="322-netting-across-subtxs"></a>
+
+#### 3.3.2 Netting across SubTxs
 
 A SubTx consolidating 3 deposit-backed token outputs into 1 releases 3.2 ADA under
 the illustrative pricing above. Another SubTx consumes a distinct input and
@@ -402,7 +436,9 @@ coordinate resource funding across the application flows.
 <a id="315-an-ada-free-subtx-under-formula-v1"></a>
 <a id="323-an-ada-free-subtx-under-formula-v1"></a>
 
-#### 3.2.3 An ADA-free SubTx using the storage cost formula
+<a id="323-an-ada-free-subtx-using-the-storage-cost-formula"></a>
+
+#### 3.3.3 An ADA-free SubTx using the storage cost formula
 
 Use the proposed UTxO Storage Cost Formula with a rate of **4,310 lovelace per
 byte**, **57-byte base addresses**, and no datum or reference script on any of the
@@ -435,15 +471,11 @@ its external-deposit release is zero.
 
 <a id="33-txbody-declarations-and-encoding"></a>
 
-### 3.3 Ledger interface and TxBody declarations
+<a id="33-ledger-interface-and-txbody-declarations"></a>
 
-Amounts use lovelace, and the pricing rate uses lovelace per byte. Calculations
-use exact integer arithmetic. A positive net deposit change allocates ADA, a
-negative change releases ADA, and an explicit zero records a balanced deposit
-contribution. Activation requires an era transition and compatible node,
-transaction-construction and script-context interfaces.
+### 3.4 Ledger interface and TxBody declarations
 
-The construction choices above become ordinary spending inputs, ordinary outputs
+The application flow and funding choices become ordinary spending inputs, outputs
 and a deposit declaration in the signed transaction body. The reserve policy is
 an input to the construction API. A selected funding input appears in the body's
 ordinary input set. A local refund destination appears as an output index in the
@@ -456,12 +488,20 @@ provide the released deposits, so the funding candidate is unused. Fee funding
 is handled separately as described there.
 
 TopTx declares the complete batch change. Each SubTx declares its own contribution
-and accounting choice. Amounts use lovelace. The ledger independently calculates
+and accounting choice. The ledger independently calculates
 the required amounts and validates the declarations against the inputs, outputs
 and allocation history. The following rules define this interface for every
 transaction-construction library.
 
-#### 3.3.1 Declaration meaning and presence
+Amounts use lovelace, and the pricing rate uses lovelace per byte. Calculations
+use exact integer arithmetic. A positive net deposit change allocates ADA, a
+negative change releases ADA, and an explicit zero records a balanced deposit
+contribution. Activation requires an era transition and compatible node,
+transaction-construction and script-context interfaces.
+
+<a id="331-declaration-meaning-and-presence"></a>
+
+#### 3.4.1 Declaration meaning and presence
 
 TopTx declares the exact `Δbatch`. Each explicit SubTx declaration gives its exact
 own `Δb` and, for a nonzero contribution, its local or delegated accounting choice.
@@ -487,7 +527,9 @@ Amount-bearing forms contain a strictly positive integer in `1..2^64−1`.
 Explicit zero has its own representation. The allocation or release form must
 agree with the sign of the calculated change.
 
-#### 3.3.2 Haskell representation
+<a id="332-haskell-representation"></a>
+
+#### 3.4.2 Haskell representation
 
 The implementation adds the following fields to its body constructors. This
 excerpt shows the deposit fields of the otherwise complete transaction bodies.
@@ -541,7 +583,9 @@ interface. `StrictlyPositiveCoin` is a checked positive lovelace amount, and
 
 [TopTx declaration types](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/UTxOs/Deposit/TopTx.hs) · [SubTx declaration types](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/UTxOs/Deposit/SubTx.hs)
 
-#### 3.3.3 CBOR encoding
+<a id="333-cbor-encoding"></a>
+
+#### 3.4.3 CBOR encoding
 
 CDDL, the Concise Data Definition Language, describes the serialized data shape.
 `?` marks an optional map entry, `/` separates
@@ -586,7 +630,9 @@ They reject unknown tags, incorrect field counts, zero or out-of-range amounts
 in amount-bearing forms, and indices outside `0..65535`. Ledger validation also
 requires each selected index to exist in the declaring body's own ordinary outputs.
 
-### 3.4 Transaction accounting and validation
+<a id="34-transaction-accounting-and-validation"></a>
+
+### 3.5 Transaction accounting and validation
 
 The ledger associates an individual deposit with each deposit-backed output.
 In the token-consolidation example, the 3 spent entries release 4.8 ADA and
@@ -597,7 +643,9 @@ deposit. The difference supplies its 1.6 ADA application value.
 
 <a id="313-netting-and-the-transaction-balance"></a>
 
-#### 3.4.1 Netting and the transaction balance
+<a id="341-netting-and-the-transaction-balance"></a>
+
+#### 3.5.1 Netting and the transaction balance
 
 The transaction balance includes serialized output values and a separate term
 for the net change in external deposits. Each form contributes as follows.
@@ -679,7 +727,9 @@ or out of the Store.
 
 <a id="314-release-authority-and-settlement"></a>
 
-#### 3.4.2 Release authority and settlement
+<a id="342-release-authority-and-settlement"></a>
+
+#### 3.5.2 Release authority and settlement
 
 The authority to consume an output also authorises release of its deposit. The
 original funder gains no additional credential or independent recovery right.
@@ -717,7 +767,9 @@ self-balance check in legacy Plutus mode.
 
 <a id="316-script-outcomes-and-collateral"></a>
 
-#### 3.4.3 Script outcomes and collateral
+<a id="343-script-outcomes-and-collateral"></a>
+
+#### 3.5.3 Script outcomes and collateral
 
 Declaration presence, exactness, output validity and settlement checks apply to
 both accepted phase-2 outcomes. Ordinary financial conservation applies to the
@@ -770,11 +822,15 @@ collateral deposit effects directly from the collateral inputs and return.
 
 <a id="32-deposit-model"></a>
 
-### 3.5 Output representation and ledger application
+<a id="35-output-representation-and-ledger-application"></a>
+
+### 3.6 Output representation and ledger application
 
 <a id="322-output-representation"></a>
 
-#### 3.5.1 The two TxOut forms
+<a id="351-the-two-txout-forms"></a>
+
+#### 3.6.1 The two TxOut forms
 
 The reference implementation makes the per-output choice explicit in `TxOut era`.
 
@@ -851,7 +907,9 @@ the external deposit amount nor the allocation origin.
 
 <a id="321-the-live-utxo-resource"></a>
 
-#### 3.5.2 Unspent entries and allocation origins
+<a id="352-unspent-entries-and-allocation-origins"></a>
+
+#### 3.6.2 Unspent entries and allocation origins
 
 The resource is a persistent collection of live outputs indexed by their creating
 transaction ID and output index. The reference implementation stores it as a map
@@ -889,7 +947,9 @@ occupy node resources.
 
 [Allocation map](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/IndexedUTxOs.hs) · [Unspent and allocation origin](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/Unspent.hs)
 
-#### 3.5.3 Applying the transaction
+<a id="353-applying-the-transaction"></a>
+
+#### 3.6.3 Applying the transaction
 
 In ordinary successful execution, a transaction removes its spent entries and
 adds its newly created outputs. Entries outside the spending inputs remain in place.
@@ -913,11 +973,15 @@ An indexer can follow those asset flows and reconstruct their deposit effects
 using allocation origins and formula history. The external allocation exists
 for the lifetime of the unspent entry.
 
-### 3.6 Deterministic deposit recovery
+<a id="36-deterministic-deposit-recovery"></a>
+
+### 3.7 Deterministic deposit recovery
 
 <a id="323-dependency-on-utxo-storage-cost-formula"></a>
 
-#### 3.6.1 Dependency on UTxO Storage Cost Formula
+<a id="361-dependency-on-utxo-storage-cost-formula"></a>
+
+#### 3.7.1 Dependency on UTxO Storage Cost Formula
 
 This CIP requires [UTxO Storage Cost Formula](../CIP-????-utxo-cost-formula/README.md).
 That proposal defines the output measurements, coefficients and exact
@@ -936,7 +1000,9 @@ sizes and illustrative rates.
 
 <a id="324-allocation-history-and-the-store-invariant"></a>
 
-#### 3.6.2 Formula history and the Store invariant
+<a id="362-formula-history-and-the-store-invariant"></a>
+
+#### 3.7.2 Formula history and the Store invariant
 
 A deposit-backed output can remain unspent while the pricing rules change.
 Repricing it when it is spent would return an amount different from the deposit
@@ -1002,7 +1068,9 @@ representation if it preserves these amounts and the same transitions. Snapshot,
 rollback and replay must retain enough information to reproduce them exactly.
 History survives an empty allocation map.
 
-#### 3.6.3 Recovering deposits outside the node
+<a id="363-recovering-deposits-outside-the-node"></a>
+
+#### 3.7.3 Recovering deposits outside the node
 
 External tools need the accepted output referenced by each input, its allocation
 origin and the corresponding formula history. Input entries and history must be
@@ -1039,11 +1107,15 @@ The two results supply the release and allocation terms in the transaction balan
 
 <a id="33-lifecycle-and-compatibility"></a>
 
-### 3.7 Migration and compatibility
+<a id="37-migration-and-compatibility"></a>
+
+### 3.8 Migration and compatibility
 
 <a id="331-parameter-changes-and-migration"></a>
 
-#### 3.7.1 Activation and the migration baseline
+<a id="371-activation-and-the-migration-baseline"></a>
+
+#### 3.8.1 Activation and the migration baseline
 
 At the hard fork, translate existing UTxO references and their semantic address, value,
 datum and reference script into min-ADA entries marked `AtStoreMigration`. Initialise
@@ -1057,7 +1129,9 @@ New outputs, including replacements of min-ADA outputs, satisfy the active rules
 This transition changes state representation and requires downstream interfaces to
 handle the new form.
 
-#### 3.7.2 Legacy outputs below the new minimum
+<a id="372-legacy-outputs-below-the-new-minimum"></a>
+
+#### 3.8.2 Legacy outputs below the new minimum
 
 For wallet and inspection queries, the proposal also defines a min-ADA backing
 view. If `C(u)` is the output's ADA, its embedded reserve is
@@ -1093,7 +1167,9 @@ The migration marker always uses its initial baseline. Later formula changes
 price new outputs and preserve this imported entry's derived reserve. A newly
 created minimum-ADA successor must satisfy the full active requirement.
 
-#### 3.7.3 Formula and parameter changes
+<a id="373-formula-and-parameter-changes"></a>
+
+#### 3.8.3 Formula and parameter changes
 
 A rate change becomes part of history at the first slot of the epoch in which it
 is effective, including when the first transaction arrives later. New allocations
@@ -1125,7 +1201,9 @@ with the historical version and its parameters retained together.
 
 <a id="332-stake-voting-and-monetary-conservation"></a>
 
-#### 3.7.4 Stake, voting and monetary conservation
+<a id="374-stake-voting-and-monetary-conservation"></a>
+
+#### 3.8.4 Stake, voting and monetary conservation
 
 The ledger applies existing staking eligibility and delegation rules to the
 full ADA of min-ADA outputs and to the application ADA of `DepositBackedTxOut` outputs.
@@ -1139,7 +1217,9 @@ deposit contributes 8 ADA. [Distribution rules](https://github.com/nhenin/cardan
 
 <a id="333-encoding-validation-and-versioning"></a>
 
-#### 3.7.5 Encoding validation and persistence
+<a id="375-encoding-validation-and-persistence"></a>
+
+#### 3.8.5 Encoding validation and persistence
 
 The extended transaction-body and output encodings activate in the supporting era.
 Snapshots, rollback and replay must preserve the accepted output payloads,
@@ -1150,7 +1230,9 @@ The reference implementation uses MemPack for some Store entries. Interoperable
 persistence must specify those entries' encoding as well as the outer snapshot
 structure.
 
-#### 3.7.6 Script contexts and legacy Plutus mode
+<a id="376-script-contexts-and-legacy-plutus-mode"></a>
+
+#### 3.8.6 Script contexts and legacy Plutus mode
 
 The reference implementation preserves a TopTx self-balance check when legacy
 Plutus mode applies. That check uses TopTx's own value flows and its attributed
