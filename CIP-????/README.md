@@ -24,13 +24,17 @@ License: CC-BY-4.0
 
 - [1. Abstract](#1-abstract)
 - [2. Motivation: Why is this CIP necessary?](#2-motivation-why-is-this-cip-necessary)
-  - [2.1 When resource funding obscures an application payment](#21-when-resource-funding-obscures-an-application-payment)
-  - [2.2 Composition multiplies the funding work](#22-composition-multiplies-the-funding-work)
-  - [2.3 Explicit deposits with a choice of output form](#23-explicit-deposits-with-a-choice-of-output-form)
+  - [2.1 Preliminaries — the live UTxO set and its economic deterrent](#21-preliminaries--the-live-utxo-set-and-its-economic-deterrent)
+  - [2.2 From straightforward payments to hidden application intent](#22-from-straightforward-payments-to-hidden-application-intent)
+    - [2.2.1 An ADA payment already covers the minimum](#221-an-ada-payment-already-covers-the-minimum)
+    - [2.2.2 A token-only transfer introduces ADA funding](#222-a-token-only-transfer-introduces-ada-funding)
+    - [2.2.3 The recorded value obscures the intended payment](#223-the-recorded-value-obscures-the-intended-payment)
+  - [2.3 Composition multiplies the funding work](#23-composition-multiplies-the-funding-work)
+  - [2.4 Explicit deposits with a choice of output form](#24-explicit-deposits-with-a-choice-of-output-form)
 - [3. Specification](#3-specification)
   - [3.1 Application value and resource backing](#31-application-value-and-resource-backing)
     - [3.1.1 The banknote analogy](#311-the-banknote-analogy)
-    - [3.1.2 Minimum-ADA and deposit-backed outputs](#312-minimum-ada-and-deposit-backed-outputs)
+    - [3.1.2 Minimum-ADA vs deposit-backed outputs](#312-minimum-ada-vs-deposit-backed-outputs)
     - [3.1.3 From individual deposits to transaction netting](#313-from-individual-deposits-to-transaction-netting)
   - [3.2 Transaction-building DSL](#32-transaction-building-dsl)
     - [3.2.1 Describing the application flow](#321-describing-the-application-flow)
@@ -104,109 +108,147 @@ parameter changes. [UTxO Storage Cost Formula](../CIP-????-utxo-cost-formula/REA
 
 ## 2. Motivation: Why is this CIP necessary?
 
-Every unspent output occupies space in the live UTxO set maintained by Cardano
-nodes. More outputs increase the number of entries, and larger datums or reference
-scripts increase the space occupied by each entry. Requiring ADA to remain
-committed while an output is unspent gives users an economic incentive to use
-that resource efficiently.
-
-This intended funding cost also appears inside the values applications transfer.
-CPS-0037 describes how that coupling creates additional work when constructing
-transactions and interpreting their history. This proposal makes resource funding
-explicit and gives transaction builders a choice of accounting model.
+CPS-0037 collects the community's experience with minimum ADA. This proposal
+addresses the **funding and accounting work** that arises when the ADA backing
+ledger state becomes part of the **application's transfers**.
 [CPS-0037](../CPS-0037/README.md)
+
+### 2.1 Preliminaries — the live UTxO set and its economic deterrent
+
+Each node maintains the **live UTxO set**, a map from input references to unspent
+outputs. In ordinary successful execution, a transaction removes the outputs it
+spends and adds those it creates. The resource grows through **more entries** or
+**more bytes per entry**, including larger **inline datums** and **reference
+scripts**. [Inline datums](https://cips.cardano.org/cip/CIP-0032) · [Reference scripts](https://cips.cardano.org/cip/CIP-0033)
+
+The **minimum-ADA requirement** makes every new output carry enough ADA for its
+resource footprint. Keeping more or larger outputs live therefore requires more
+**ADA to remain committed**. Spending an output makes its ADA available to the
+transaction, subject to the requirements of the outputs it creates.
+[CPS-0037 — the current rule](../CPS-0037/README.md#the-current-minutxo-rule)
+
+![More unspent outputs increase the number of map entries, while larger payloads increase bytes per entry. Both require more ADA to remain committed.](images/motivation-resource-backing.png?v=9c1d5cce)
+
+That commitment is the **economic deterrent** this proposal preserves. It is the
+**necessary resource friction**. Mixing that funding into application payments
+also creates **accidental friction**, as the following examples show.
+[CPS-0037 — necessary and accidental friction](../CPS-0037/README.md#necessary-resource-friction-and-accidental-implementation-friction)
 
 <a id="21-resource-costs-and-accidental-friction"></a>
 <a id="21-application-value-independent-of-resource-funding"></a>
 <a id="22-from-ada-payments-to-application-workflows"></a>
 <a id="23-explicit-accounting-and-readable-history"></a>
+<a id="21-when-resource-funding-obscures-an-application-payment"></a>
 
-### 2.1 When resource funding obscures an application payment
+### 2.2 From straightforward payments to hidden application intent
 
-For an ADA payment above the minimum, the intended payment already satisfies the
-rule. A transaction builder can often complete that flow without additional
-funding work. The difficulty becomes visible when the application's intended ADA
-amount falls below the requirement.
+The same rule affects these **3 application flows** differently. The examples use
+illustrative minima for outputs with different contents.
 
-Consider a script output whose address, assets, datum and reference script give
-it an illustrative minimum of **32 ADA**.
+![Three application flows show increasing friction. A 100 ADA payment covers its minimum. A token-only transfer requires 1.6 ADA. A 20 ADA payment with tokens requires a 12 ADA top-up, obscuring the intended payment in the recorded 32 ADA Value.](images/motivation-application-payments.png?v=b6148519)
 
-| Intended application transfer | ADA that must appear in the minimum-ADA output |
-| --- | ---: |
-| 100 ADA | 100 ADA |
-| Tokens with zero ADA | At least 32 ADA |
-| Tokens with a 20 ADA payment | At least 32 ADA |
+#### 2.2.1 An ADA payment already covers the minimum
 
-In the last 2 cases, an output containing 32 ADA cannot tell a reader whether the
-application intended a payment of zero ADA, 20 ADA or 32 ADA. Applications must
-carry that distinction themselves. The ambiguity follows successive outputs and
-makes transaction history harder to interpret.
+An application sends **100 ADA** to a script output with a large datum and a
+reference script. Its minimum is approximately **52 ADA**. The payment already
+covers the requirement, so this output needs **no additional funding**. The
+intended payment can be recorded directly in `Value`.
 
-A deposit-backed output records the intended application assets directly. Its
-resource requirement is accounted for separately, so the application can express
-an exact ADA amount, a token-only transfer, or state containing a datum or
-reference script with zero application assets.
+#### 2.2.2 A token-only transfer introduces ADA funding
+
+The intended payment is **1 token and zero ADA**. With a **1.6 ADA minimum**, the
+output must also carry that ADA. Sending tokens to **3 recipients** through
+3 such outputs requires **4.8 ADA** alongside the tokens. The application now
+has **ADA funding** to manage, and each recipient's spending conditions control
+that ADA. [CPS-0037 — token transfers and funding control](../CPS-0037/README.md#use-case-fund-for-someone-else)
+
+#### 2.2.3 The recorded value obscures the intended payment
+
+An application sends **1,000 tokens and 20 ADA** to a script output with a
+**32 ADA minimum**. A **12 ADA top-up** brings its recorded `Value` to
+**1,000 tokens and 32 ADA**.
+
+A **token-only transfer** could produce the same `Value`, with all 32 ADA supplied
+for resource backing. `Value` alone cannot recover the intended **0 ADA or 20 ADA
+payment**. Applications must preserve that **application context** through a
+datum, metadata or their own records, and consult it when interpreting subsequent
+transfers and transaction history. [CPS-0037 — application value and resource backing](../CPS-0037/README.md#applicative-value-and-operational-backing)
 
 <a id="22-transaction-level-netting"></a>
 <a id="23-ada-free-subtxs"></a>
 <a id="24-transaction-level-netting"></a>
 <a id="25-ada-free-subtxs"></a>
+<a id="22-composition-multiplies-the-funding-work"></a>
 
-### 2.2 Composition multiplies the funding work
+### 2.3 Composition multiplies the funding work
 
-A distribution repeats the funding requirement for every recipient output. A
-stateful application must fund each successor output, including any increase
-caused by larger contents or a changed price. Consolidation can free ADA, while
-splitting state can require additional funding. Applications have to coordinate
-these movements alongside their business logic.
+Applications must repeat this accounting across **recipient outputs** and
+**successive state updates**. If an output holds 32 ADA and its successor needs
+40 ADA after a pricing change, that successor has an **8 ADA funding
+shortfall**. Consolidating outputs can instead free ADA for other uses.
+Each step combines the application's asset movements with **top-ups and refunds**.
+[CPS-0037 — successor-output funding](../CPS-0037/README.md#use-case-continuing-output)
 
-Nested transactions amplify this work across independently authored SubTxs.
-An otherwise token-only operation can need ADA inputs, change outputs and a
-refund policy solely to accommodate resource funding. This adds coordination
-between the SubTx author and the party assembling TopTx.
-
-The live UTxO set changes when the complete transaction is applied. That boundary
-provides a place to account for the combined allocation and release of deposits,
-and to assign responsibility for funding the difference.
+**Nested transactions** amplify that work across independently authored
+**SubTxs** assembled into a **TopTx**. Token-only operations can require ADA
+funding and refund decisions across the batch, while their intended payment
+amounts still need separate bookkeeping. Transaction-level accounting provides a
+place to coordinate those resource-funding movements.
+[Nested transactions](https://cips.cardano.org/cip/CIP-0118)
 
 <a id="24-asset-free-txouts"></a>
 <a id="25-a-predictable-deposit-calculation"></a>
 <a id="26-asset-free-txouts"></a>
 <a id="26-pricing-evolution-and-compatibility"></a>
 <a id="27-simple-calculation-and-historical-recovery"></a>
+<a id="23-explicit-deposits-with-a-choice-of-output-form"></a>
 
-### 2.3 Explicit deposits with a choice of output form
+### 2.4 Explicit deposits with a choice of output form
 
-This CIP introduces deposit-backed outputs alongside the current minimum-ADA
-outputs. The transaction builder chooses the form of each new output. A
-deposit-backed output separates application value from its full storage deposit.
-The minimum-ADA form continues to support workflows in which the same ADA serves
-both as payment and as resource backing.
+The goal is to preserve the **economic deterrent** while making **application
+amounts explicit** and resource funding easier to coordinate. **Deposit-backed
+outputs** account separately for application assets and their full storage
+deposit. The current **minimum-ADA form** remains available for workflows in
+which the same ADA serves both as payment and as resource backing.
 
-The proposal has 3 construction objectives.
+The proposal gives transaction builders 3 capabilities.
 
-1. Express application inputs and outputs with their intended assets.
-2. Account for deposits through an explicit net change at transaction level,
-   with funding and refund choices that can be reused across an application.
-3. Let a SubTx handle that change locally or delegate it to TopTx, allowing
-   TopTx to coordinate deposit funding alongside fees.
+1. Express application inputs and outputs with their **intended assets**.
+2. Account for deposits through a **net change at transaction level**, with
+   reusable funding and refund policies.
+3. Let a SubTx handle its change locally or **delegate to TopTx**, which can
+   coordinate deposit funding alongside fees.
 
-The required UTxO Storage Cost Formula supplies a calculation that transaction
-tools can reproduce. This CIP adds the accounting and history needed to recover
-each original deposit when its output is spent, including after pricing changes.
+The **UTxO Storage Cost Formula** proposal supplies the calculation. This CIP
+adds the accounting and history needed to recover each **original deposit** when
+its output is spent, including after pricing changes.
 [UTxO Storage Cost Formula](../CIP-????-utxo-cost-formula/README.md)
 
 <a id="317-scope-and-terminology"></a>
 
 ## 3. Specification
 
-The specification introduces the distinction between application value and
-resource backing, then follows the transaction-building workflow from application
-inputs and outputs to net deposit accounting and SubTx delegation.
+The specification introduces the distinction between **application value and
+resource backing**, then follows the **transaction-building workflow** from
+application inputs and outputs to net deposit accounting and SubTx delegation.
 
-It then defines the signed transaction interface and validation rules, followed
-by the ledger state and deposit lifecycle across pricing changes. The final part
-covers activation, migration and compatibility with existing outputs and contracts.
+It then defines the **signed transaction interface and validation rules**, followed
+by the **ledger state and deposit lifecycle** across pricing changes. The final
+part covers **activation, migration and compatibility** with existing outputs and
+contracts.
+
+> **Ledger prototype**
+>
+> A working prototype in the Cardano ledger codebase implements the core model
+> described here, including transaction-level netting, SubTx delegation and
+> historical deposit recovery. It demonstrates the feasibility of integrating this
+> accounting model into ledger transaction processing.
+>
+> Throughout this document, implementation references and Haskell excerpts connect
+> the specification to the prototype's types, transaction-construction API and
+> validation rules.
+>
+> [Implementation PR](https://github.com/nhenin/cardano-ledger-specs/pull/3) · [Referenced source revision](https://github.com/nhenin/cardano-ledger-specs/tree/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3)
 
 ### 3.1 Application value and resource backing
 
@@ -235,34 +277,48 @@ the output releases that deposit through the transaction balance.
 
 <a id="311-choosing-each-output-form"></a>
 
-#### 3.1.2 Minimum-ADA and deposit-backed outputs
+<a id="312-minimum-ada-and-deposit-backed-outputs"></a>
 
-The proposal supports both the current minimum-ADA form and the deposit-backed
-form. They account for resource backing differently.
+#### 3.1.2 Minimum-ADA vs deposit-backed outputs
 
-For the intended 20 ADA payment above, a minimum-ADA output carries **32 ADA**
-and the tokens. The extra **12 ADA** needed to meet the minimum is included in
-its value. A deposit-backed output carries the intended **20 ADA** and the tokens,
-with the full **32 ADA deposit** accounted for separately.
+The transaction builder chooses the form of each new output. In a **minimum-ADA
+output**, the ADA in `Value` also satisfies the resource requirement. In a
+**deposit-backed output**, `Value` records the application assets and the full
+storage deposit is accounted for outside the `TxOut`.
 
-| Property | `MinAdaTxOut` | `DepositBackedTxOut` |
-| --- | --- | --- |
-| Output value | Full ADA and native assets | Application ADA and native assets |
-| Resource funding | ADA inside the output satisfies its minimum | The transaction funds a full external deposit |
-| Ordinary spend | Full output value enters the balance | Application value enters the balance and the historical external deposit is released |
+Consider the intended transfer of **1,000 tokens and 20 ADA**, with an illustrative
+resource requirement of **32 ADA**. A minimum-ADA output must carry 32 ADA,
+including a **12 ADA top-up**. Its `Value` would be identical for a **token-only
+transfer**, where all 32 ADA were supplied to meet the minimum. Reading `Value`
+alone cannot distinguish those application payments.
 
-For an application payment of **5 ADA** and a resource requirement of **2 ADA**,
-the choices commit different amounts.
+A deposit-backed output records the **20 ADA payment** alongside the tokens and
+accounts for the **32 ADA deposit** separately, giving **52 ADA committed** for
+this output.
 
-| | Minimum-ADA output | Deposit-backed output |
-| --- | ---: | ---: |
-| ADA in the output value | 5 ADA | 5 ADA |
-| External deposit | 0 ADA | 2 ADA |
-| Total ADA committed for this output | **5 ADA** | **7 ADA** |
+![A 20 ADA and 1,000 token payment commits 32 ADA with a minimum-ADA output or 52 ADA with a deposit-backed output](images/01a-output-forms-below-minimum.png?v=1cfe316c)
 
-The minimum-ADA form lets the payment's ADA satisfy the resource requirement.
-The deposit-backed form keeps the application value and full resource deposit
-explicitly separate. These examples account for the selected output's funding.
+For the token-only transfer, the deposit-backed output instead records **1,000
+tokens and zero ADA** in `Value`, with the same **32 ADA external deposit**. The
+intended application ADA amount is explicit in each case.
+
+When the payment already covers the minimum, the minimum-ADA form lets the same
+ADA serve both purposes. A **5 ADA payment** with a **2 ADA resource requirement**
+commits **5 ADA** in that form. A deposit-backed output records the 5 ADA payment
+and a separate 2 ADA deposit, committing **7 ADA**.
+
+![A 5 ADA payment with a 2 ADA storage requirement commits 5 ADA with a minimum-ADA output or 7 ADA with a deposit-backed output](images/01b-output-forms-above-minimum.png?v=0fa76cab)
+
+**Deposit-backed outputs make the distinction explicit when resource funding
+would otherwise obscure the application's intended ADA amount.** This supports
+token-only transfers, exact ADA payments below the minimum, and application state
+with zero application assets. Minimum-ADA outputs remain available for workflows
+that use the same ADA as payment and resource backing. The choice is made for
+each output, and both forms can appear in one transaction.
+
+When a minimum-ADA output is spent, its full value enters the transaction balance.
+Spending a deposit-backed output contributes its application value and releases
+its historical external deposit into that balance.
 
 #### 3.1.3 From individual deposits to transaction netting
 

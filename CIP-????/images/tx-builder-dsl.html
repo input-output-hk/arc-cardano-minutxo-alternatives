@@ -302,6 +302,31 @@ strong { font-weight: 600; }
 .output-total { display:flex; align-items:baseline; justify-content:space-between; gap:20px; padding:18px 0 0; margin-top:20px; border-top:1px solid #dce3e7; }
 .output-total span { color:#65747f; font-size:17px; }
 .output-total strong { font-size:25px; font-weight:600; white-space:nowrap; }
+.output-form-comparison { padding:30px 44px; color:#1e2b34; }
+.output-form-comparison .comparison-context { display:flex; justify-content:space-between; gap:32px; padding-bottom:20px; margin-bottom:24px; border-bottom:1px solid #dce3e7; }
+.output-form-comparison .comparison-context span { display:block; font-size:17px; color:#65747f; margin-bottom:5px; }
+.output-form-comparison .comparison-context strong { font-size:23px; font-weight:600; }
+.output-form-comparison .comparison-context > div:last-child { text-align:right; }
+.output-form-comparison .comparison-columns { display:grid; grid-template-columns:1fr 1fr; gap:48px; }
+.output-form-comparison h2 { font-size:23px; margin-bottom:18px; }
+.output-form-comparison .value-container { height:168px; border:1px solid #bac7cf; padding:20px 24px; }
+.output-form-comparison .value-container > span { color:#65747f; font-size:17px; }
+.output-form-comparison .value-amount { margin-top:14px; font-size:40px; font-weight:600; line-height:1.05; }
+.output-form-comparison .value-amount span { font-size:23px; font-weight:400; }
+.output-form-comparison .native-assets { margin-top:10px; font-size:22px; }
+.output-form-comparison .backing-explanation { height:96px; margin-top:18px; display:flex; align-items:center; }
+.output-form-comparison .embedded-backing { border-top:1px solid #dce3e7; }
+.output-form-comparison .embedded-backing strong { display:block; font-size:20px; font-weight:400; }
+.output-form-comparison .embedded-backing p { font-size:17px; color:#65747f; margin-top:7px; }
+.output-form-comparison .separate-backing { justify-content:space-between; gap:24px; padding:16px 23px; border-left:2px solid #bd5047; background:#fcf3f1; }
+.output-form-comparison .separate-backing strong { display:block; color:#a14a42; font-size:19px; font-weight:400; }
+.output-form-comparison .separate-backing p { color:#8b706c; font-size:16px; margin-top:5px; }
+.output-form-comparison .deposit-amount { color:#aa3b32; font-size:32px; font-weight:600; white-space:nowrap; }
+.output-form-comparison .deposit-amount span { font-size:22px; font-weight:400; }
+.output-form-comparison .comparison-total { display:flex; align-items:baseline; justify-content:space-between; gap:20px; margin-top:20px; padding-top:17px; border-top:1px solid #dce3e7; }
+.output-form-comparison .comparison-total span { max-width:270px; font-size:17px; color:#65747f; }
+.output-form-comparison .comparison-total strong { font-size:26px; font-weight:600; white-space:nowrap; }
+.output-form-comparison.without-native-assets .value-container { height:144px; }
 @media print { body { background:#fff; } .figure { break-after:page; margin:0; } }
 </style>
 </head>
@@ -342,6 +367,70 @@ strong { font-weight: 600; }
         <span>ADA committed for this output</span>
         <strong>52 ADA</strong>
       </div>
+    </div>
+  </div>
+</section>
+<section class="figure output-form-comparison" id="01a-output-forms-below-minimum">
+  <div class="comparison-context">
+    <div><span>Application transfer</span><strong>20 ADA + 1,000 tokens</strong></div>
+    <div><span>Illustrative storage requirement</span><strong>32 ADA</strong></div>
+  </div>
+  <div class="comparison-columns">
+    <div>
+      <h2>Minimum-ADA output</h2>
+      <div class="value-container">
+        <span>TxOut.Value</span>
+        <div class="value-amount">32 <span>ADA</span></div>
+        <p class="native-assets">+ 1,000 tokens</p>
+      </div>
+      <div class="backing-explanation embedded-backing">
+        <div><strong>12 ADA added inside Value to meet the minimum</strong><p>External deposit · 0 ADA</p></div>
+      </div>
+      <div class="comparison-total"><span>Total ADA committed for this output</span><strong>32 ADA</strong></div>
+    </div>
+    <div>
+      <h2>Deposit-backed output</h2>
+      <div class="value-container">
+        <span>TxOut.Value · Application assets</span>
+        <div class="value-amount">20 <span>ADA</span></div>
+        <p class="native-assets">+ 1,000 tokens</p>
+      </div>
+      <div class="backing-explanation separate-backing">
+        <div><strong>External deposit</strong><p>Full requirement · outside TxOut</p></div>
+        <div class="deposit-amount">32 <span>ADA</span></div>
+      </div>
+      <div class="comparison-total"><span>Total ADA committed for this output</span><strong>52 ADA</strong></div>
+    </div>
+  </div>
+</section>
+<section class="figure output-form-comparison without-native-assets" id="01b-output-forms-above-minimum">
+  <div class="comparison-context">
+    <div><span>Application transfer</span><strong>5 ADA</strong></div>
+    <div><span>Illustrative storage requirement</span><strong>2 ADA</strong></div>
+  </div>
+  <div class="comparison-columns">
+    <div>
+      <h2>Minimum-ADA output</h2>
+      <div class="value-container">
+        <span>TxOut.Value</span>
+        <div class="value-amount">5 <span>ADA</span></div>
+      </div>
+      <div class="backing-explanation embedded-backing">
+        <div><strong>The 5 ADA in Value already cover the minimum</strong><p>External deposit · 0 ADA</p></div>
+      </div>
+      <div class="comparison-total"><span>Total ADA committed for this output</span><strong>5 ADA</strong></div>
+    </div>
+    <div>
+      <h2>Deposit-backed output</h2>
+      <div class="value-container">
+        <span>TxOut.Value · Application assets</span>
+        <div class="value-amount">5 <span>ADA</span></div>
+      </div>
+      <div class="backing-explanation separate-backing">
+        <div><strong>External deposit</strong><p>Full requirement · outside TxOut</p></div>
+        <div class="deposit-amount">2 <span>ADA</span></div>
+      </div>
+      <div class="comparison-total"><span>Total ADA committed for this output</span><strong>7 ADA</strong></div>
     </div>
   </div>
 </section>
