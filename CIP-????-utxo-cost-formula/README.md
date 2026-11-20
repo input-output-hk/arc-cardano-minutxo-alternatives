@@ -174,21 +174,28 @@ of:
 - 34 for the asset name (32 bytes and a 2-byte header)
 - 9 for the quantity (8 bytes and a 1-byte header)
 
-We tested this against the 229 million outputs created on mainnet from the
-Babbage hard fork, which introduced the current formula, to 28 October 2026.
-Each output is compared with what the current formula required:
+We tested this against the 85.7 million outputs created on mainnet in the
+Conway era, from its hard fork on 1 September 2024 to 28 October 2026. Each
+output is compared with what the current formula required:
 
-| Name | Formula ($`\times \mathrm{coinsPerUTxOByte}`$) | Outputs below the current requirement | Median excess | 95th-percentile excess | Mean requirement | Largest shortfall |
-| --- | --- | ---: | ---: | ---: | ---: | ---: |
-| Current | $`160 + \mathrm{serializedOutputBytes}`$ | – | – | – | 1.49 ADA | – |
-| No address term | $`\begin{aligned} & 250 \\ & {}+ 74 \times \mathrm{numberOfNativeAssets} \\ & {}+ \mathrm{serializedDatumBytes} \\ & {}+ \mathrm{serializedReferenceScriptBytes} \end{aligned}`$ | 6,756 (0.003%) | 13.7% | 61.6% | 2.21 ADA | 2.36 ADA |
-| Asset and policy counts with address, asset-name, datum and script sizes (§4.2) | $`\begin{aligned} & 175 \\ & {}+ \mathrm{serializedAddressFieldBytes} \\ & {}+ 12 \times \mathrm{numberOfNativeAssets} \\ & {}+ 30 \times \mathrm{numberOfMintingPolicies} \\ & {}+ \mathrm{totalAssetNameBytes} \\ & {}+ \mathrm{serializedDatumFieldBytes} \\ & {}+ \mathrm{serializedReferenceScriptFieldBytes} \end{aligned}`$ | 9,422 (0.004%) | 4.0% | 12.8% | 1.64 ADA | 3.00 ADA |
-| Token count and datum size only (§4.2) | $`\begin{aligned} & 250 \\ & {}+ 74 \times \mathrm{numberOfNativeAssets} \\ & {}+ \mathrm{serializedDatumBytes} \end{aligned}`$ | 21,013 (0.009%) | 13.7% | 61.6% | 2.21 ADA | 69.33 ADA |
-| Byte-based formula with a fixed ADA encoding allowance (§4.2) | $`\begin{aligned} & 160 \\ & {}+ \mathrm{serializedOutputBytes} \\ & {}- \mathrm{serializedAdaAmountBytes} \\ & {}+ 9 \end{aligned}`$ | 0 | 1.5% | 2.0% | 1.51 ADA | none |
-| Primary alternative (§4.1) | $`\begin{aligned} & \mathrm{baseAllowance} \\ & {}+ 74 \times \mathrm{numberOfNativeAssets} \\ & {}+ \mathrm{serializedDatumBytes} \\ & {}+ \mathrm{serializedReferenceScriptBytes} \end{aligned}`$ | 6,755 (0.003%) | 12.9% | 61.6% | 2.22 ADA | 2.36 ADA |
-| This CIP (§3.1) | $`\begin{aligned} & 193 \\ & {}+ 74 \times \mathrm{numberOfNativeAssets} \\ & {}+ \mathrm{serializedAddressBytes} \\ & {}+ \mathrm{serializedDatumBytes} \\ & {}+ \mathrm{serializedReferenceScriptBytes} \end{aligned}`$ | 8,034 (0.004%) | 11.1% | 61.6% | 2.19 ADA | 2.36 ADA |
+| Name | Formula ($`\times \mathrm{coinsPerUTxOByte}`$) | Outputs below the current requirement | Median excess | 95th-percentile excess | Mean requirement | Largest shortfall | 6+ native assets (median / 95th-percentile excess) |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Current | $`160 + \mathrm{serializedOutputBytes}`$ | – | – | – | 1.43 ADA | – | 0.00% / 0.00% |
+| No address term | $`\begin{aligned} & 250 \\ & {}+ 74 \times \mathrm{numberOfNativeAssets} \\ & {}+ \mathrm{serializedDatumBytes} \\ & {}+ \mathrm{serializedReferenceScriptBytes} \end{aligned}`$ | 0 | 11.1% | 37.3% | 1.91 ADA | none | 80.70% / 245.93% |
+| Asset and policy counts with address, asset-name, datum and script sizes (§4.2) | $`\begin{aligned} & 175 \\ & {}+ \mathrm{serializedAddressFieldBytes} \\ & {}+ 12 \times \mathrm{numberOfNativeAssets} \\ & {}+ 30 \times \mathrm{numberOfMintingPolicies} \\ & {}+ \mathrm{totalAssetNameBytes} \\ & {}+ \mathrm{serializedDatumFieldBytes} \\ & {}+ \mathrm{serializedReferenceScriptFieldBytes} \end{aligned}`$ | 0 | 4.0% | 6.8% | 1.53 ADA | none | 17.14% / 42.33% |
+| Token count and datum size only (§4.2) | $`\begin{aligned} & 250 \\ & {}+ 74 \times \mathrm{numberOfNativeAssets} \\ & {}+ \mathrm{serializedDatumBytes} \end{aligned}`$ | 5,253 (0.006%) | 11.1% | 37.3% | 1.91 ADA | 69.24 ADA | 80.70% / 245.93% |
+| Byte-based formula with a fixed ADA encoding allowance (§4.2) | $`\begin{aligned} & 160 \\ & {}+ \mathrm{serializedOutputBytes} \\ & {}- \mathrm{serializedAdaAmountBytes} \\ & {}+ 9 \end{aligned}`$ | 0 | 1.5% | 2.0% | 1.45 ADA | none | 0.39% / 0.85% |
+| Primary alternative (§4.1) | $`\begin{aligned} & \mathrm{baseAllowance} \\ & {}+ 74 \times \mathrm{numberOfNativeAssets} \\ & {}+ \mathrm{serializedDatumBytes} \\ & {}+ \mathrm{serializedReferenceScriptBytes} \end{aligned}`$ | 0 | 11.1% | 37.3% | 1.91 ADA | none | 80.72% / 245.93% |
+| This CIP (§3.1) | $`\begin{aligned} & 193 \\ & {}+ 74 \times \mathrm{numberOfNativeAssets} \\ & {}+ \mathrm{serializedAddressBytes} \\ & {}+ \mathrm{serializedDatumBytes} \\ & {}+ \mathrm{serializedReferenceScriptBytes} \end{aligned}`$ | 0 | 11.1% | 30.8% | 1.89 ADA | none | 80.71% / 245.87% |
 
-Method, full results and reproduction: [historical backtest](https://github.com/willjgould/cardano-minutxo-integration/blob/7fb7c5f744e4973d058e7e0219a6d4a5c00a44c7/docs/minutxo-calibration/history-formulas.md).
+These figures are for Conway-era outputs, but it should be noted that 
+Babbage-era outputs give higher excess figures: a 95th percentile of 79.3% for
+this CIP's formula. Additionally, while there are no under-estimates of 
+Conway-era outputs from this CIP's formula, 8,034 Babbage-era outputs are 
+under-estimated. Most of this is due to Babbage-era outputs being capable of 
+carrying asset entries with zero quantities, which the ledger now rejects.
+
+Method, full results and reproduction: [historical backtest](https://github.com/willjgould/cardano-minutxo-integration/blob/dd84b60c2f3c323000db90dba17414a97353ac60/docs/minutxo-calibration/history-formulas.md).
 
 ### 4.1 Primary alternative for community consideration
 
@@ -228,15 +235,25 @@ the address size is vulnerable to a potential attack.
 
 ### 4.3 Alternative implementation
 
-The same benefits could be obtained by simply disseminating one of the 
-alternatives, which never underestimates, throughout tooling only, thus leaving 
-the ledger-enforced formula as it is today. This would give users the choice, 
-if they so desire, to optimise their minutxos by getting closer to the 
-current formula than the overestimating function, while providing them with the 
-means to more easily calculate a valid minutxo.
+This CIP requires ledger changes, but ledger changes aren't necessary in order 
+to solve the recursive nature of the minutxo formula.
 
-This alternative would require proving that any selected formula never 
-underestimates.
+Instead, we can simply disseminate the byte-based alternative formula with a 
+fixed ADA encoding allowance, which never underestimates, throughout tooling 
+only, thus leaving the ledger-enforced formula as it is today. This would give 
+users the choice, if they so desire, to optimise their minutxos by getting 
+closer to the current formula than the overestimating function, while providing 
+them with the means to more easily calculate a valid minutxo.
+
+The byte-based formula with a fixed ADA encoding allowance:
+
+$`\begin{aligned} & \mathrm{coinsPerUTxOByte} \times \bigl( \\ & 160 \\ & {}+ \mathrm{serializedOutputBytes} \\ & {}- \mathrm{serializedAdaAmountBytes} \\ & {}+ 9\bigr) \end{aligned}`$
+
+Since the maximum ADA-amount-bytes are assumed, this formula can never 
+underestimate.
+
+As such, we can leave the ledger-enforced formula as it currently stands, and 
+provide people with the fixed ADA encoding allowance formula via tooling.
 
 ## 5. Path to Active
 
