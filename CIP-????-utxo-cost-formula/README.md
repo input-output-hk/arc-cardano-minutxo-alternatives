@@ -34,7 +34,7 @@ programming languages used to construct transactions.
 
 ## 2. Motivation: Why is this CIP necessary?
 
-Cardano’s minimum-ADA requirement gives users an economic incentive to use the live UTxO
+Cardano's minimum-ADA requirement gives users an economic incentive to use the live UTxO
 set efficiently. Creating more outputs, or larger outputs, requires more ADA to remain
 committed while those outputs are unspent. This funding requirement is an intended part
 of protecting the resource maintained by nodes.
@@ -68,7 +68,7 @@ much to return as change. The same dependency must be handled for every output b
 constructed, including change outputs.
 
 The proposed calculation makes the minimum independent of the ADA amount being chosen.
-Once the output’s other contents are determined, software can calculate its requirement
+Once the output's other contents are determined, software can calculate its requirement
 and fund it without that funding increasing the requirement again.
 
 ### 2.2 The calculation must be reproduced throughout the ecosystem
@@ -241,16 +241,17 @@ to solve the recursive nature of the minutxo formula.
 Instead, we can simply disseminate the byte-based alternative formula with a 
 fixed ADA encoding allowance, which never underestimates, throughout tooling 
 only, thus leaving the ledger-enforced formula as it is today. This would give 
-users the choice, if they so desire, to optimise their minutxos by getting 
-closer to the current formula than the overestimating function, while providing 
-them with the means to more easily calculate a valid minutxo.
+users a straightforward way to calculate a sufficient ADA amount, while 
+preserving the option to calculate a tighter minimum if they want to commit less 
+ADA.
 
 The byte-based formula with a fixed ADA encoding allowance:
 
 $`\begin{aligned} & \mathrm{coinsPerUTxOByte} \times \bigl( \\ & 160 \\ & {}+ \mathrm{serializedOutputBytes} \\ & {}- \mathrm{serializedAdaAmountBytes} \\ & {}+ 9\bigr) \end{aligned}`$
 
-Since the maximum ADA-amount-bytes are assumed, this formula can never 
-underestimate.
+Subtracting the ADA amount's encoded size and replacing it with its maximum of 
+9 bytes makes the estimate independent of the amount. Adding ADA doesn't change 
+the estimate, and the estimate cannot fall below the ledger's requirement.
 
 As such, we can leave the ledger-enforced formula as it currently stands, and 
 provide people with the fixed ADA encoding allowance formula via tooling.
