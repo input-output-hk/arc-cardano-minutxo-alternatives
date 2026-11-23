@@ -175,8 +175,12 @@ of:
 - 9 for the quantity (8 bytes and a 1-byte header)
 
 We tested this against the 85.7 million outputs created on mainnet in the
-Conway era, from its hard fork on 1 September 2024 to 28 October 2026. Each
-output is compared with what the current formula required:
+Conway era, from its first block, at slot 133,660,855 with hash
+`9aa420cf998dbcceec1abaf83ab26294d278d25527e779050ab334c1fadab16c`
+(1 September 2024), to the block at slot 201,657,572 with hash
+`30c61172934757a8c210a110b7a4cbf657e53c2f9f60678d6325d80a04c56328`
+(28 October 2026). Note that this includes outputs that have already been spent. 
+Each output is compared with what the current formula required:
 
 | Name | Formula ($`\times \mathrm{coinsPerUTxOByte}`$) | Outputs below the current requirement | Median excess | 95th-percentile excess | Mean requirement | Largest shortfall | 6+ native assets (median / 95th-percentile excess) |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -195,7 +199,7 @@ Conway-era outputs from this CIP's formula, 8,034 Babbage-era outputs are
 under-estimated. Most of this is due to Babbage-era outputs being capable of 
 carrying asset entries with zero quantities, which the ledger now rejects.
 
-Method, full results and reproduction: [historical backtest](https://github.com/willjgould/cardano-minutxo-integration/blob/dd84b60c2f3c323000db90dba17414a97353ac60/docs/minutxo-calibration/history-formulas.md).
+Method, full results and reproduction: [historical backtest](https://github.com/willjgould/cardano-minutxo-integration/blob/2abe34cabf72799d8c122f23c23f03da31c48415/docs/minutxo-calibration/history-formulas.md).
 
 ### 4.1 Primary alternative for community consideration
 
