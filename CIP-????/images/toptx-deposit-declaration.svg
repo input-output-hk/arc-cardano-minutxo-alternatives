@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="282" viewBox="0 0 960 282" role="img" aria-labelledby="title desc">
+  <title id="title">TopTx deposit declaration examples</title>
+  <desc id="desc">The batch allocates 1.6 ADA, releases 1.6 ADA with or without a TopTx refund, or declares no deposit change.</desc>
+  <style>
+    text { font-family: Barlow, "Helvetica Neue", Arial, sans-serif; fill: #20303b; }
+    .label { font-size: 17px; fill: #526774; }
+    .operation { font-size: 21px; font-weight: 600; }
+    .choice { font-size: 19px; }
+    .example { font: 18px "SFMono-Regular", Consolas, monospace; fill: #99372f; }
+  </style>
+  <rect width="960" height="282" fill="#fff"/>
+  <rect x="8" y="8" width="944" height="266" rx="6" fill="#fff" stroke="#bccbd3"/>
+  <rect x="530" y="9" width="421" height="264" rx="5" fill="#fbf0ee"/>
+  <text x="27" y="40" class="label">Batch reserve change</text>
+  <text x="228" y="40" class="label">Funding or refund</text>
+  <text x="550" y="40" class="label">Example declaration (pseudocode)</text>
+  <g transform="translate(0 58)">
+    <path d="M8 0h944" stroke="#ccd5da"/>
+    <text x="27" y="35" class="operation">Allocate</text>
+    <text x="228" y="35" class="choice">Batch needs a top-up</text>
+    <text x="550" y="35" class="example">Allocate(1.6 ADA)</text>
+  </g>
+  <g transform="translate(0 114)">
+    <path d="M8 0h944" stroke="#ccd5da"/>
+    <text x="27" y="35" class="operation">Release</text>
+    <path d="M207 28h7m-7 0v48h7" stroke="#9dafb9" fill="none" stroke-width="1.4"/>
+    <text x="228" y="35" class="choice">Refund in TopTx output 1</text>
+    <text x="550" y="35" class="example">Release(1.6 ADA, output 1)</text>
+    <text x="228" y="83" class="choice">No refund in TopTx</text>
+    <text x="550" y="83" class="example">Release(1.6 ADA, no TopTx refund)</text>
+  </g>
+  <g transform="translate(0 218)">
+    <path d="M8 0h944" stroke="#ccd5da"/>
+    <text x="27" y="35" class="operation">No deposit change</text>
+    <text x="228" y="35" class="choice">Batch reserves balance</text>
+    <text x="550" y="35" class="example">No deposit change</text>
+  </g>
+</svg>

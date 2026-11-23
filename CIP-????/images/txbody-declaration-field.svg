@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="332" viewBox="0 0 960 332" role="img" aria-labelledby="title desc">
+  <title id="title">The new deposit declaration in the transaction body</title>
+  <desc id="desc">Selected CBOR map entries. The TopTx body has inputs at key 0, outputs at 1, the fee at 2 and optional SubTxs at 23. The new field at key 28 declares the net change in reserves for the whole batch. Each SubTx has its own body, with inputs at 0, outputs at 1 and a new field at 28 for its own change and any delegation choice.</desc>
+  <style>
+    text { font-family: Barlow, "Helvetica Neue", Arial, sans-serif; fill: #20303b; }
+    .title { font-size: 24px; font-weight: 600; }
+    .label { font-size: 15px; fill: #526774; }
+    .field { font-size: 19px; }
+    .key { font: 18px "SFMono-Regular", Consolas, monospace; fill: #465d6d; }
+    .new { fill: #99372f; font-weight: 600; }
+    .note { font-size: 17px; }
+    .rule { stroke: #ccd5da; }
+  </style>
+  <rect width="960" height="332" fill="#fff"/>
+
+  <g transform="translate(8 7)">
+    <rect width="445" height="313" rx="6" fill="#fff" stroke="#bccbd3"/>
+    <text x="19" y="35" class="title">TopTx body</text>
+    <path class="rule" d="M0 52h445"/>
+    <text x="20" y="78" class="label">CBOR key</text>
+    <text x="114" y="78" class="label">Selected fields</text>
+    <g class="key">
+      <text x="20" y="108">0</text>
+      <text x="20" y="141">1</text>
+      <text x="20" y="174">2</text>
+      <text x="20" y="207">23</text>
+    </g>
+    <g class="field">
+      <text x="114" y="108">Spending inputs</text>
+      <text x="114" y="141">Outputs</text>
+      <text x="114" y="174">Fee</text>
+      <text x="114" y="207">SubTxs, if present</text>
+    </g>
+    <rect x="1" y="227" width="443" height="83" fill="#fbf0ee"/>
+    <rect x="1" y="227" width="4" height="83" fill="#ae4439"/>
+    <text x="20" y="257" class="key new">28</text>
+    <text x="114" y="257" class="field new">Deposit declaration</text>
+    <text x="380" y="256" class="label new">New</text>
+    <text x="114" y="287" class="note">Net reserve change for the whole batch</text>
+  </g>
+
+  <!-- Expand one member of the nested transaction collection. -->
+  <path d="M325 208h151q7 0 7-7v-86q0-7 7-7h31" fill="none" stroke="#748995" stroke-width="1.8"/>
+  <path d="m517 103 9 5-9 5" fill="#748995"/>
+
+  <g transform="translate(529 77)">
+    <rect width="423" height="243" rx="6" fill="#fff" stroke="#bccbd3"/>
+    <text x="19" y="38" class="title">Body of one SubTx</text>
+    <path class="rule" d="M0 55h423"/>
+    <text x="20" y="78" class="label">CBOR key</text>
+    <text x="112" y="78" class="label">Selected fields</text>
+    <text x="20" y="108" class="key">0</text>
+    <text x="20" y="138" class="key">1</text>
+    <text x="112" y="108" class="field">Own spending inputs</text>
+    <text x="112" y="138" class="field">Own outputs</text>
+    <rect x="1" y="157" width="421" height="83" fill="#fbf0ee"/>
+    <rect x="1" y="157" width="4" height="83" fill="#ae4439"/>
+    <text x="20" y="187" class="key new">28</text>
+    <text x="112" y="187" class="field new">Deposit declaration</text>
+    <text x="360" y="186" class="label new">New</text>
+    <text x="112" y="217" class="note">Own net, local or delegated</text>
+  </g>
+</svg>

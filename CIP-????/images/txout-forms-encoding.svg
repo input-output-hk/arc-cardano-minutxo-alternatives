@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="290" viewBox="0 0 960 290" role="img" aria-labelledby="title desc">
+  <title id="title">Two TxOut maps, distinguished by their value key</title>
+  <desc id="desc">Both maps require an address at key 0 and allow a datum at key 2 and a reference script at key 3. A minimum-ADA output uses key 1 for the full value, including the minimum. A deposit-backed output uses key 4 for the application assets. Its deposit is separate from that value.</desc>
+  <style>
+    text { font-family: Barlow, "Helvetica Neue", Arial, sans-serif; fill: #20303b; }
+    .title { font-size: 24px; font-weight: 600; }
+    .label { font-size: 15px; fill: #526774; }
+    .field { font-size: 19px; }
+    .key { font: 18px "SFMono-Regular", Consolas, monospace; fill: #465d6d; }
+    .value { font-weight: 600; }
+    .note { font-size: 17px; }
+    .new { fill: #99372f; }
+  </style>
+  <rect width="960" height="290" fill="#fff"/>
+
+  <g transform="translate(8 7)">
+    <rect width="456" height="274" rx="6" fill="#fff" stroke="#bccbd3"/>
+    <text x="20" y="36" class="title">Minimum-ADA output</text>
+    <path d="M0 53h456" stroke="#ccd5da"/>
+    <text x="20" y="77" class="label">CBOR key</text>
+    <text x="112" y="77" class="label">TxOut field</text>
+    <text x="20" y="108" class="key">0</text>
+    <text x="112" y="108" class="field">Address</text>
+
+    <rect x="1" y="124" width="454" height="70" fill="#f0f4f6"/>
+    <rect x="1" y="124" width="4" height="70" fill="#748995"/>
+    <text x="20" y="152" class="key value">1</text>
+    <text x="112" y="152" class="field value">Value</text>
+    <text x="112" y="178" class="note">The ADA here covers the minimum.</text>
+
+    <text x="20" y="224" class="key">2</text>
+    <text x="112" y="224" class="field">Datum</text>
+    <text x="436" y="224" text-anchor="end" class="label">Optional</text>
+    <text x="20" y="254" class="key">3</text>
+    <text x="112" y="254" class="field">Reference script</text>
+    <text x="436" y="254" text-anchor="end" class="label">Optional</text>
+  </g>
+
+  <g transform="translate(496 7)">
+    <rect width="456" height="274" rx="6" fill="#fff" stroke="#bccbd3"/>
+    <text x="20" y="36" class="title">Deposit-backed output</text>
+    <path d="M0 53h456" stroke="#ccd5da"/>
+    <text x="20" y="77" class="label">CBOR key</text>
+    <text x="112" y="77" class="label">TxOut field</text>
+    <text x="20" y="108" class="key">0</text>
+    <text x="112" y="108" class="field">Address</text>
+
+    <rect x="1" y="124" width="454" height="70" fill="#fbf0ee"/>
+    <rect x="1" y="124" width="4" height="70" fill="#ae4439"/>
+    <text x="20" y="152" class="key value new">4</text>
+    <text x="112" y="152" class="field value new">Application assets</text>
+    <text x="436" y="152" text-anchor="end" class="label new">New key</text>
+    <text x="112" y="178" class="note">The deposit is separate from this value.</text>
+
+    <text x="20" y="224" class="key">2</text>
+    <text x="112" y="224" class="field">Datum</text>
+    <text x="436" y="224" text-anchor="end" class="label">Optional</text>
+    <text x="20" y="254" class="key">3</text>
+    <text x="112" y="254" class="field">Reference script</text>
+    <text x="436" y="254" text-anchor="end" class="label">Optional</text>
+  </g>
+</svg>

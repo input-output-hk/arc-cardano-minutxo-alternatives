@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="338" viewBox="0 0 960 338" role="img" aria-labelledby="title desc">
+  <title id="title">One transaction, two ledger checks</title>
+  <desc id="desc">A 7.2 ADA minimum-ADA input, including a 1.6 ADA reserve, funds a 5 ADA deposit-backed output, a 2 ADA external deposit and a 0.2 ADA fee. The signed reserve change is Allocate 0.4 ADA. The external Store gains 2 ADA. One token B passes from the input to the output.</desc>
+  <style>
+    text { font-family: Barlow, "Helvetica Neue", Arial, sans-serif; fill: #20303b; }
+    .heading { font-size: 21px; font-weight: 600; }
+    .amount { font-size: 25px; font-weight: 600; }
+    .detail { font-size: 17px; fill: #465d6d; }
+    .formula { font-size: 28px; }
+    .result { font-size: 25px; font-weight: 600; }
+    .rule { stroke: #c6d1d7; }
+  </style>
+  <rect width="960" height="338" fill="white"/>
+
+  <rect x="12" y="10" width="936" height="116" rx="5" fill="#f2f5f7" stroke="#c6d1d7"/>
+  <path class="rule" d="M390 28v80m390-80v80"/>
+  <g transform="translate(32 0)">
+    <text class="heading" y="41">Minimum-ADA input</text>
+    <text class="amount" y="74">7.2 ADA + 1 token B</text>
+    <text class="detail" y="103">Includes 1.6 ADA of reserve</text>
+  </g>
+  <g transform="translate(414 0)">
+    <text class="heading" y="41">Deposit-backed output</text>
+    <text class="amount" y="74">5 ADA + 1 token B</text>
+    <text class="detail" y="103">Requires a separate 2 ADA deposit</text>
+  </g>
+  <g transform="translate(804 0)">
+    <text class="heading" y="41">Fee</text>
+    <text class="amount" y="74">0.2 ADA</text>
+  </g>
+
+  <path class="rule" d="M468 157v164"/>
+  <g transform="translate(32 0)">
+    <text class="heading" y="179">Check the signed declaration</text>
+    <text class="detail" y="208">New reserve − spent reserve</text>
+    <text class="formula" y="251">2 − 1.6 = 0.4</text>
+    <rect x="0" y="278" width="4" height="35" fill="#b43b32"/>
+    <text class="result" x="15" y="305" style="fill:#a4352d">Allocate 0.4 ADA</text>
+  </g>
+  <g transform="translate(492 0)">
+    <text class="heading" y="179">Check ADA conservation</text>
+    <text class="detail" y="208">Input = output value + fee + Store increase</text>
+    <text class="formula" y="251">7.2 = 5 + 0.2 + 2</text>
+    <rect x="0" y="278" width="4" height="35" fill="#557488"/>
+    <text class="result" x="15" y="305">Store gains 2 ADA</text>
+  </g>
+</svg>
