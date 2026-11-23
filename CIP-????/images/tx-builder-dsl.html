@@ -152,71 +152,21 @@ strong { font-weight: 600; }
 .accounting p { font-size: 18px; color: var(--muted); }
 .accounting strong { display: block; margin-top: 4px; font-size: 30px; }
 .accounting .operator { font-size: 30px; color: #8b8b86; }
-.calculation-band { display: grid; grid-template-columns: 1fr 40px 1fr; gap: 22px; align-items: center; margin-top: 34px; padding-top: 24px; border-top: 1px solid var(--line); }
-.policy { display: flex; gap: 28px; }
-.policy div { flex: 1; }
-.policy span, .calculation-band .calculation-result span { display: block; font-size: 18px; color: var(--muted); margin-bottom: 4px; }
-.policy strong, .calculation-band .calculation-result strong { font-size: 22px; font-weight: 600; }
-.calculation-band .calculation-result { border-left: 3px solid var(--red); padding-left: 19px; }
-.cases { display: grid; grid-template-columns: repeat(3,1fr); gap: 26px; margin-top: 30px; }
-.case { border-top: 3px solid var(--ink); padding-top: 18px; }
-.case h2 { font-size: 27px; }
-.mini-flow { display: grid; grid-template-columns: 1fr 40px 1fr; height: 145px; margin: 24px 0 18px; align-items: center; }
-.mini-stack { display: flex; flex-direction: column; gap: 6px; }
-.mini-output { padding: 10px 8px; text-align: center; font-size: 23px; line-height: 1; border: 1px solid var(--line); background: var(--paper); }
-.mini-output.tall { padding: 19px 8px; }
-.case dl { margin: 0; border-top: 1px solid var(--line); }
-.case dl div { display:flex; justify-content:space-between; padding-top:10px; font-size:20px; }
-.case dt { color:var(--muted); }
-.case dd { margin:0; }
-.net { background: var(--red-soft); margin-top: 18px; padding: 15px 18px; }
-.net span { display:block; color:var(--muted); font-size:18px; }
-.net strong { color:var(--red); font-size:33px; display:block; margin-top:2px; }
-.case .route { margin-top:18px; font-size:20px; min-height:78px; }
-.case .route strong { display:block; font-size:23px; margin-top:4px; }
-.case .route span { color: var(--muted); }
-.case.zero .net { background: var(--paper); }
-.case.zero .net strong { color:var(--ink); }
-.case-note { margin-top:25px; border-top:1px solid var(--line); padding-top:18px; color:var(--muted); font-size:19px; }
-.choices { display:grid; grid-template-columns:1fr 1fr; gap:36px; margin-top:28px; }
-.choice > p { font-size:20px; color:var(--muted); margin-top:7px; }
-.top-container { border:1.5px solid var(--line); background:var(--paper); padding:24px; margin-top:22px; height:380px; }
-.body-name { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; font-size:23px; font-weight:600; }
-.body-name span { font-size:17px; color:var(--muted); font-weight:400; }
-.sub-container { border:1.5px solid #bfbfb9; background:#fff; padding:22px; }
-.local .sub-container { margin-top:36px; }
-.sub-net { font-size:23px; text-align:center; background:var(--red-soft); color:var(--red); padding:15px 8px; }
-.routes { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:22px; }
-.routes div { border-top:1px solid #bfbfb9; padding-top:10px; }
-.routes span { display:block; color:var(--muted); font-size:17px; }
-.routes strong { display:block; font-size:22px; margin-top:2px; }
-.parent-routes { margin-top:0; }
-.delegate-link { height:65px; position:relative; color:var(--red); font-size:18px; }
-.delegate-link .up-arrow { position:absolute; left:50%; top:14px; }
-.delegate-link > span { position:absolute; left:calc(50% + 16px); top:12px; width:175px; line-height:1.2; }
-.up-arrow { height:35px; width:2px; background:var(--red); position:relative; }
-.up-arrow::before { content:''; position:absolute; top:0; left:-5px; width:10px; height:10px; border-top:2px solid var(--red); border-left:2px solid var(--red); transform:rotate(45deg); }
-.delegated .body-name { margin-bottom:12px; }
-.delegated .sub-container { padding:16px 22px; }
-.delegated .sub-net { padding:10px 8px; }
-.choice-caption { margin-top:18px; color:var(--muted); font-size:19px; }
-.batch { border:1.5px solid var(--line); background:var(--paper); padding:28px; margin-top:28px; }
-.batch-header { display:grid; grid-template-columns:1fr auto; align-items:center; }
-.batch-header h2 { font-size:29px; }
-.batch-header p { color:var(--muted); font-size:19px; margin-top:5px; }
-.batch-total { text-align:right; }
-.batch-total span { color:var(--muted); display:block; font-size:18px; }
-.batch-total strong { font-size:35px; }
-.batch-equation { margin:24px 0; padding:17px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); display:flex; justify-content:center; gap:30px; align-items:center; font-size:28px; }
-.children { display:grid; grid-template-columns:1fr 1fr; gap:28px; }
-.child { background:#fff; border:1.5px solid var(--line); padding:23px; }
-.child h3 { display:flex; justify-content:space-between; font-size:24px; }
-.child h3 span { color:var(--muted); font-size:18px; font-weight:400; padding-top:4px; }
-.child .mini-flow { margin:22px 0; grid-template-columns:1fr 55px 1fr; height:141px; }
-.child-net { display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--line); padding-top:17px; }
-.child-net span { color:var(--red); font-size:21px; }
-.child-net strong { color:var(--red); font-size:30px; }
-.child p { margin-top:12px; text-align:center; font-size:19px; color:var(--muted); }
+.subtx-figure { color: #1e2b34; }
+.subtx-figure svg { display: block; width: 100%; height: auto; fill: currentColor; }
+.subtx-figure .node { fill: #fff; stroke: #bac7cf; }
+.subtx-figure .decision { fill: #f2f6f8; stroke: #b1c1cb; }
+.subtx-figure .node-label { font-size: 24px; font-weight: 600; }
+.subtx-figure .small-label { font-size: 18px; fill: #50616d; }
+.subtx-figure .action { font-size: 21px; font-weight: 600; }
+.subtx-figure .amount { font-size: 27px; font-weight: 600; }
+.subtx-figure .wire { fill: none; stroke: #748a98; stroke-width: 2; }
+.subtx-figure .arrowhead { fill: #748a98; }
+.subtx-figure .rule { stroke: #d3dce1; }
+.funding-flow .wire { stroke-width: 2.5; }
+.funding-flow .reserve-wire { stroke: #a45044; }
+.funding-flow .head-reserve, .funding-flow .reserve-text { fill: #a45044; }
+.funding-flow .wire-label { font-size: 19px; font-weight: 600; text-anchor: middle; }
 .interface { display:grid; grid-template-columns:420px 112px 500px; margin-top:30px; align-items:stretch; }
 .interface-panel { border:1.5px solid var(--line); padding:25px; }
 .interface-panel h2 { font-size:27px; padding-bottom:20px; border-bottom:1px solid var(--line); }
@@ -481,6 +431,64 @@ strong { font-weight: 600; }
   border-bottom: 5px solid transparent;
 }
 .builder-overview .overview-policy-link.from-right { transform: rotate(180deg); }
+.consolidation {
+  display: grid;
+  grid-template-columns: 232px 94px 286px 94px 326px;
+  grid-template-rows: auto 208px;
+  row-gap: 15px;
+  color: #1e2b34;
+}
+.consolidation h3 { font-size: 21px; }
+.consolidation .tx-label { grid-column: 3; text-align: center; }
+.consolidation .outputs-label { grid-column: 5; }
+.consolidation .input-list, .consolidation .output-list {
+  display: grid;
+  gap: 14px;
+  grid-auto-rows: 1fr;
+}
+.consolidation .input-list { grid-column: 1; }
+.consolidation .input-list strong, .consolidation .output-list > div, .consolidation .net-release {
+  border: 1px solid #bac7cf;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  padding: 0 21px;
+}
+.consolidation .input-list strong { font-size: 25px; }
+.consolidation .output-list span, .consolidation .net-release span { color: #50616d; font-size: 18px; }
+.consolidation .output-list strong { font-size: 26px; margin-top: 3px; }
+.consolidation .output-list .refund-value { border-color: #dcbab4; }
+.consolidation .refund-value strong { color: #a43f35; }
+.consolidation .net-release { align-self: center; height: 154px; text-align: center; background: #f7f9fa; }
+.consolidation .net-release strong { margin: 6px 0; color: #a43f35; font-size: 36px; }
+.consolidation svg { width: 94px; height: 208px; }
+.reserve-policy { color: #1e2b34; }
+.reserve-policy svg { display: block; width: 100%; height: auto; }
+.reserve-policy .lane-label { font-size: 24px; font-weight: 600; }
+.reserve-policy .option-label { font-size: 21px; font-weight: 600; }
+.reserve-policy .option-detail { font-size: 17px; fill: #50616d; }
+.reserve-policy .tx-label { font-size: 23px; font-weight: 600; }
+.reserve-policy .option-box { fill: #fff; stroke: #bac7cf; }
+.reserve-policy .tx-box { fill: #f2f6f8; stroke: #bac7cf; }
+.reserve-policy .route-line { fill: none; stroke: #667d8b; stroke-width: 2; }
+.net-review {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  color: #1e2b34;
+}
+.net-review article { padding: 0 24px; }
+.net-review article:first-child { padding-left: 0; }
+.net-review article:last-child { padding-right: 0; }
+.net-review article + article { border-left: 1px solid #dce3e7; }
+.net-review h3 { font-size: 25px; }
+.net-review .shape { color: #50616d; font-size: 19px; min-height: 60px; margin: 7px 0 16px; }
+.net-review .measure { display: flex; justify-content: space-between; font-size: 18px; gap: 10px; }
+.net-review .amount-bar { height: 9px; margin: 7px 0 16px; background: #637d8c; border-radius: 1px; }
+.net-review .amount-bar.released { background: #acc0cc; }
+.net-review .outcome { border-top: 1px solid #dce3e7; margin-top: 21px; padding-top: 14px; }
+.net-review .outcome strong { display: block; font-size: 31px; }
+.net-review .outcome span { display: block; color: #50616d; font-size: 18px; margin-top: 5px; }
 @media print { body { background:#fff; } .figure { break-after:page; margin:0; } }
 </style>
 </head>
@@ -653,52 +661,316 @@ strong { font-weight: 600; }
   <div class="accounting"><div><p>Historical deposits released</p><strong>4.8 ADA</strong></div><span class="operator">−</span><div><p>New deposits allocated</p><strong>3.2 ADA</strong></div><span class="operator">=</span><div><p>Available refund</p><strong class="red">1.6 ADA</strong></div></div>
 </section>
 
-<section class="figure" id="03-dsl-net-declaration">
-  <h1>Build the application flow. Review the net.</h1>
-  <p class="caption">The net deposit change is calculated from the selected inputs and outputs.</p>
-  <div class="flow">
-    <div><h3 class="column-title">Application inputs</h3><div class="output-stack input-stack">
-      <div class="token-card"><span class="value">1 Token C</span><span class="application">0 application ADA</span></div>
-      <div class="token-card"><span class="value">1 Token C</span><span class="application">0 application ADA</span></div>
-      <div class="token-card"><span class="value">1 Token C</span><span class="application">0 application ADA</span></div>
-    </div></div>
-    <div class="arrow-col three"><i class="arrow"></i><i class="arrow"></i><i class="arrow"></i></div>
-    <div class="transaction"><h2>Transaction</h2><div class="declaration"><span class="label">Net deposit release</span><strong class="value">1.6 ADA</strong><span class="destination">To output 0</span></div></div>
-    <div class="arrow-col two"><i class="arrow"></i><i class="arrow"></i></div>
-    <div><h3 class="column-title">Chosen outputs</h3><div class="output-stack wide">
-      <div class="token-card"><span class="name">Output 1 · Application</span><span class="value">3 Token C</span><span class="application">0 application ADA</span></div>
-      <div class="token-card refund"><span class="name">Output 0 · Refund</span><span class="value">1.6 ADA</span><span class="application">Receives the released surplus</span></div>
-    </div></div>
+<section class="figure consolidation" id="03-dsl-net-declaration" aria-label="Consolidation of 3 units of token C with a separate ADA refund">
+  <h3>Selected inputs</h3>
+  <h3 class="tx-label">Transaction</h3>
+  <h3 class="outputs-label">New outputs</h3>
+  <div class="input-list">
+    <strong>1 unit of C</strong>
+    <strong>1 unit of C</strong>
+    <strong>1 unit of C</strong>
   </div>
-  <div class="calculation-band"><div class="policy"><div><span>Funding candidate</span><strong>reserve#0</strong></div><div><span>Refund destination</span><strong>output 0</strong></div></div><i class="arrow"></i><div class="calculation-result"><span>computeNetBalance</span><strong>Calculate the net deposit declaration</strong></div></div>
-</section>
-
-<section class="figure" id="04-dsl-funding-refund">
-  <h1>One funding and refund policy, 3 outcomes</h1>
-  <p class="caption">Application inputs and outputs determine the net deposit change.</p>
-  <div class="cases">
-    <article class="case"><h2>Allocate</h2><p class="caption">Split 1 output into 3</p><div class="mini-flow"><div class="mini-stack"><div class="mini-output tall">3 Token C</div></div><i class="arrow"></i><div class="mini-stack"><div class="mini-output">1 Token C</div><div class="mini-output">1 Token C</div><div class="mini-output">1 Token C</div></div></div><dl><div><dt>New deposits</dt><dd>4.8 ADA</dd></div><div><dt>Released deposits</dt><dd>1.6 ADA</dd></div></dl><div class="net"><span>Net change</span><strong>+3.2 ADA</strong></div><div class="route"><span>Minimum-ADA funding input</span><strong>reserve#0 → transaction</strong></div></article>
-    <article class="case"><h2>Release</h2><p class="caption">Consolidate 3 token outputs into 1</p><div class="mini-flow"><div class="mini-stack"><div class="mini-output">1 Token C</div><div class="mini-output">1 Token C</div><div class="mini-output">1 Token C</div></div><i class="arrow"></i><div class="mini-stack"><div class="mini-output tall">3 Token C</div></div></div><dl><div><dt>New deposits</dt><dd>1.6 ADA</dd></div><div><dt>Released deposits</dt><dd>4.8 ADA</dd></div></dl><div class="net"><span>Net change</span><strong>−3.2 ADA</strong></div><div class="route"><span>Minimum-ADA refund output</span><strong>3.2 ADA → output 0</strong></div></article>
-    <article class="case zero"><h2>Balance</h2><p class="caption">Replace 1 output with 1</p><div class="mini-flow"><div class="mini-stack"><div class="mini-output tall">3 Token C</div></div><i class="arrow"></i><div class="mini-stack"><div class="mini-output tall">3 Token C</div></div></div><dl><div><dt>New deposits</dt><dd>1.6 ADA</dd></div><div><dt>Released deposits</dt><dd>1.6 ADA</dd></div></dl><div class="net"><span>Net change</span><strong>0 ADA</strong></div><div class="route"><span>Declare</span><strong>Zero net deposit change</strong></div></article>
+  <svg viewBox="0 0 94 208" aria-hidden="true">
+    <path d="M0 30 H47 V178 H0 M0 104 H90" fill="none" stroke="#7d919e" stroke-width="2"/>
+    <path d="M94 104 l-8 -5 v10 Z" fill="#7d919e"/>
+  </svg>
+  <div class="net-release">
+    <span>Net deposit release</span>
+    <strong>1.6 ADA</strong>
+    <span>to output 0</span>
   </div>
-  <p class="case-note">Here, the reserve input and refund output use the minimum-ADA form.</p>
-</section>
-
-<section class="figure" id="05-dsl-subtx-delegation">
-  <h1>A SubTx can handle its net or delegate it</h1>
-  <div class="choices">
-    <article class="choice local"><h2>Handle locally</h2><p>Choose funding and refund within the SubTx.</p><div class="top-container"><div class="body-name">TopTx<span>Complete batch</span></div><div class="sub-container"><div class="body-name">SubTx</div><div class="sub-net">Own net deposit change</div><div class="routes"><div><span>Allocation</span><strong>Funding input</strong></div><div><span>Release</span><strong>Refund output</strong></div></div></div></div><p class="choice-caption">The SubTx author supplies the local policy.</p></article>
-    <article class="choice delegated"><h2>Delegate to TopTx</h2><p>Let TopTx coordinate funding and refunds.</p><div class="top-container"><div class="body-name">TopTx<span>Complete batch</span></div><div class="routes parent-routes"><div><span>Allocation</span><strong>Funding input</strong></div><div><span>Release</span><strong>Refund output</strong></div></div><div class="delegate-link"><i class="up-arrow"></i><span>Delegate the<br>net contribution</span></div><div class="sub-container"><div class="body-name">SubTx</div><div class="sub-net">Own net deposit change</div></div></div><p class="choice-caption">The SubTx can express a token-only flow.</p></article>
+  <svg viewBox="0 0 94 208" aria-hidden="true">
+    <path d="M0 104 H44 V48.5 H90" fill="none" stroke="#7d919e" stroke-width="2"/>
+    <path d="M94 48.5 l-8 -5 v10 Z" fill="#7d919e"/>
+    <path d="M44 104 V159.5 H90" fill="none" stroke="#b25a4f" stroke-width="2"/>
+    <path d="M94 159.5 l-8 -5 v10 Z" fill="#b25a4f"/>
+  </svg>
+  <div class="output-list">
+    <div><span>Output 1 · Application</span><strong>3 units of C</strong></div>
+    <div class="refund-value"><span>Output 0 · Refund</span><strong>1.6 ADA</strong></div>
   </div>
 </section>
 
-<section class="figure" id="06-dsl-batch-netting">
-  <h1>TopTx combines the delegated contributions</h1>
-  <p class="caption">Independent SubTxs spend distinct inputs.</p>
-  <div class="batch"><div class="batch-header"><div><h2>TopTx</h2><p>Fees funded separately</p></div><div class="batch-total"><span>Batch deposit declaration</span><strong>0 ADA</strong></div></div><div class="batch-equation"><span class="red">−3.2 ADA</span><span>+</span><span class="red">3.2 ADA</span><span>=</span><strong>0 ADA</strong></div><div class="children">
-    <article class="child"><h3>SubTx A<span>Consolidate</span></h3><div class="mini-flow"><div class="mini-stack"><div class="mini-output">1 Token C</div><div class="mini-output">1 Token C</div><div class="mini-output">1 Token C</div></div><i class="arrow"></i><div class="mini-stack"><div class="mini-output tall">3 Token C</div></div></div><div class="child-net"><span>Delegate release</span><strong>3.2 ADA</strong></div><p>0 application ADA in its inputs and outputs</p></article>
-    <article class="child"><h3>SubTx B<span>Split</span></h3><div class="mini-flow"><div class="mini-stack"><div class="mini-output tall">3 Token C</div></div><i class="arrow"></i><div class="mini-stack"><div class="mini-output">1 Token C</div><div class="mini-output">1 Token C</div><div class="mini-output">1 Token C</div></div></div><div class="child-net"><span>Request funding</span><strong>3.2 ADA</strong></div><p>0 application ADA in its inputs and outputs</p></article>
-  </div></div>
+<section class="figure reserve-policy" id="03a-reserve-policy">
+  <svg viewBox="0 0 1032 285" role="img" aria-labelledby="reserve-policy-description" fill="currentColor">
+    <desc id="reserve-policy-description">A top-up uses existing inputs or a named funding input. A refund goes to an existing output or a new output supplied by the builder.</desc>
+    <defs>
+      <marker id="reserve-policy-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+        <path d="M0 0 L8 4 L0 8 Z" fill="#667d8b"/>
+      </marker>
+    </defs>
+    <path d="M516 2 V281" stroke="#dce3e7"/>
+    <g>
+      <text class="lane-label" x="0" y="24">Where does a top-up come from?</text>
+      <rect class="option-box" x="1" y="63" width="233" height="77" rx="5"/>
+      <text class="option-label" x="18" y="95">Selected inputs</text>
+      <text class="option-detail" x="18" y="121">Already in the body</text>
+      <text class="option-detail" x="117" y="167" text-anchor="middle">or</text>
+      <rect class="option-box" x="1" y="183" width="233" height="77" rx="5"/>
+      <text class="option-label" x="18" y="215">Named reserve input</text>
+      <text class="option-detail" x="18" y="241">e.g. reserve#0</text>
+      <path class="route-line" d="M234 102 H266 Q273 102 273 109 V214 Q273 222 266 222 H234 M273 162 H310" marker-end="url(#reserve-policy-arrow)"/>
+      <rect class="tx-box" x="314" y="124" width="166" height="76" rx="5"/>
+      <text class="tx-label" x="397" y="169" text-anchor="middle">Transaction</text>
+    </g>
+    <g transform="translate(552 0)">
+      <text class="lane-label" x="0" y="24">Where does a refund go?</text>
+      <rect class="tx-box" x="1" y="124" width="166" height="76" rx="5"/>
+      <text class="tx-label" x="84" y="169" text-anchor="middle">Transaction</text>
+      <path class="route-line" d="M167 162 H205"/>
+      <path class="route-line" d="M205 162 V109 Q205 102 212 102 H243" marker-end="url(#reserve-policy-arrow)"/>
+      <path class="route-line" d="M205 162 V215 Q205 222 212 222 H243" marker-end="url(#reserve-policy-arrow)"/>
+      <rect class="option-box" x="247" y="63" width="232" height="77" rx="5"/>
+      <text class="option-label" x="264" y="95">Existing output</text>
+      <text class="option-detail" x="264" y="121">e.g. output 0</text>
+      <text class="option-detail" x="363" y="167" text-anchor="middle">or</text>
+      <rect class="option-box" x="247" y="183" width="232" height="77" rx="5"/>
+      <text class="option-label" x="264" y="215">New output</text>
+      <text class="option-detail" x="264" y="241">Supplied by the builder</text>
+    </g>
+  </svg>
+</section>
+
+<section class="figure net-review" id="04-dsl-funding-refund" aria-label="Three net deposit outcomes with the same inputs and output count">
+  <article>
+    <h3>Release</h3>
+    <p class="shape">400 fewer bytes of inline datum</p>
+    <div class="measure"><span>New deposit required</span><strong>1.6 ADA</strong></div>
+    <div class="amount-bar" style="width: 56px" aria-hidden="true"></div>
+    <div class="measure"><span>Historical deposit released</span><strong>3.2 ADA</strong></div>
+    <div class="amount-bar released" style="width: 112px" aria-hidden="true"></div>
+    <div class="outcome"><strong>−1.6 ADA</strong><span>Refund 1.6 ADA to output 0</span></div>
+  </article>
+  <article>
+    <h3>Allocate</h3>
+    <p class="shape">Inline datum and reference script<br>each grow by 200 bytes</p>
+    <div class="measure"><span>New deposit required</span><strong>4.8 ADA</strong></div>
+    <div class="amount-bar" style="width: 168px" aria-hidden="true"></div>
+    <div class="measure"><span>Historical deposit released</span><strong>3.2 ADA</strong></div>
+    <div class="amount-bar released" style="width: 112px" aria-hidden="true"></div>
+    <div class="outcome"><strong>+1.6 ADA</strong><span>Fund the additional 1.6 ADA</span></div>
+  </article>
+  <article>
+    <h3>No deposit change</h3>
+    <p class="shape">Same priced size for the<br>successor output</p>
+    <div class="measure"><span>New deposit required</span><strong>3.2 ADA</strong></div>
+    <div class="amount-bar" style="width: 112px" aria-hidden="true"></div>
+    <div class="measure"><span>Historical deposit released</span><strong>3.2 ADA</strong></div>
+    <div class="amount-bar released" style="width: 112px" aria-hidden="true"></div>
+    <div class="outcome"><strong>0 ADA</strong><span>Declare zero deposit change</span></div>
+  </article>
+</section>
+
+<section class="figure subtx-figure" id="05-dsl-subtx-delegation">
+  <svg viewBox="0 0 1032 324" role="img" aria-labelledby="subtx-route-description">
+    <desc id="subtx-route-description">A SubTx with an allocation or a release chooses local accounting or delegates its net contribution to TopTx.</desc>
+    <rect class="decision" x="1" y="113" width="205" height="98" rx="5"/>
+    <text class="node-label" x="104" y="157" text-anchor="middle">SubTx</text>
+    <text class="small-label" x="104" y="184" text-anchor="middle">Own net deposit change</text>
+    <path class="wire" d="M206 162 H247 M247 162 V82 Q247 74 255 74 H295 M247 162 V242 Q247 250 255 250 H295"/>
+    <path class="arrowhead" d="M301 74 l-9 -5 v10 Z M301 250 l-9 -5 v10 Z"/>
+    <g transform="translate(302 1)">
+      <rect class="node" x="0" y="0" width="729" height="145" rx="5"/>
+      <text class="node-label" x="23" y="37">Account locally</text>
+      <path class="rule" d="M23 53 H705 M342 70 V125"/>
+      <text class="action" x="23" y="90">Allocate</text>
+      <text class="small-label" x="23" y="117">Fund the top-up within the SubTx</text>
+      <text class="action" x="366" y="90">Release</text>
+      <text class="small-label" x="366" y="117">Receive the refund in a SubTx output</text>
+    </g>
+    <g transform="translate(302 177)">
+      <rect class="node" x="0" y="0" width="729" height="145" rx="5"/>
+      <text class="node-label" x="23" y="37">Delegate to TopTx</text>
+      <path class="rule" d="M23 53 H705 M342 70 V125"/>
+      <text class="action" x="23" y="90">Allocate</text>
+      <text class="small-label" x="23" y="117">Ask TopTx to fund the allocation</text>
+      <text class="action" x="366" y="90">Release</text>
+      <text class="small-label" x="366" y="117">Let TopTx account for the release</text>
+    </g>
+  </svg>
+</section>
+<section class="figure subtx-figure" id="05a-token-only-subtx">
+  <svg viewBox="0 0 1032 323" role="img" aria-labelledby="token-only-subtx-description">
+    <desc id="token-only-subtx-description">Alice’s SubTx spends one input holding assets B and C and creates a token-only output for each recipient: B for Bob and C for Carol. The SubTx requests a deposit allocation of 1.0775 ADA from the TopTx reserve.</desc>
+    <text class="small-label" x="0" y="20">SubTx · Token transfer</text>
+    <text class="small-label" x="1030" y="20" text-anchor="end">0 application ADA</text>
+    <rect class="node" x="1" y="62" width="335" height="99" rx="5"/>
+    <text class="node-label" x="22" y="102">Alice’s input</text>
+    <text class="action" x="22" y="138">Asset B + Asset C</text>
+    <path class="wire" d="M336 111 H485 M485 111 V82 Q485 75 492 75 H618 M485 111 V141 Q485 148 492 148 H618"/>
+    <path class="arrowhead" d="M624 75 l-9 -5 v10 Z M624 148 l-9 -5 v10 Z"/>
+    <rect class="node" x="625" y="45" width="406" height="60" rx="5"/>
+    <text class="action" x="645" y="82">Bob’s output</text>
+    <text class="action" x="1010" y="82" text-anchor="end">Asset B</text>
+    <rect class="node" x="625" y="118" width="406" height="60" rx="5"/>
+    <text class="action" x="645" y="155">Carol’s output</text>
+    <text class="action" x="1010" y="155" text-anchor="end">Asset C</text>
+    <path class="rule" d="M0 204 H1032"/>
+    <rect x="1" y="233" width="335" height="89" rx="5" fill="#fcf3f1" stroke="#e4c7c1"/>
+    <text class="small-label" x="22" y="266">SubTx · Deposit declaration</text>
+    <text class="node-label" x="22" y="299" fill="#a43f35">Allocate 1.0775 ADA</text>
+    <text class="small-label" x="480" y="266" text-anchor="middle">Requests funding</text>
+    <path d="M336 282 H618" fill="none" stroke="#ad645c" stroke-width="2" stroke-dasharray="5 5"/>
+    <path d="M624 282 l-9 -5 v10 Z" fill="#ad645c"/>
+    <rect class="decision" x="625" y="233" width="406" height="89" rx="5"/>
+    <text class="small-label" x="645" y="266">TopTx</text>
+    <text class="node-label" x="645" y="299">ADA reserve covers the shortfall</text>
+  </svg>
+</section>
+<section class="figure subtx-figure" id="06-dsl-batch-netting">
+  <svg viewBox="0 0 1032 318" role="img" aria-labelledby="subtx-batch-description">
+    <desc id="subtx-batch-description">SubTx A delegates a release of 3.2 ADA, SubTx B requests 3.2 ADA, and TopTx's own inputs and outputs contribute zero. The batch declares no deposit change.</desc>
+    <g transform="translate(1 1)">
+      <rect class="node" width="552" height="89" rx="5"/>
+      <text class="node-label" x="22" y="38">SubTx A delegates a release</text>
+      <text class="small-label" x="22" y="65">3 token inputs → 1 token output</text>
+      <text class="amount" x="530" y="53" text-anchor="end">−3.2 ADA</text>
+    </g>
+    <g transform="translate(1 114)">
+      <rect class="node" width="552" height="89" rx="5"/>
+      <text class="node-label" x="22" y="38">SubTx B requests funding</text>
+      <text class="small-label" x="22" y="65">1 token input → 3 token outputs</text>
+      <text class="amount" x="530" y="53" text-anchor="end">+3.2 ADA</text>
+    </g>
+    <g transform="translate(1 227)">
+      <rect class="node" width="552" height="89" rx="5"/>
+      <text class="node-label" x="22" y="38">TopTx’s own deposit change</text>
+      <text class="small-label" x="22" y="65">Fee input and change use the minimum-ADA form</text>
+      <text class="amount" x="530" y="53" text-anchor="end">0 ADA</text>
+    </g>
+    <path class="wire" d="M553 46 H597 Q605 46 605 54 V264 Q605 272 597 272 H553 M553 159 H654"/>
+    <path class="arrowhead" d="M660 159 l-9 -5 v10 Z"/>
+    <rect class="decision" x="661" y="67" width="370" height="183" rx="5"/>
+    <text class="small-label" x="846" y="107" text-anchor="middle">TopTx · Batch declaration</text>
+    <text class="node-label" x="846" y="145" text-anchor="middle">No deposit change</text>
+    <text class="amount" x="846" y="183" text-anchor="middle">0 ADA</text>
+    <path class="rule" d="M682 200 H1010"/>
+    <text class="small-label" x="846" y="230" text-anchor="middle">No deposit top-up or refund needed</text>
+  </svg>
+</section>
+<section class="figure subtx-figure funding-flow" id="06a-mixed-output-forms">
+  <svg viewBox="0 0 1032 384" role="img" aria-labelledby="06a-mixed-output-forms-alt">
+    <desc id="06a-mixed-output-forms-alt">One possible funding plan for Alice’s 7.2 ADA and token B. Her 1.6 ADA embedded reserve and 0.4 ADA from the remaining value fund Carol’s 2 ADA external reserve. Carol receives 5 ADA and the token in her output. The other 0.2 ADA pays the fee. Reserve net: Allocate 0.4 ADA.</desc>
+    <text class="action" x="1" y="28">Alice’s minimum-ADA input</text>
+    <rect class="node" x="1" y="46" width="278" height="209" rx="5"/>
+    <text class="node-label" x="20" y="79">7.2 ADA + 1 token B</text>
+    <path class="rule" d="M20 93 H260"/>
+    <text class="small-label" x="20" y="118">Embedded reserve</text>
+    <text class="action" x="20" y="146">1.6 ADA</text>
+    <path class="rule" d="M20 166 H260"/>
+    <text class="small-label" x="20" y="197">Remainder</text>
+    <text class="action" x="20" y="225">5.6 ADA + 1 token B</text>
+
+    <text class="action" x="674" y="28">Carol’s deposit-backed output</text>
+    <rect class="node" x="675" y="46" width="356" height="209" rx="5"/>
+    <text class="small-label" x="697" y="101">External reserve</text>
+    <text class="amount" x="697" y="143">2 ADA</text>
+    <path class="rule" d="M696 167 H1010"/>
+    <text class="small-label" x="697" y="197">Output value</text>
+    <text class="node-label" x="697" y="228">5 ADA + 1 token B</text>
+
+    <path class="wire reserve-wire" d="M279 135 H661"/>
+    <text class="wire-label reserve-text" x="450" y="125">1.6 ADA</text>
+    <path class="wire" d="M279 217 H365 M365 217 V299 Q365 305 371 305 H661 M365 217 H661"/>
+    <path class="wire reserve-wire" d="M365 217 V178 Q365 171 372 171 H553 Q560 171 560 164 V135"/>
+    <circle cx="365" cy="217" r="3.5" fill="#738692"/>
+    <circle cx="560" cy="135" r="4.3" fill="#a45044"/>
+    <text class="wire-label reserve-text" x="450" y="162">0.4 ADA</text>
+    <text class="wire-label" x="487" y="207">5 ADA + 1 token B</text>
+    <text class="wire-label" x="487" y="295">0.2 ADA</text>
+    <path class="head-reserve" d="M675 135 l-14 -6 v12 Z"/>
+    <path class="arrowhead" d="M675 217 l-14 -6 v12 Z M675 305 l-14 -6 v12 Z"/>
+    <text class="action" x="697" y="312">Transaction fee</text>
+
+    <path class="rule" d="M0 337 H1032"/>
+    <text class="small-label" x="0" y="374">Reserve net</text>
+    <text class="node-label" x="150" y="374">2 − 1.6 = 0.4 ADA</text>
+    <text class="node-label reserve-text" x="1031" y="374" text-anchor="end">Allocate 0.4 ADA</text>
+  </svg>
+</section>
+<section class="figure subtx-figure funding-flow" id="06a2-split-payment">
+  <svg viewBox="0 0 1032 477" role="img" aria-labelledby="06a2-split-payment-alt">
+    <desc id="06a2-split-payment-alt">Alice pays Bob 5 ADA and sends one token B to Carol. One possible plan uses the old 1.6 ADA reserve towards Bob’s embedded minimum, plus 3.4 ADA from the remainder for Bob’s payment. Of the remaining funds, 2 ADA back Carol’s token-only output and 0.2 ADA pays the fee. Reserve net: Allocate 2 ADA.</desc>
+    <text class="action" x="1" y="28">Alice’s minimum-ADA input</text>
+    <rect class="node" x="1" y="46" width="278" height="209" rx="5"/>
+    <text class="node-label" x="20" y="79">7.2 ADA + 1 token B</text>
+    <path class="rule" d="M20 93 H260"/>
+    <text class="small-label" x="20" y="118">Embedded reserve</text>
+    <text class="action" x="20" y="146">1.6 ADA</text>
+    <path class="rule" d="M20 166 H260"/>
+    <text class="small-label" x="20" y="197">Remainder</text>
+    <text class="action" x="20" y="225">5.6 ADA + 1 token B</text>
+
+    <text class="action" x="674" y="28">Bob’s minimum-ADA output</text>
+    <rect class="node" x="675" y="46" width="356" height="158" rx="5"/>
+    <text class="node-label" x="697" y="79">5 ADA in output value</text>
+    <path class="rule" d="M697 93 H1010"/>
+    <text class="action" x="697" y="143">Embedded reserve</text>
+    <text class="action" x="697" y="186">Remaining payment</text>
+
+    <text class="action" x="674" y="244">Carol’s deposit-backed output</text>
+    <rect class="node" x="675" y="261" width="356" height="100" rx="5"/>
+    <text class="action" x="697" y="296">External reserve</text>
+    <path class="rule" d="M697 310 H1010"/>
+    <text class="action" x="697" y="344">Output value</text>
+
+    <path class="wire reserve-wire" d="M279 135 H661"/>
+    <text class="wire-label reserve-text" x="468" y="125">1.6 ADA</text>
+    <path class="wire" d="M279 217 H369 M369 217 V185 Q369 178 376 178 H661 M369 217 V391 Q369 398 376 398 H661 M369 336 H661"/>
+    <path class="wire reserve-wire" d="M369 288 H661"/>
+    <circle cx="369" cy="217" r="3.5" fill="#738692"/>
+    <circle cx="369" cy="288" r="3.5" fill="#738692"/>
+    <circle cx="369" cy="336" r="3.5" fill="#738692"/>
+    <text class="wire-label" x="468" y="168">3.4 ADA</text>
+    <text class="wire-label reserve-text" x="468" y="278">2 ADA</text>
+    <text class="wire-label" x="468" y="326">1 token B</text>
+    <text class="wire-label" x="468" y="388">0.2 ADA</text>
+    <path class="head-reserve" d="M675 135 l-14 -6 v12 Z M675 288 l-14 -6 v12 Z"/>
+    <path class="arrowhead" d="M675 178 l-14 -6 v12 Z M675 336 l-14 -6 v12 Z M675 398 l-14 -6 v12 Z"/>
+    <text class="action" x="697" y="405">Transaction fee</text>
+
+    <path class="rule" d="M0 430 H1032"/>
+    <text class="small-label" x="0" y="467">Reserve net</text>
+    <text class="node-label" x="150" y="467">(1.6 + 2) − 1.6 = 2 ADA</text>
+    <text class="node-label reserve-text" x="1031" y="467" text-anchor="end">Allocate 2 ADA</text>
+  </svg>
+</section>
+<section class="figure subtx-figure funding-flow" id="06b-underfunded-input">
+  <svg viewBox="0 0 1032 370" role="img" aria-labelledby="06b-underfunded-input-alt">
+    <desc id="06b-underfunded-input-alt">The 100 tokens in an imported output pass to its deposit-backed successor. The input holds only 2 ADA against a 3 ADA baseline. Another 1 ADA of funding completes the new 3 ADA external reserve. Fees are excluded. Reserve net: Allocate 1 ADA.</desc>
+    <text class="action" x="0" y="28">Imported minimum-ADA input</text>
+    <rect class="node" x="1" y="46" width="307" height="148" rx="5"/>
+    <text class="node-label" x="20" y="82">2 ADA + 100 tokens</text>
+    <path class="rule" d="M20 97 H289"/>
+    <text class="small-label" x="20" y="132">Baseline requirement · 3 ADA</text>
+    <text class="action" x="20" y="172">Reserve capped at 2 ADA</text>
+
+    <rect class="node" x="1" y="224" width="307" height="70" rx="5"/>
+    <text class="small-label" x="20" y="252">Other funding</text>
+    <text class="action" x="20" y="279">1 ADA after change</text>
+
+    <text class="action" x="672" y="28">Deposit-backed successor</text>
+    <rect class="node" x="673" y="46" width="358" height="179" rx="5"/>
+    <text class="small-label" x="694" y="80">Output value</text>
+    <text class="node-label" x="694" y="113">100 tokens only</text>
+    <path class="rule" d="M694 134 H1009"/>
+    <text class="small-label" x="694" y="166">External reserve</text>
+    <text class="amount" x="694" y="201">3 ADA</text>
+
+    <path class="wire" d="M308 78 H382 Q389 78 389 85 V98 Q389 105 396 105 H659"/>
+    <text class="wire-label" x="484" y="95">100 tokens</text>
+    <path class="wire reserve-wire" d="M308 166 H382 Q389 166 389 173 V185 Q389 192 396 192 H659 M308 262 H570 Q577 262 577 255 V192"/>
+    <circle cx="577" cy="192" r="4.3" fill="#a45044"/>
+    <text class="wire-label reserve-text" x="484" y="182">2 ADA</text>
+    <text class="wire-label reserve-text" x="484" y="252">1 ADA</text>
+    <path class="arrowhead" d="M673 105 l-14 -6 v12 Z"/>
+    <path class="head-reserve" d="M673 192 l-14 -6 v12 Z"/>
+
+    <path class="rule" d="M0 323 H1032"/>
+    <text class="small-label" x="0" y="360">Reserve net</text>
+    <text class="node-label" x="150" y="360">3 − 2 = 1 ADA</text>
+    <text class="node-label reserve-text" x="1031" y="360" text-anchor="end">Allocate 1 ADA</text>
+  </svg>
 </section>
 <section class="figure" id="07-dsl-ledger-interface">
   <h1>From construction choices to the signed transaction</h1>
