@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="285" viewBox="0 0 960 285" role="img" aria-labelledby="title desc">
+  <title id="title">Live UTxO entries before and after inclusion</title>
+  <desc id="desc">At slot 120 the ledger removes old#0, which held 7.2 ADA and 1 token B, including 1.6 ADA of reserve. It inserts tx#0 with 5 ADA and the same token and records slot 120 as its allocation origin. External deposits increase by 2 ADA and fees increase by 0.2 ADA. Other live entries keep their allocation origins.</desc>
+  <style>
+    text { font-family: Barlow, "Helvetica Neue", Arial, sans-serif; fill: #20303b; }
+    .heading { font-size: 22px; font-weight: 600; }
+    .reference { font-family: "SFMono-Regular", Consolas, monospace; font-size: 18px; font-weight: 600; }
+    .body { font-size: 18px; }
+    .amount { font-size: 26px; font-weight: 600; }
+    .detail { font-size: 17px; fill: #465d6d; }
+    .credit { font-size: 22px; font-weight: 600; }
+    .rule { stroke: #c6d1d7; }
+  </style>
+  <rect width="960" height="285" fill="white"/>
+  <g transform="translate(12 0)">
+    <text class="heading" y="30">Before inclusion</text>
+    <rect y="48" width="413" height="150" rx="5" fill="#fafbfc" stroke="#b9c9d1"/>
+    <text class="reference" x="18" y="79">old#0</text>
+    <text class="body" x="395" y="79" text-anchor="end">Minimum-ADA output</text>
+    <path class="rule" d="M0 96h413"/>
+    <text class="amount" x="18" y="135">7.2 ADA + 1 token B</text>
+    <text class="detail" x="18" y="171">Includes 1.6 ADA of reserve</text>
+  </g>
+  <path d="M446 122h63m-10-9 10 9-10 9" fill="none" stroke="#627e8d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <g transform="translate(535 0)">
+    <text class="heading" y="30">After inclusion</text>
+    <rect y="48" width="413" height="150" rx="5" fill="#f2f5f7" stroke="#b9c9d1"/>
+    <text class="reference" x="18" y="79">tx#0</text>
+    <text class="body" x="395" y="79" text-anchor="end">Deposit-backed output</text>
+    <path class="rule" d="M0 96h413"/>
+    <text class="amount" x="18" y="135">5 ADA + 1 token B</text>
+    <text class="detail" x="18" y="171">Allocation origin · slot 120</text>
+  </g>
+  <path class="rule" d="M12 224h936m-468 17v33"/>
+  <text class="body" x="12" y="264">External deposit total</text>
+  <text class="credit" x="425" y="265" text-anchor="end">+2 ADA</text>
+  <text class="body" x="535" y="264">Fee pot</text>
+  <text class="credit" x="948" y="265" text-anchor="end">+0.2 ADA</text>
+</svg>
