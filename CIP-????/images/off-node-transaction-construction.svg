@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="198" viewBox="0 0 960 198" role="img" aria-labelledby="title desc">
+  <title id="title">Building and verifying a deposit declaration</title>
+  <desc id="desc">Outside the node, transaction-building software resolves spending inputs and pricing at one chain point, computes the net reserve change and includes it in the body for signing. The signed transaction goes to the node. The ledger resolves the inputs independently, prices the outputs under the rules at inclusion and verifies the declaration.</desc>
+  <style>
+    text { font-family: Barlow, "Helvetica Neue", Arial, sans-serif; fill: #20303b; }
+    .label { font-size: 16px; fill: #526774; }
+    .heading { font-size: 22px; font-weight: 600; }
+    .detail { font-size: 17px; }
+    .handoff { font-size: 17px; font-weight: 600; fill: #99372f; }
+    .rule { stroke: #ccd5da; }
+  </style>
+  <rect width="960" height="198" fill="#fff"/>
+  <g transform="translate(8 8)">
+    <rect width="355" height="182" rx="6" fill="#f5f7f8" stroke="#bccbd3"/>
+    <text x="18" y="28" class="label">Outside the node</text>
+    <text x="18" y="58" class="heading">Transaction construction</text>
+    <path d="M18 73h319" class="rule"/>
+    <text x="18" y="101" class="detail">Get inputs and prices at one chain point.</text>
+    <text x="18" y="131" class="detail">Compute the net reserve change.</text>
+    <text x="18" y="161" class="detail">Put the declaration in the body to sign.</text>
+  </g>
+  <g text-anchor="middle">
+    <text x="480" y="88" class="handoff">Signed transaction</text>
+    <path d="M363 105h223" fill="none" stroke="#ae4439" stroke-width="2"/>
+    <path d="m584 99 10 6-10 6" fill="#ae4439"/>
+  </g>
+  <g transform="translate(597 8)">
+    <rect width="355" height="182" rx="6" fill="#fff" stroke="#bccbd3"/>
+    <text x="18" y="28" class="label">Inside the node</text>
+    <text x="18" y="58" class="heading">Ledger validation</text>
+    <path d="M18 73h319" class="rule"/>
+    <text x="18" y="101" class="detail">Resolve inputs against the live UTxO set.</text>
+    <text x="18" y="131" class="detail">Price new outputs at the inclusion slot.</text>
+    <text x="18" y="161" class="detail">Recompute and verify the declared net.</text>
+  </g>
+</svg>

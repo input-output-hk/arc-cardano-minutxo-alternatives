@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="252" viewBox="0 0 960 252" role="img" aria-labelledby="title desc">
+  <title id="title">A change in price between the creation and spending of an output</title>
+  <desc id="desc">At slot 100, a deposit-backed output transfers 5 ADA and requires 400 pricing units. At 5,000 lovelace per unit its deposit is 2 ADA. At slot 200 the rate rises to 6,000 lovelace per unit. The output is still unspent and its original deposit remains 2 ADA. At slot 210 spending it releases 2 ADA. An identical successor requires a 2.4 ADA deposit at the new rate.</desc>
+  <style>
+    text { font-family: Barlow, "Helvetica Neue", Arial, sans-serif; fill: #20303b; }
+    .slot { font-size: 17px; font-weight: 600; fill: #526774; }
+    .event { font-size: 21px; font-weight: 600; }
+    .detail { font-size: 18px; }
+    .label { font-size: 17px; fill: #526774; }
+    .amount { font-size: 20px; font-weight: 600; }
+    .successor { fill: #99372f; }
+  </style>
+  <rect width="960" height="252" fill="#fff"/>
+  <path d="M26 46H936" fill="none" stroke="#b1c2cb" stroke-width="2"/>
+  <path d="m932 41 9 5-9 5" fill="#8297a3"/>
+
+  <g transform="translate(10 0)">
+    <text x="16" y="27" class="slot">Slot 100</text>
+    <circle cx="16" cy="46" r="5" fill="#526774"/>
+    <text x="16" y="84" class="event">Create the output</text>
+    <text x="16" y="117" class="detail">5 ADA in application value</text>
+    <text x="16" y="144" class="detail">400 units × 5,000 lovelace</text>
+    <rect y="167" width="298" height="68" rx="6" fill="#f0f4f6"/>
+    <text x="16" y="191" class="label">Original deposit</text>
+    <text x="16" y="220" class="amount">2 ADA</text>
+  </g>
+
+  <g transform="translate(330 0)">
+    <text x="16" y="27" class="slot">Slot 200</text>
+    <circle cx="16" cy="46" r="5" fill="#526774"/>
+    <text x="16" y="84" class="event">Activate the new rate</text>
+    <text x="16" y="117" class="detail">6,000 lovelace per unit</text>
+    <text x="16" y="144" class="detail">The output is still unspent.</text>
+    <rect y="167" width="298" height="68" rx="6" fill="#f0f4f6"/>
+    <text x="16" y="191" class="label">Original deposit</text>
+    <text x="16" y="220" class="amount">2 ADA</text>
+  </g>
+
+  <g transform="translate(650 0)">
+    <text x="16" y="27" class="slot">Slot 210</text>
+    <circle cx="16" cy="46" r="5" fill="#526774"/>
+    <text x="16" y="84" class="event">Spend and replace it</text>
+    <text x="16" y="117" class="detail">Release the original 2 ADA.</text>
+    <text x="16" y="144" class="detail">400 units × 6,000 lovelace</text>
+    <rect y="167" width="300" height="68" rx="6" fill="#fbf0ee"/>
+    <text x="16" y="191" class="label">Identical successor’s deposit</text>
+    <text x="16" y="220" class="amount successor">2.4 ADA</text>
+  </g>
+</svg>
