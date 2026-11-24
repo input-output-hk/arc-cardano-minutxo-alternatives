@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="318" viewBox="0 0 960 318" role="img" aria-labelledby="title desc">
+  <title id="title">Collateral entries and fee credit on accepted phase-2 failure</title>
+  <desc id="desc">At slot 120 the ledger spends the separate, key-controlled collateral input col#0. Its value holds 5 ADA and its external deposit holds 2 ADA. A minimum-ADA collateral return carries 4 ADA and requires no external deposit. The external deposit balance falls by 2 ADA. The fee pot receives 1 ADA from the input value and 2 ADA from the released deposit. The ordinary input old#0 stays live and the ordinary output tx#0 is not created.</desc>
+  <style>
+    text { font-family: Barlow, "Helvetica Neue", Arial, sans-serif; fill: #20303b; }
+    .heading { font-size: 22px; font-weight: 600; }
+    .reference { font-family: "SFMono-Regular", Consolas, monospace; font-size: 18px; font-weight: 600; }
+    .body { font-size: 18px; }
+    .amount { font-size: 26px; font-weight: 600; }
+    .detail { font-size: 17px; fill: #465d6d; }
+    .credit { font-size: 22px; font-weight: 600; }
+    .rule { stroke: #c6d1d7; }
+  </style>
+  <rect width="960" height="318" fill="white"/>
+  <g transform="translate(12 0)">
+    <text class="heading" y="30">Before inclusion</text>
+    <rect y="48" width="413" height="150" rx="5" fill="#fafbfc" stroke="#b9c9d1"/>
+    <text class="reference" x="18" y="79">col#0</text>
+    <text class="body" x="395" y="79" text-anchor="end">Deposit-backed collateral input</text>
+    <path class="rule" d="M0 96h413"/>
+    <text class="amount" x="18" y="135">5 ADA</text>
+    <text class="detail" x="18" y="171">Separate external deposit · 2 ADA</text>
+  </g>
+  <path d="M446 122h63m-10-9 10 9-10 9" fill="none" stroke="#627e8d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <g transform="translate(535 0)">
+    <text class="heading" y="30">After inclusion</text>
+    <rect y="48" width="413" height="150" rx="5" fill="#f2f5f7" stroke="#b9c9d1"/>
+    <text class="body" x="18" y="79">Collateral return</text>
+    <text class="body" x="395" y="79" text-anchor="end">Minimum-ADA output</text>
+    <path class="rule" d="M0 96h413"/>
+    <text class="amount" x="18" y="135">4 ADA</text>
+    <text class="detail" x="18" y="171">Allocation origin · slot 120</text>
+  </g>
+  <path class="rule" d="M12 224h936m-468 17v62"/>
+  <text class="body" x="12" y="264">External deposit total</text>
+  <text class="credit" x="425" y="265" text-anchor="end">−2 ADA</text>
+  <text class="detail" x="12" y="295">The return holds its reserve in its value.</text>
+  <text class="body" x="535" y="264">Fee pot</text>
+  <text class="credit" x="948" y="265" text-anchor="end">+3 ADA</text>
+  <text class="detail" x="535" y="295">1 ADA from the value + 2 ADA from the deposit</text>
+</svg>
