@@ -928,37 +928,82 @@ It returns zero for a minimum-ADA output whose reserve is already in its
 
 Spending inputs and outputs occupy keys `0` and `1` in the signed body.
 The proposal adds **key `28`** alongside them for the **net deposit declaration**.
-The [TopTx declaration](#33131-toptx-deposit-declaration) covers the whole batch.
-The [SubTx declaration](#33132-subtx-deposit-declaration) covers that SubTx’s
-contribution and records who handles it.
+
+- The [TopTx declaration](#33131-toptx-deposit-declaration) covers the **whole batch**.
+- The [SubTx declaration](#33132-subtx-deposit-declaration) covers **that SubTx’s contribution** and records who handles it.
 
 ![Selected CBOR fields in the signed body. TopTx key 23 contains the SubTxs. The new key 28 carries the batch net in TopTx and the individual net and any delegation in a SubTx.](images/txbody-declaration-field.svg?v=fc428033)
 
-**During construction**, the builder can offer a reserve input for a top-up
-and supply a refund `TxOut` or select an output already in the draft.
-Two construction functions use that
-[funding and refund policy](#323-choosing-funding-and-refund-policies).
+**Preparing a TopTx.**\
+The prototype exposes two Haskell functions for the
+[preview and update steps](#323-choosing-funding-and-refund-policies).
 
-- `previewDepositChange(draft, policy, ledgerContext)` returns the declaration
-  the builder can review. It accounts for any input or output the policy would add.
-- `applyDepositPolicy(draft, policy, ledgerContext)` returns the **prepared
-  transaction body**, including the selected inputs, outputs and declaration.
-  If final balancing changes the net or the refund index, the builder updates
-  the declaration before signing.
+**Review the declaration.**\
+`computeNetBalance history utxos strategy body`\
+returns **`Right declaration`**, including the effect of any funding input or refund output the strategy would add.
 
-These are the names used in the specification’s pseudocode. The corresponding
-TopTx functions in the prototype are `computeNetBalance` and
-`updateTxBodyWithNetBalance`. [Reference transaction-construction API](#53-reference-transaction-construction-api)
+**Prepare the body.**\
+`updateTxBodyWithNetBalance history utxos strategy body`\
+returns **`Right preparedBody`** with those additions and the declaration in field `28`.
 
-![Calling applyDepositPolicy prepares a TxBody. For a top-up it adds the selected TxIn to ordinary inputs. For a refund it can append the supplied TxOut and put its index in the release declaration.](images/txbody-release-settlement.svg?v=425bbbf1)
+If a selected funding input cannot be resolved, **either call** returns `Left (UnresolvedTopUpInput reserveInput)`.
 
-**Reading the examples.** `Allocate(1.6 ADA)` declares the size of a top-up.
-Its funding input appears among the ordinary spending inputs as a `TxIn`.
-In `Release(1.6 ADA, output 1)`, the index selects the **second ordinary
-output of the declaring body**. Its value already includes the refund.
+Both calls take the same **four arguments**, in this order.
 
-An explicit **No deposit change** declares that input and output reserves
-balance. Omitting key `28` makes no declaration. [When a declaration is required](#3321-declaration-presence-and-exactness)
+| Argument | Role |
+| :--- | :--- |
+| **1. `history`**<br>(`DepositFormulaHistory`) | Supplies the allocation-time prices for spent inputs and the active price for new outputs. |
+| **2. `utxos`**<br>(`IndexedUTxOs DijkstraEra`) | Resolves each spending `TxIn` to its live entry, including a reserve input if selected. Supply it and `history` from the **same ledger snapshot**. |
+| **3. `strategy`**<br>(`UTxODepositStrategy (TopTxDepositSettlement DijkstraEra)`) | Specifies the funding and refund choices. `TopUpFromInput reserveInput` offers a `TxIn` for funding. A refund can go to an existing output by `TxIx` or to a new `TxOut` supplied by the builder. |
+| **4. `body`**<br>(`TxBody TopTx DijkstraEra`) | Is the unsigned draft. Its SubTxs, if any, must already carry their prepared declarations. TopTx uses their contributions to calculate the batch net. |
+
+<details>
+<summary>Annotated Haskell · <strong>TopTx function signatures</strong></summary>
+
+```haskell
+-- Preview the declaration that the update function would write for the same arguments.
+computeNetBalance ::
+  DepositFormulaHistory ->
+  IndexedUTxOs DijkstraEra ->
+  UTxODepositStrategy (TopTxDepositSettlement DijkstraEra) ->
+  TxBody TopTx DijkstraEra ->
+  Either NetBalanceError TopTx.NetUTxODepositChange
+
+-- Apply the funding and settlement choices and write that declaration into the body.
+updateTxBodyWithNetBalance ::
+  DepositFormulaHistory ->
+  IndexedUTxOs DijkstraEra ->
+  UTxODepositStrategy (TopTxDepositSettlement DijkstraEra) ->
+  TxBody TopTx DijkstraEra ->
+  Either NetBalanceError (TxBody TopTx DijkstraEra)
+```
+
+[`computeNetBalance` implementation](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-api/src/Cardano/Ledger/Api/Tx/Body/DepositBalance.hs#L38-L66) · [`updateTxBodyWithNetBalance` implementation](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-api/src/Cardano/Ledger/Api/Tx/Body/DepositBalance.hs#L68-L78) · [Strategy constructors](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-api/src/Cardano/Ledger/Api/Tx/Body/DepositBalance/Strategy.hs#L19-L41)
+
+</details>
+
+![The builder calls updateTxBodyWithNetBalance with history, utxos, strategy and body. On success the prepared body includes the selected funding input or refund output and the resulting declaration.](images/txbody-release-settlement.svg?v=08950de5)
+
+The builder supplies the ADA in any refund output and completes fee and change
+balancing. If the final inputs, outputs or refund index change, **recompute the
+declaration before signing**.
+
+> The pinned prototype calculates the change in
+> **external deposits**. The proposed signed net also counts **embedded minimum-ADA
+> reserves**. [Netting and the transaction balance](#3322-netting-and-the-transaction-balance)
+
+For a **SubTx**, the corresponding calls are `computeSubTxNetBalance` and
+`updateSubTxBodyWithNetBalance`.\
+They take the same history and UTxO index,
+a strategy with `SubTxDepositSettlement DijkstraEra`, and a `TxBody SubTx DijkstraEra`.
+The declaration covers that SubTx’s own net and can delegate funding or settlement
+to TopTx. [SubTx functions](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-api/src/Cardano/Ledger/Api/Tx/Body/DepositBalance.hs#L80-L111)
+
+**Reading the examples.**
+
+- `Allocate(1.6 ADA)` declares the size of a top-up. Its funding input appears among the ordinary spending inputs as a `TxIn`.
+- In `Release(1.6 ADA, output 1)`, the index selects the **second ordinary output of the declaring body**. Its value already includes the refund.
+- An explicit **No deposit change** declares that input and output reserves balance. Omitting key `28` makes no declaration. [When a declaration is required](#3321-declaration-presence-and-exactness)
 
 <a id="33121-toptx-deposit-declaration"></a>
 
