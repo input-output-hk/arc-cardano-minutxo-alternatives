@@ -281,7 +281,7 @@ interaction with existing outputs and contracts.
 > the specification to the prototype's types, transaction-construction API and
 > validation rules.
 >
-> [Implementation PR](https://github.com/nhenin/cardano-ledger-specs/pull/3) · [Referenced source revision](https://github.com/nhenin/cardano-ledger-specs/tree/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3)
+> [Implementation PR](https://github.com/nhenin/cardano-ledger-specs/pull/3) · [Current prototype branch](https://github.com/nhenin/cardano-ledger-specs/tree/v2-minutxo)
 
 <a id="31-application-value-and-resource-backing"></a>
 
@@ -794,7 +794,7 @@ outputs at distinct indices and zero-priced outputs.
 <summary>Annotated Haskell · <strong>TxOut</strong> forms and their CBOR encoding</summary>
 
 Each era defines the payload type for each constructor.
-[Shared output type](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-core/src/Cardano/Ledger/TxOut.hs#L79-L81)
+[Shared output type](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/libs/cardano-ledger-core/src/Cardano/Ledger/TxOut.hs#L79-L81)
 
 ```haskell
 data TxOut era
@@ -811,7 +811,7 @@ instance EraTxOut DijkstraEra where
 
 **Minimum-ADA payload.** Dijkstra reuses the Babbage output. Its public
 pattern exposes four fields, including the full `Value` that covers the minimum.
-[Dijkstra output types](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/TxOut.hs#L217-L219) · [Babbage output pattern](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/eras/babbage/impl/src/Cardano/Ledger/Babbage/TxOut.hs#L479-L489)
+[Dijkstra output types](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/TxOut.hs#L217-L219) · [Babbage output pattern](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/eras/babbage/impl/src/Cardano/Ledger/Babbage/TxOut.hs#L479-L489)
 
 ```haskell
 pattern BabbageTxOut ::
@@ -825,7 +825,7 @@ pattern BabbageTxOut ::
 
 **Deposit-backed payload.** `ApplicationAssets` wraps the `Value` transferred
 by the application. The deposit backs the corresponding unspent entry.
-[Deposit-backed fields](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/TxOut.hs#L92-L97)
+[Deposit-backed fields](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/TxOut.hs#L92-L97)
 
 ```haskell
 -- The prototype prefixes these field names with depositBacked.
@@ -840,7 +840,7 @@ data DijkstraDepositBackedTxOut = DijkstraDepositBackedTxOut
 ```
 
 **CBOR encoding.** The Dijkstra schema names the deposit-backed form
-`store_backed_transaction_output`. [Output decoder](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/TxOut.hs#L310-L368)
+`store_backed_transaction_output`. [Output decoder](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/TxOut.hs#L310-L368)
 
 ```cddl
 transaction_output =
@@ -931,7 +931,7 @@ data AllocatedAt
   | AtSlot !SlotNo                 -- Created in this block slot. Use the rules then in force.
 ```
 
-[Allocation map](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/IndexedUTxOs.hs#L89-L92) · [Unspent entry](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/Unspent.hs#L52-L71)
+[Allocation map](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/IndexedUTxOs.hs#L89-L92) · [Unspent entry](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/Unspent.hs#L52-L71)
 
 ```haskell
 -- Recover the reserve for one input, in lovelace. Types shown for Dijkstra.
@@ -959,11 +959,11 @@ allocationFormula history origin = case origin of
   AtSlot slot -> formulaAt slot history
 ```
 
-[Allocation lookup](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/Unspent.hs#L85-L89) · [Pricing history](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/Deposit.hs#L141-L145) · [Output pricing function](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/UTxOs/Deposit/Formula.hs#L42-L50)
+[Allocation lookup](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/Unspent.hs#L85-L89) · [Pricing history](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/Deposit.hs#L141-L145) · [Output pricing function](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/UTxOs/Deposit/Formula.hs#L42-L50)
 
 The prototype also exposes `computeExternalDeposit` for value conservation.
 It returns zero for a minimum-ADA output whose reserve is already in its
-`Value`, and the full deposit for a deposit-backed output. [Reserve calculation](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/UTxOs/Unspent.hs#L20-L35) · [External deposit query](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/Unspent.hs#L76-L83)
+`Value`, and the full deposit for a deposit-backed output. [Reserve calculation](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/UTxOs/Unspent.hs#L26-L42) · [External deposit query](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/Unspent.hs#L76-L83)
 
 </details>
 
@@ -1035,7 +1035,7 @@ updateTxBodyWithNetBalance ::
   Either NetBalanceError (TxBody TopTx DijkstraEra)
 ```
 
-[`computeNetBalance` implementation](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-api/src/Cardano/Ledger/Api/Tx/Body/DepositBalance.hs#L38-L66) · [`updateTxBodyWithNetBalance` implementation](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-api/src/Cardano/Ledger/Api/Tx/Body/DepositBalance.hs#L68-L78) · [Strategy constructors](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-api/src/Cardano/Ledger/Api/Tx/Body/DepositBalance/Strategy.hs#L19-L41)
+[`computeNetBalance` implementation](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/libs/cardano-ledger-api/src/Cardano/Ledger/Api/Tx/Body/DepositBalance.hs#L37-L66) · [`updateTxBodyWithNetBalance` implementation](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/libs/cardano-ledger-api/src/Cardano/Ledger/Api/Tx/Body/DepositBalance.hs#L68-L77) · [Strategy constructors](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/libs/cardano-ledger-api/src/Cardano/Ledger/Api/Tx/Body/DepositBalance/Strategy.hs#L19-L41)
 
 </details>
 
@@ -1054,7 +1054,7 @@ For a **SubTx**, the corresponding calls are `computeSubTxNetBalance` and
 They take the same history and UTxO index,
 a strategy with `SubTxDepositSettlement DijkstraEra`, and a `TxBody SubTx DijkstraEra`.
 The declaration covers that SubTx’s own net and can delegate funding or settlement
-to TopTx. [SubTx functions](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-api/src/Cardano/Ledger/Api/Tx/Body/DepositBalance.hs#L80-L111)
+to TopTx. [SubTx functions](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/libs/cardano-ledger-api/src/Cardano/Ledger/Api/Tx/Body/DepositBalance.hs#L79-L110)
 
 **Reading the examples.**
 
@@ -1103,7 +1103,7 @@ In each example, the rest of the batch has zero net reserve change.
 <summary>Annotated Haskell · <strong>TopTx</strong> declaration and CBOR encoding</summary>
 
 The body field `dtbrNetUTxODepositChange` wraps the optional payload in
-`StrictMaybe`. [TopTx body field](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/TxBody.hs#L226) · [TopTx declaration types](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/UTxOs/Deposit/TopTx.hs#L93-L143)
+`StrictMaybe`. [TopTx body field](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/TxBody.hs#L226) · [TopTx declaration types](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/UTxOs/Deposit/TopTx.hs#L93-L143)
 
 ```haskell
 -- The amount covers the entire batch, including SubTxs that settle locally.
@@ -1139,7 +1139,7 @@ top_tx_release_settlement =
 
 Both decoders reject unknown tags, incorrect array lengths and out-of-range
 values. Validation checks that an index selects an existing ordinary output.
-[TopTx CDDL](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/eras/dijkstra/impl/cddl/data/dijkstra.cddl#L978-L999) · [TopTx body encoder](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/TxBody.hs#L568)
+[TopTx CDDL](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/eras/dijkstra/impl/cddl/data/dijkstra.cddl#L978-L999) · [TopTx body encoder](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/TxBody.hs#L568)
 
 </details>
 
@@ -1180,7 +1180,7 @@ its declaration must specify the full amount.
 <summary>Annotated Haskell · <strong>SubTx</strong> declaration and CBOR encoding</summary>
 
 The body field `dstbrNetUTxODepositChange` wraps the optional payload in
-`StrictMaybe`. [SubTx body field](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/TxBody.hs#L248) · [SubTx declaration types](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/UTxOs/Deposit/SubTx.hs#L102-L148)
+`StrictMaybe`. [SubTx body field](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/TxBody.hs#L248) · [SubTx declaration types](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/UTxOs/Deposit/SubTx.hs#L102-L148)
 
 ```haskell
 -- Each amount is this SubTx's own net. Delegation assigns responsibility for it.
@@ -1217,7 +1217,7 @@ sub_tx_release_target =
   / [1]  ; delegate to TopTx
 ```
 
-[SubTx CDDL](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/eras/dijkstra/impl/cddl/data/dijkstra.cddl#L875-L901) · [SubTx body encoder](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/TxBody.hs#L596)
+[SubTx CDDL](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/eras/dijkstra/impl/cddl/data/dijkstra.cddl#L875-L901) · [SubTx body encoder](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/TxBody.hs#L596)
 
 </details>
 
@@ -1326,7 +1326,7 @@ collateral are excluded from the ordinary reserve calculation.
 The output, declaration and settlement checks also apply on an accepted phase-2
 failure. If any body has redeemers, the ledger independently checks collateral
 funding and any supplied collateral total. Collateral must also preserve the
-identity and quantity of each native asset. [Collateral rules](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/docs/dijkstra-deposit-store-rules.md#ds-collateral)
+identity and quantity of each native asset. [Collateral rules](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/README.md#ds-collateral)
 
 ![A 7.2 ADA input with 1.6 ADA of embedded reserve funds an output carrying 5 ADA and 1 token B, a 2 ADA external deposit and a 0.2 ADA fee. The transaction balances. Its exact declaration is Allocate 0.4 ADA.](images/ledger-reserve-and-store.svg)
 
@@ -1337,9 +1337,8 @@ external deposit with 2 ADA of embedded backing gives **No deposit change**,
 and the released 2 ADA funds the minimum in the new output, assuming the
 other reserves cancel.
 
-For the predicates and examples of accepted and rejected transactions at the
-reference revision, see the **ledger rulebook**. The **verification record**
-lists the properties tested at that revision. [Ledger rulebook · transaction rules](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/docs/dijkstra-deposit-store-rules.md#ds-tx) · [Verification record · test coverage](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/docs/dijkstra-deposit-store-verification.md#current-implementation-status)
+The ledger rules give the predicates and examples of accepted and rejected transactions.
+The verification record identifies the properties tested and the revision used for each run. [Ledger rulebook · transaction rules](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/README.md#ds-tx) · [Verification record · test coverage](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/verification.md#current-implementation-status)
 
 <a id="316-script-outcomes-and-collateral"></a>
 <a id="343-script-outcomes-and-collateral"></a>
@@ -1361,7 +1360,7 @@ Ordinary success applies the signed transfer. An accepted phase-2 script
 failure applies the collateral inputs and any collateral return. If the
 transaction is rejected, for example because its deposit declaration is
 incorrect, the ledger keeps the preceding state and collects no collateral.
-[Ledger outcome rules](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/docs/dijkstra-deposit-store-rules.md#ds-state-execution)
+[Ledger outcome rules](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/README.md#ds-state-execution)
 
 <a id="3421-ordinary-success"></a>
 
@@ -1374,7 +1373,7 @@ incorrect, the ledger keeps the preceding state and collects no collateral.
 - **Deposits and fees.** Subtract the original external deposits on spent entries
   and add the external deposits required on new ones at inclusion. Credit the
   signed transaction fee to the fee pot. Any refund is already included in its
-  signed output value. [Applied inputs and outputs](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/docs/dijkstra-deposit-store-rules.md#ds-state-utxo)
+  signed output value. [Applied inputs and outputs](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/README.md#ds-state-utxo)
 
 In the transfer above, **`Allocate 0.4 ADA`** is the signed change in backing.
 When the ledger inserts `tx#0` at slot 120, it records the new output with its
@@ -1395,7 +1394,7 @@ the **0.2 ADA** fee.
   collateral and use them first to cover the return’s external deposit. After
   funding the signed return and any deposit shortfall, the remaining collateral
   coin must itself cover the minimum collateral fee. Credit that coin and any
-  surplus released deposit to the fee pot. [Collateral funding](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/docs/dijkstra-deposit-store-rules.md#ds-collateral-funding) · [Fee credit](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/docs/dijkstra-deposit-store-rules.md#ds-state-fees)
+  surplus released deposit to the fee pot. [Collateral funding](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/README.md#ds-collateral-funding) · [Fee credit](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/README.md#ds-state-fees)
 
 Suppose the same transfer has a separate collateral input with **5 ADA** in its
 value and a **2 ADA external deposit**. Its signed minimum-ADA collateral return
@@ -1428,7 +1427,7 @@ to that coin-funded amount. The surplus cannot fund the minimum fee or enlarge
 the signed return. The external deposit balance changes by $D$. An explicit
 total-collateral field must equal $C-Q$ when checked. The return must preserve
 every collateral native asset’s identity and quantity. Existing eligibility,
-witness and input-count rules apply. [Collateral accounting and checks](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/docs/dijkstra-deposit-store-rules.md#ds-collateral)
+witness and input-count rules apply. [Collateral accounting and checks](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/README.md#ds-collateral)
 
 </details>
 
@@ -1484,7 +1483,7 @@ data UTxOStore era = UTxOStore
   }
 ```
 
-[Store type](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/Store/Internals.hs#L68-L72)
+[Store type](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/Store/Internals.hs#L68-L72)
 
 </details>
 
@@ -1508,7 +1507,7 @@ even when the live map is empty.
 
 Rates may rise or fall. Reapplying the current context has no effect. Reject
 a version downgrade, an out-of-order activation or a change that would reprice
-an existing allocation. [Formula activation](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/Store.hs#L75-L98) · [Epoch boundary](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/Rules/Epoch.hs#L163-L171)
+an existing allocation. [Formula activation](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/Store.hs#L75-L98) · [Epoch boundary](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/Rules/Epoch.hs#L163-L171)
 
 <a id="333-encoding-validation-and-versioning"></a>
 <a id="375-encoding-validation-and-persistence"></a>
@@ -1528,7 +1527,7 @@ output payloads, allocation origins, pricing history and external total at
 that point. Implementations may choose their storage layout. Replay must
 reproduce the same deposits and state transitions. The prototype snapshot
 uses MemPack for input references and output payloads and checks the stored
-total against the restored entries. [Snapshot codec](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/Store/Internals.hs#L214-L265)
+total against the restored entries. [Snapshot codec](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/Store/Internals.hs#L214-L265)
 
 <a id="33-lifecycle-and-compatibility"></a>
 <a id="37-migration-and-compatibility"></a>
@@ -1650,7 +1649,7 @@ deposits, rewards, treasury, reserves and donation pots.
 
 For example, an eligible min-ADA output containing 10 ADA contributes 10 ADA. An
 eligible `DepositBackedTxOut` containing 8 application ADA with a 2 ADA external
-deposit contributes 8 ADA. [Distribution rules](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/docs/dijkstra-deposit-store-rules.md#derived-distributions)
+deposit contributes 8 ADA. [Distribution rules](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/README.md#derived-distributions)
 
 <a id="4-rationale-how-does-this-cip-achieve-its-goals"></a>
 
@@ -1779,7 +1778,7 @@ of the validation and compatibility contract.
 > paths. Use the V4 integration fixture as supporting evidence, without treating
 > it as a contract for other versions.
 >
-> Sources: [Ledger context work](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/docs/dijkstra-deposit-store-rules.md#ds-plutus-compatibility) · [V4 integration fixture](https://github.com/willjgould/cardano-minutxo-integration/commit/d2300267436d4cc6a4cb2dbc7898b9f98787192b)
+> Sources: [Ledger context work](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/README.md#ds-plutus-compatibility) · [V4 integration fixture](https://github.com/willjgould/cardano-minutxo-integration/commit/d2300267436d4cc6a4cb2dbc7898b9f98787192b)
 
 <a id="462-local-release-guarantees"></a>
 
@@ -1793,7 +1792,7 @@ of the validation and compatibility contract.
 > intentionally contributed to TopTx fees. Incorporate the decision into the
 > release authority and settlement rules.
 >
-> Source: [Settlement analysis](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/docs/dijkstra-deposit-store-rules.md#ds-tx-settlement-refinement)
+> Source: [Settlement analysis](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/README.md#ds-tx-settlement-refinement)
 
 <a id="463-pricing-and-activation"></a>
 
@@ -1806,7 +1805,7 @@ of the validation and compatibility contract.
 > prototype uses one initial formula for imported entries and the first new
 > allocations. A separate migration pricing policy would require its own rule.
 >
-> **TODO — Formula integration:** Update the pinned prototype's fixed 250-byte
+> **TODO — Formula integration:** Update the prototype's fixed 250-byte
 > allowance to use the companion proposal's 193-byte allowance plus measured
 > address bytes. Add the address measurement to the shared formula inputs and
 > verify both output forms and historical recovery with those measurements.
@@ -1850,7 +1849,7 @@ of the validation and compatibility contract.
 > the common query representation for allocation origins and formula history so
 > independent implementations can reproduce the historical deposit calculation.
 >
-> Source: [Verification record](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/docs/dijkstra-deposit-store-verification.md)
+> Source: [Verification record](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/verification.md)
 
 <a id="5-path-to-active"></a>
 
@@ -1889,9 +1888,8 @@ The Haskell Ledger implementation in PR #3 provides executable rules for output
 forms, declarations, external deposit accounting, authority, settlement, collateral,
 historical deposits and state transitions. Its transaction-construction API
 provides funding and settlement strategies and transaction-body update functions.
-Source links for the types and API signatures refer to revision
-`1c22597b03e950e14d86e1d5ad86284ee5d7c1f3`. The pricing formula at that
-revision uses a fixed base. Integrating the companion formula also requires
+Links to the ledger rules, source code and API signatures follow the latest commit
+on the prototype’s `v2-minutxo` branch. Its pricing formula uses a fixed base. Integrating the companion formula also requires
 its address-size term.
 [Ledger implementation](https://github.com/nhenin/cardano-ledger-specs/pull/3)
 
@@ -1957,9 +1955,9 @@ updateSubTxBodyWithNetBalance ::
 
 </details>
 
-[`computeNetBalance`](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-api/src/Cardano/Ledger/Api/Tx/Body/DepositBalance.hs#L38-L66) and `computeSubTxNetBalance` take the corresponding inputs and
+[`computeNetBalance`](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/libs/cardano-ledger-api/src/Cardano/Ledger/Api/Tx/Body/DepositBalance.hs#L37-L66) and `computeSubTxNetBalance` take the corresponding inputs and
 return the declaration payload. Their calculations include any input or output
-additions selected by the strategy. [`updateTxBodyWithNetBalance`](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-api/src/Cardano/Ledger/Api/Tx/Body/DepositBalance.hs#L68-L78) and
+additions selected by the strategy. [`updateTxBodyWithNetBalance`](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/libs/cardano-ledger-api/src/Cardano/Ledger/Api/Tx/Body/DepositBalance.hs#L68-L77) and
 `updateSubTxBodyWithNetBalance` also apply those additions and write the declaration
 into the returned body.
 
@@ -1980,7 +1978,7 @@ The transaction builder sets the selected output's serialized ADA to cover the
 body's local release amount and completes change and fee balancing. For TopTx, that amount
 is its attributed release. For a SubTx, it is its own release. Subsequent changes
 to the body can require another calculation.
-[Builder API](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-api/src/Cardano/Ledger/Api/Tx/Body/DepositBalance.hs) · [Strategy types and behavior](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/libs/cardano-ledger-api/src/Cardano/Ledger/Api/Tx/Body/DepositBalance/Strategy.hs)
+[Builder API](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/libs/cardano-ledger-api/src/Cardano/Ledger/Api/Tx/Body/DepositBalance.hs) · [Strategy types and behavior](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/libs/cardano-ledger-api/src/Cardano/Ledger/Api/Tx/Body/DepositBalance/Strategy.hs)
 
 <a id="6-references"></a>
 
@@ -1989,11 +1987,12 @@ to the body can require another calculation.
 - [CIP-0001 and the CIP process](https://cips.cardano.org/cip/CIP-0001)
 - [CPS-0037 and its cited prior work](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0037)
 - [UTxO Storage Cost Formula — required companion CIP](../CIP-????-utxo-cost-formula/README.md)
-- [DepositStore business specification at the referenced revision](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/docs/dijkstra-deposit-store-rules.md)
-- [Verification record at the same baseline](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/docs/dijkstra-deposit-store-verification.md)
-- [Formula implementation](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/UTxOs/Deposit/Formula.hs)
-- [Transaction accounting at the reference revision](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/Rules/DepositStore/Accounting.hs)
-- [Dijkstra transaction CDDL](https://github.com/nhenin/cardano-ledger-specs/blob/1c22597b03e950e14d86e1d5ad86284ee5d7c1f3/eras/dijkstra/impl/cddl/data/dijkstra.cddl)
+- [Dijkstra ledger rules for minimum-ADA and deposit-backed outputs](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/README.md)
+- [TopTx and SubTx deposit declarations](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/declarations.md)
+- [Verification record for the Dijkstra UTxO deposit rules](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/verification.md)
+- [Formula implementation](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/UTxOs/Deposit/Formula.hs)
+- [Dijkstra transaction accounting](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/Rules/DepositStore/Accounting.hs)
+- [Dijkstra transaction CDDL](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/eras/dijkstra/impl/cddl/data/dijkstra.cddl)
 
 <a id="7-copyright"></a>
 
