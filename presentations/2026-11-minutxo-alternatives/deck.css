@@ -1,0 +1,340 @@
+
+  html, body { height: 100%; }
+  /* Sized for screen-share: scale with both width and height so wide screens
+     get larger type instead of whitespace, without overflowing short windows. */
+  body { overflow: hidden; font-size: clamp(16px, min(1.55vw, 2.75vh), 27px); background: var(--bg); }
+
+  .deck { height: 100%; position: relative; z-index: 1; }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    /* Bottom padding clears the fixed chrome bar (~46px) with room to spare, so
+       content never crowds the footer on short windows. */
+    padding:
+      clamp(44px, 7vh, 84px)
+      clamp(32px, 7vw, 110px)
+      clamp(72px, 9vh, 112px);
+  }
+  .slide.active { display: flex; }
+
+  .slide-kicker {
+    font-family: var(--font-mono);
+    font-size: 0.72em;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--iog-infared);
+    font-weight: 600;
+    margin-bottom: 0.9em;
+  }
+  .slide h2 {
+    font-family: var(--font-display);
+    font-size: 2.4em;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 0.7em;
+    max-width: 22ch;
+  }
+  .slide p.lede { font-size: 1.15em; color: var(--text-mute); max-width: 62ch; line-height: 1.55; }
+
+  ul.points { list-style: none; display: grid; gap: 0.75em; max-width: 66ch; }
+  ul.points li {
+    font-size: 1.08em;
+    line-height: 1.5;
+    padding-left: 1.2em;
+    position: relative;
+    color: var(--text);
+  }
+  ul.points li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0.62em;
+    width: 0.45em; height: 0.45em;
+    border-radius: 2px;
+    background: var(--iog-infared);
+  }
+  ul.points li strong { font-weight: 600; }
+  ul.points li .mute { color: var(--text-mute); }
+
+  .takeaway {
+    margin-top: 1.6em;
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--text);
+    border-left: 4px solid var(--iog-infared);
+    padding: 0.35em 0 0.35em 0.9em;
+    max-width: 56ch;
+    line-height: 1.45;
+  }
+
+  /* Text-heavy slides sitting beside a fixed-size illustration: tighten the prose
+     rhythm so the column fits short windows without shrinking the visual. */
+  .slide.dense .slide-kicker { margin-bottom: 0.6em; }
+  .slide.dense h2 { font-size: 2.1em; margin-bottom: 0.5em; }
+  .slide.dense p.lede { font-size: 1em; line-height: 1.45; }
+  .slide.dense ul.points { gap: 0.5em; }
+  .slide.dense ul.points li { font-size: 0.95em; line-height: 1.4; }
+  .slide.dense p.lede + ul.points { margin-top: 1em; }
+  .slide.dense .takeaway { margin-top: 1em; font-size: 1em; }
+
+  /* Closing slide */
+  .slide.close-slide { align-items: center; text-align: center; }
+  .slide.close-slide .title-logo { margin-bottom: 2.2em; }
+  .slide.close-slide h2 { font-size: 3.4em; max-width: none; margin-bottom: 0.35em; }
+  .slide.close-slide h2 .accent { color: var(--iog-infared); }
+  .close-sub { font-size: 1.25em; color: var(--text-mute); }
+  .close-links {
+    margin-top: 2.4em;
+    display: flex;
+    justify-content: center;
+    gap: 1em 2.4em;
+    flex-wrap: wrap;
+    font-family: var(--font-mono);
+    font-size: 0.8em;
+  }
+  .close-links a {
+    color: var(--text-mute);
+    text-decoration: none;
+    border-bottom: 1px solid var(--line-strong);
+    padding-bottom: 2px;
+    transition: color .15s ease, border-color .15s ease;
+  }
+  .close-links a:hover { color: var(--iog-infared); border-color: var(--iog-infared); }
+  .close-links-label {
+    margin-top: 3em;
+    font-family: var(--font-mono);
+    font-size: 0.68em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  /* Title slide */
+  .slide.title-slide { align-items: flex-start; }
+  .title-logo { height: clamp(40px, 7vh, 68px); width: auto; margin-bottom: 3em; }
+  .slide.title-slide h1 {
+    font-family: var(--font-display);
+    font-size: 3.4em;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.05;
+    margin-bottom: 0.4em;
+  }
+  .slide.title-slide h1 .accent { color: var(--iog-infared); }
+  .title-sub { font-size: 1.25em; color: var(--text-mute); margin-bottom: 2.2em; max-width: 50ch; }
+  .title-slide .split-row { width: 100%; }
+  .title-team { margin-top: 3em; }
+  .title-team-label {
+    font-family: var(--font-mono); font-size: 0.68em; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--text-faint); margin-bottom: 0.9em;
+  }
+  .title-team-row { display: grid; grid-template-columns: repeat(3, max-content); gap: 1em 1.8em; }
+  .title-team-member { display: flex; align-items: center; gap: 0.6em; }
+  .title-team-member img {
+    width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+    border: 1.5px solid var(--line, rgba(128,128,128,0.35));
+  }
+  .title-team-member span { display: block; font-size: 0.82em; color: var(--text-mute); white-space: nowrap; }
+  .title-team-member .team-role { font-size: 0.66em; color: var(--text-faint); margin-top: 0.1em; }
+  .hero-visual { justify-self: center; }
+  .hero-visual svg { width: clamp(260px, 30vw, 560px); max-height: 70vh; height: auto; display: block; }
+
+  /* Before / After slides */
+  .ba-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: clamp(24px, 4vw, 64px);
+    align-items: start;
+    width: 100%;
+  }
+  .ba-col { min-width: 0; }
+  .ba-col.before { opacity: 0.55; }
+  .ba-col.after { color: var(--text); }
+  .ba-arrow { color: var(--iog-infared); justify-self: center; align-self: center; }
+  .ba-arrow svg { width: clamp(64px, 7vw, 130px); height: auto; display: block; }
+  .ba-label {
+    font-family: var(--font-display);
+    font-size: 2.4em;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 0.7em;
+  }
+  .ba-col.before .ba-label { color: var(--text); }
+  .ba-col.after .ba-label { color: var(--good); }
+  .ba-grid + .takeaway { max-width: none; white-space: nowrap; }
+  .ba-col ul { list-style: none; display: grid; gap: 0.65em; }
+  .ba-col li { font-size: 1.04em; line-height: 1.45; padding-left: 1.1em; position: relative; }
+  .ba-col.after li { font-weight: 500; }
+  .ba-col.before li::before { content: '✕'; position: absolute; left: 0; color: var(--bad); font-size: 0.8em; top: 0.25em; }
+  .ba-col.after li::before { content: '✓'; position: absolute; left: 0; color: var(--good); font-size: 0.85em; top: 0.2em; }
+
+  /* Split layout with trailing visual */
+  .split-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(24px, 3vw, 48px);
+  }
+  .actor-graph { justify-self: center; }
+  .actor-graph svg { width: clamp(340px, 40vw, 720px); max-height: 76vh; height: auto; display: block; }
+  .split-row.timeline-row { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+  .timeline-visual { justify-self: center; }
+  .timeline-visual svg { width: clamp(380px, 46vw, 820px); max-height: 70vh; height: auto; display: block; }
+
+  /* Candidate-topology table (phase 2 approach slide) */
+  .split-row.method-row { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+  .model-visual { min-width: 0; }
+  .model-table { width: 100%; border-collapse: collapse; }
+  .model-table th {
+    font-family: var(--font-mono);
+    font-size: 0.66em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--text-faint);
+    text-align: left;
+    padding: 0 0.9em 0.7em 0;
+  }
+  .model-table td {
+    padding: 0.6em 0.9em 0.6em 0;
+    border-top: 1px solid var(--line-strong);
+    font-size: 0.92em;
+    line-height: 1.45;
+    vertical-align: baseline;
+  }
+  .model-table th:last-child, .model-table td:last-child { padding-right: 0; }
+  .model-table .model-id { font-family: var(--font-mono); font-weight: 600; color: var(--iog-infared); white-space: nowrap; }
+
+  /* About slide */
+  .about-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(28px, 5vw, 80px);
+  }
+  .about-figure { justify-self: center; text-align: center; }
+  .about-avatar {
+    width: clamp(150px, 24vh, 260px);
+    height: auto;
+    border-radius: 50%;
+    border: 3px solid var(--iog-infared);
+  }
+  .about-name {
+    margin-top: 1.1em;
+    font-family: var(--font-mono);
+    font-size: 0.78em;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .about-name strong { color: var(--text); font-weight: 600; }
+
+  /* Corner buttons (GitHub · theme · close) */
+  .corner-btn {
+    position: fixed;
+    top: 20px;
+    z-index: 50;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    background: var(--bg);
+    color: var(--text);
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none;
+    transition: border-color .15s ease, color .15s ease;
+  }
+  .corner-btn:hover { border-color: var(--iog-infared); color: var(--iog-infared); }
+  .corner-btn svg { width: 16px; height: 16px; display: block; }
+  .btn-close { right: 20px; }
+  .btn-github { right: 116px; }
+  .theme-toggle { right: 68px; }
+
+  /* Slide chrome */
+  .chrome {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px clamp(28px, 7vw, 110px);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    pointer-events: none;
+    z-index: 30;
+  }
+  .chrome .chrome-logo { height: 18px; width: auto; opacity: 0.9; }
+  .progress {
+    position: fixed;
+    left: 0; top: 0;
+    height: 3px;
+    background: var(--iog-infared);
+    transition: width .25s ease;
+    z-index: 60;
+  }
+  .nav-hint { position: fixed; right: 20px; bottom: 52px; font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-faint); letter-spacing: 0.08em; }
+
+  /* Mobile / narrow screens: stack each slide vertically — text first, visual
+     below — and let the slide scroll instead of hiding content. */
+  @media (max-width: 900px) {
+    .slide {
+      justify-content: flex-start;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 76px 22px 96px;
+    }
+    .slide h2 { font-size: 1.9em; }
+    .slide.title-slide h1 { font-size: 2.5em; }
+    .title-logo { height: auto; width: min(64vw, 250px); margin-bottom: 1.6em; }
+    .title-team { margin-top: 2em; }
+    .title-team-row { grid-template-columns: repeat(2, max-content); gap: 0.9em 1.4em; }
+
+    .split-row,
+    .split-row.timeline-row,
+    .split-row.method-row,
+    .about-row {
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+      gap: 2.2em;
+    }
+    .model-visual { overflow-x: auto; }
+    .hero-visual, .actor-graph, .timeline-visual { justify-self: center; width: 100%; }
+    .hero-visual svg, .actor-graph svg, .timeline-visual svg {
+      width: min(100%, 460px);
+      max-height: none;
+      margin: 0 auto;
+    }
+    .about-figure { justify-self: center; }
+    .about-avatar { width: clamp(120px, 40vw, 200px); }
+
+    .ba-grid { grid-template-columns: minmax(0, 1fr); gap: 1.6em; }
+    .ba-arrow svg { transform: rotate(90deg); width: 44px; margin: 0 auto; }
+    .ba-grid + .takeaway { white-space: normal; }
+
+    .nav-hint { display: none; }
+  }
+
+  /* Print: all slides sequentially */
+  @media print {
+    body { overflow: visible; font-size: 13px; }
+    .deck { height: auto; }
+    .slide { position: relative; display: flex !important; min-height: 100vh; page-break-after: always; background: var(--bg); }
+    .chrome, .progress, .theme-toggle, .corner-btn, .nav-hint { display: none !important; }
+  }
+
+  /* The CIP is written but not yet submitted upstream, so it is named and
+     marked rather than linked. Swap each for an <a> when it has a home. */
+  .nav-soon, .footer-soon { display: inline-flex; align-items: center; gap: 7px;
+                            color: var(--text-mute); cursor: default; }
+  .nav-soon { font-size: inherit; }
+  .footer-soon { font-size: 0.9rem; }
+  .soon-badge { font-size: 0.6rem; font-weight: 600; letter-spacing: 0.07em;
+                text-transform: uppercase; padding: 2px 7px; border-radius: 99px;
+                border: 1px solid var(--line-strong); color: var(--text-mute); }
