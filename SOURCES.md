@@ -127,7 +127,7 @@ remains unconfirmed in the reviewed sources; silence is not evidence of delay.
 ### Ledger implementation and validation
 
 The primary local record is
-`cardano-ledger/docs/dijkstra-deposit-store/verification.md`, read together with
+`cardano-ledger/docs/dijkstra-utxo-deposit-rules/verification.md`, read together with
 the corresponding commit messages and retained execution results.
 
 | Date | Evidence and scope |
@@ -230,7 +230,7 @@ Recorded validation was reviewed, not rerun for the report update. Relevant loca
 logs include `arc-subtx-positive-store-tests.log`, `cardano-api-doctest-verified.log`,
 `arc-declaration-fixture-tests.log`, `arc-qualified-declarations-inventory.log` and
 the declaration codec/round-trip logs in `/private/tmp`. The prototype's working
-rule document is `cardano-ledger/docs/dijkstra-deposit-store/README.md`.
+rule document is `cardano-ledger/docs/dijkstra-utxo-deposit-rules/README.md`.
 
 ## 8 October 2026 weekly notes
 

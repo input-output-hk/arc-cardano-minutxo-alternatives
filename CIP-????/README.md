@@ -1326,7 +1326,7 @@ collateral are excluded from the ordinary reserve calculation.
 The output, declaration and settlement checks also apply on an accepted phase-2
 failure. If any body has redeemers, the ledger independently checks collateral
 funding and any supplied collateral total. Collateral must also preserve the
-identity and quantity of each native asset. [Collateral rules](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/README.md#ds-collateral)
+identity and quantity of each native asset. [Collateral rules](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/transaction-rules.md#ds-collateral)
 
 ![A 7.2 ADA input with 1.6 ADA of embedded reserve funds an output carrying 5 ADA and 1 token B, a 2 ADA external deposit and a 0.2 ADA fee. The transaction balances. Its exact declaration is Allocate 0.4 ADA.](images/ledger-reserve-and-store.svg)
 
@@ -1338,7 +1338,7 @@ and the released 2 ADA funds the minimum in the new output, assuming the
 other reserves cancel.
 
 The ledger rules give the predicates and examples of accepted and rejected transactions.
-The verification record identifies the properties tested and the revision used for each run. [Ledger rulebook · transaction rules](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/README.md#ds-tx) · [Verification record · test coverage](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/verification.md#current-implementation-status)
+The verification record identifies the properties tested and the revision used for each run. [Ledger rulebook · transaction rules](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/transaction-rules.md#ds-tx) · [Verification record · test coverage](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/verification.md#current-implementation-status)
 
 <a id="316-script-outcomes-and-collateral"></a>
 <a id="343-script-outcomes-and-collateral"></a>
@@ -1360,7 +1360,7 @@ Ordinary success applies the signed transfer. An accepted phase-2 script
 failure applies the collateral inputs and any collateral return. If the
 transaction is rejected, for example because its deposit declaration is
 incorrect, the ledger keeps the preceding state and collects no collateral.
-[Ledger outcome rules](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/README.md#ds-state-execution)
+[Ledger outcome rules](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#ds-state-execution)
 
 <a id="3421-ordinary-success"></a>
 
@@ -1373,7 +1373,7 @@ incorrect, the ledger keeps the preceding state and collects no collateral.
 - **Deposits and fees.** Subtract the original external deposits on spent entries
   and add the external deposits required on new ones at inclusion. Credit the
   signed transaction fee to the fee pot. Any refund is already included in its
-  signed output value. [Applied inputs and outputs](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/README.md#ds-state-utxo)
+  signed output value. [Applied inputs and outputs](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#ds-state-utxo)
 
 In the transfer above, **`Allocate 0.4 ADA`** is the signed change in backing.
 When the ledger inserts `tx#0` at slot 120, it records the new output with its
@@ -1394,7 +1394,7 @@ the **0.2 ADA** fee.
   collateral and use them first to cover the return’s external deposit. After
   funding the signed return and any deposit shortfall, the remaining collateral
   coin must itself cover the minimum collateral fee. Credit that coin and any
-  surplus released deposit to the fee pot. [Collateral funding](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/README.md#ds-collateral-funding) · [Fee credit](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/README.md#ds-state-fees)
+  surplus released deposit to the fee pot. [Collateral funding](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/transaction-rules.md#ds-collateral-funding) · [Fee credit](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#ds-state-fees)
 
 Suppose the same transfer has a separate collateral input with **5 ADA** in its
 value and a **2 ADA external deposit**. Its signed minimum-ADA collateral return
@@ -1427,7 +1427,7 @@ to that coin-funded amount. The surplus cannot fund the minimum fee or enlarge
 the signed return. The external deposit balance changes by $D$. An explicit
 total-collateral field must equal $C-Q$ when checked. The return must preserve
 every collateral native asset’s identity and quantity. Existing eligibility,
-witness and input-count rules apply. [Collateral accounting and checks](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/README.md#ds-collateral)
+witness and input-count rules apply. [Collateral accounting and checks](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/transaction-rules.md#ds-collateral)
 
 </details>
 
@@ -1649,7 +1649,7 @@ deposits, rewards, treasury, reserves and donation pots.
 
 For example, an eligible min-ADA output containing 10 ADA contributes 10 ADA. An
 eligible `DepositBackedTxOut` containing 8 application ADA with a 2 ADA external
-deposit contributes 8 ADA. [Distribution rules](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/README.md#derived-distributions)
+deposit contributes 8 ADA. [Distribution rules](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/derived-distributions.md#derived-distributions)
 
 <a id="4-rationale-how-does-this-cip-achieve-its-goals"></a>
 
@@ -1778,7 +1778,7 @@ of the validation and compatibility contract.
 > paths. Use the V4 integration fixture as supporting evidence, without treating
 > it as a contract for other versions.
 >
-> Sources: [Ledger context work](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/README.md#ds-plutus-compatibility) · [V4 integration fixture](https://github.com/willjgould/cardano-minutxo-integration/commit/d2300267436d4cc6a4cb2dbc7898b9f98787192b)
+> Sources: [Ledger context work](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/appendices.md#ds-plutus-compatibility) · [V4 integration fixture](https://github.com/willjgould/cardano-minutxo-integration/commit/d2300267436d4cc6a4cb2dbc7898b9f98787192b)
 
 <a id="462-local-release-guarantees"></a>
 
@@ -1792,7 +1792,7 @@ of the validation and compatibility contract.
 > intentionally contributed to TopTx fees. Incorporate the decision into the
 > release authority and settlement rules.
 >
-> Source: [Settlement analysis](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/README.md#ds-tx-settlement-refinement)
+> Source: [Settlement analysis](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/appendices.md#ds-tx-settlement-refinement)
 
 <a id="463-pricing-and-activation"></a>
 
@@ -1849,7 +1849,7 @@ of the validation and compatibility contract.
 > the common query representation for allocation origins and formula history so
 > independent implementations can reproduce the historical deposit calculation.
 >
-> Source: [Verification record](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/verification.md)
+> Source: [Verification record](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/verification.md)
 
 <a id="5-path-to-active"></a>
 
@@ -1987,9 +1987,9 @@ to the body can require another calculation.
 - [CIP-0001 and the CIP process](https://cips.cardano.org/cip/CIP-0001)
 - [CPS-0037 and its cited prior work](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0037)
 - [UTxO Storage Cost Formula — required companion CIP](../CIP-????-utxo-cost-formula/README.md)
-- [Dijkstra ledger rules for minimum-ADA and deposit-backed outputs](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/README.md)
-- [TopTx and SubTx deposit declarations](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/declarations.md)
-- [Verification record for the Dijkstra UTxO deposit rules](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-deposit-store/verification.md)
+- [Dijkstra ledger rules for minimum-ADA and deposit-backed outputs](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/README.md)
+- [TopTx and SubTx deposit declarations](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/transaction-rules.md#ds-tx-declarations)
+- [Verification record for the Dijkstra UTxO deposit rules](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/verification.md)
 - [Formula implementation](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/UTxOs/Deposit/Formula.hs)
 - [Dijkstra transaction accounting](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/Rules/DepositStore/Accounting.hs)
 - [Dijkstra transaction CDDL](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/eras/dijkstra/impl/cddl/data/dijkstra.cddl)
