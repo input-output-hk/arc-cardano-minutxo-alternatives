@@ -9,322 +9,316 @@ Authors:
     - Polina Vinogradova <polina.vinogradova@iohk.io>
 Implementors: []
 Discussions:
-    - "CIP discussion: https://github.com/input-output-hk/arc-cardano-minutxo-alternatives/pull/63"
     - "CPS review: https://github.com/cardano-foundation/CIPs/pull/1268"
-    - "Ledger prototype: https://github.com/nhenin/cardano-ledger-specs/pull/3"
 Solution To:
     - "CPS-0037: https://github.com/cardano-foundation/CIPs/tree/master/CPS-0037"
 Created: 2026-11-10
 License: CC-BY-4.0
 ---
 
-**Table of contents**
-
-- [1. Abstract](#1-abstract)
-- [2. Motivation: Why is this CIP necessary?](#2-motivation-why-is-this-cip-necessary)
-  - [2.1 Remove the funding fixed point](#21-remove-the-funding-fixed-point)
-  - [2.2 Simplify output measurement](#22-simplify-output-measurement)
-  - [2.3 Preserve the minimum-ADA model](#23-preserve-the-minimum-ada-model)
-- [3. Specification](#3-specification)
-  - [3.1 Scope and formula inputs](#31-scope-and-formula-inputs)
-  - [3.2 Formula V1](#32-formula-v1)
-  - [3.3 Minimum-ADA admission](#33-minimum-ada-admission)
-  - [3.4 Calculation examples](#34-calculation-examples)
-  - [3.5 Formula versioning and activation](#35-formula-versioning-and-activation)
-- [4. Rationale: How does this CIP achieve its goals?](#4-rationale-how-does-this-cip-achieve-its-goals)
-  - [4.1 Predictable calculation and pricing precision](#41-predictable-calculation-and-pricing-precision)
-  - [4.2 Resource protection](#42-resource-protection)
-  - [4.3 Compatibility and CPS scope](#43-compatibility-and-cps-scope)
-  - [4.4 Alternatives considered](#44-alternatives-considered)
-  - [4.5 Author TODOs](#45-author-todos)
-- [5. Path to Active](#5-path-to-active)
-  - [5.1 Acceptance Criteria](#51-acceptance-criteria)
-  - [5.2 Implementation Plan](#52-implementation-plan)
-- [6. References](#6-references)
-- [7. Copyright](#7-copyright)
-
 ## 1. Abstract
 
-This CIP specifies a UTxO storage cost formula based on a fixed per-output allowance,
-the number of distinct native assets, and datum and reference-script payload
-lengths. The calculated amount does not depend on the output's ADA amount or
-the complete serialized output size. This removes the funding fixed point and
-the need for byte-perfect sizing of the whole output when calculating its cost.
+On Cardano, every output must contain a certain minimum amount of ADA. This 
+minimum is commonly called `minutxo`, and its calculation is currently based on 
+the output.
 
-The formula determines the minimum ADA required in a transaction output. That ADA
-remains part of the output's ordinary value and follows its spending conditions.
-This CIP changes how the requirement is calculated while preserving the
-minimum-ADA model, existing output encodings and the rule that newly created
-outputs must contain sufficient ADA.
+The current `minutxo` formula is challenging to calculate and has been explicitly 
+referenced as a pain point by community members; specifically, the 
+recursive nature of the calculation. 
+
+This CIP seeks to simplify the calculation and remove the need to measure the complete
+serialised TxOut. The suggested formula calculates minimum ADA from the address size,
+the number of distinct native assets, and the sizes of any datum and reference script.
+This makes the calculation easier to reproduce consistently across the tools and
+programming languages used to construct transactions.
 
 ## 2. Motivation: Why is this CIP necessary?
 
-[CPS-0037](../CPS-0037/README.md) describes how the current minimum-ADA rule couples
-output construction to the backing needed for live UTxO capacity. Two distinct
-calculation problems affect wallets, builders and applications.
+Cardano's minimum-ADA requirement gives users an economic incentive to use the live UTxO
+set efficiently. Creating more outputs, or larger outputs, requires more ADA to remain
+committed while those outputs are unspent. This funding requirement is an intended part
+of protecting the resource maintained by nodes.
 
-### 2.1 Remove the funding fixed point
+Community feedback collected in CPS-0037 also identifies difficulties caused by the
+calculation itself. Developers must handle a requirement that can change as they fund an
+output, and reproduce detailed output-sizing rules wherever transactions are
+constructed. This CIP aims to reduce that development burden while preserving the
+economic deterrent.
+[CPS-0037](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0037)
 
-The current minimum depends on the serialized output size, including the ADA
-amount being chosen. Adding ADA can increase its encoded width and therefore
-raise the minimum again. Builders must account for this dependency while funding
-and balancing the output.
+### 2.1 Funding an output can change the amount it needs
 
-V1 makes the requirement independent of the ADA amount. Once the native assets,
-datum and reference script are fixed, adjusting ADA does not change the result.
-The [CPS fixed-point examples](../CPS-0037/README.md#a-circular-dependency-between-funding-and-cost)
-explain the construction problem this removes.
+Consider an application preparing an output to send a native token. It needs to
+determine how much ADA must accompany that token.
 
-### 2.2 Simplify output measurement
+With the current calculation, the following sequence can occur.
 
-Even without a funding fixed point, calculating the exact serialized output size
-couples resource pricing to encoding details. Builders must reproduce those
-details or use a serializer as part of the calculation.
+1. The application constructs the output with a provisional ADA amount and calculates
+   its minimum.
+2. It adds enough ADA to meet that minimum.
+3. The new ADA amount takes more bytes to encode. The output becomes larger, increasing
+   its minimum again.
 
-V1 uses fixed base and per-asset allowances, plus the lengths of datum and script
-payloads. It avoids measuring the whole output. Exact payload lengths still
-matter, and transaction fees retain their own size-dependent rules.
+The application has followed the first calculation, yet the resulting output can still
+contain insufficient ADA. Transaction-building software must account for this dependency
+and adjust the amount until the final output satisfies the rule.
 
-### 2.3 Preserve the minimum-ADA model
+This complicates the task of deciding how much ADA to allocate to recipients and how
+much to return as change. The same dependency must be handled for every output being
+constructed, including change outputs.
 
-The minimum-ADA rule protects persistent UTxO capacity by requiring ADA to remain
-in each live output. The same ADA can serve both this resource-protection role
-and the application's intended payment.
+The proposed calculation makes the minimum independent of the ADA amount being chosen.
+Once the output's other contents are determined, software can calculate its requirement
+and fund it without that funding increasing the requirement again.
 
-A simpler calculation improves transaction construction within that model.
-Applications continue to fund outputs and control them through their existing
-spending conditions. Builders gain a requirement they can compute before choosing
-the final ADA amount, without changing how output value is represented.
+### 2.2 The calculation must be reproduced throughout the ecosystem
+
+Minimum ADA must be calculated before a transaction reaches a node. Wallets, SDKs,
+applications, backend services and scripts all need access to a calculation that agrees
+with the ledger.
+
+Today, that means obtaining the exact encoded size of the complete output. The result
+depends on details such as the lengths of asset names, the encoding of quantities and
+how assets are grouped under policy IDs. Software must either use a suitable serializer
+or reproduce its sizing rules accurately.
+
+This requirement carries implementation and maintenance work into every environment
+where transactions are built, including TypeScript, Rust and other languages. A sizing
+error can leave an output underfunded and cause the transaction to fail validation.
+
+The proposed formula uses fixed allowances, counts distinct native assets and measures
+the address, datum and reference script. This gives transaction-building tools a smaller
+set of measurements to implement and verify, making the minimum-ADA rule easier to
+support consistently across the ecosystem.
 
 ## 3. Specification
 
-### 3.1 Scope and formula inputs
-
-For a valid output `o`, let `p` be the effective `coinsPerUTxOByte` parameter,
-expressed in lovelace per pricing unit. V1 defines the following non-negative
-integer measurements:
-
-| Symbol | Measurement |
-| --- | --- |
-| `N(o)` | The number of distinct native-asset identities in the accepted value: each policy-ID and asset-name pair counts once. Quantities do not enter the formula. ADA contributes zero. |
-| `D(o)` | No datum: zero. Datum hash: the length of its digest in bytes. Inline datum: the length of its accepted CBOR-encoded payload, excluding the outer tag 24 and byte-string envelope. |
-| `R(o)` | No reference script: zero. Native script: its original CBOR bytes. Plutus script: its original serialized script bytes. Count their lengths, excluding the script-language and enclosing output wrappers. |
-
-These measurements use the output's accepted contents. Existing asset-map,
-quantity, datum, script and output-validity rules continue to apply; the formula
-does not authorize additional representations or values.
-
-For `D(o)` and `R(o)`, implementations must use the accepted payload bytes rather
-than substitute a newly encoded payload. Re-encoding equivalent data can change
-its length. The output's address, ADA amount, asset quantities, asset-name lengths
-and outer CBOR fields add no separate term.
-
-[Output measurement implementation](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/UTxOs/Deposit/Formula.hs)
-
-### 3.2 Formula V1
+### 3.1 Formula
 
 ```math
-F_{1,p}(o) = p\left(250 + 74N(o) + D(o) + R(o)\right)
+\begin{aligned}
+\mathrm{minimumAda}
+  ={}& \mathrm{coinsPerUTxOByte} \times \bigl( \\
+     & 193 + 74 \times \mathrm{numberOfNativeAssets} \\
+     & {}+ \mathrm{serializedAddressBytes} \\
+     & {}+ \mathrm{serializedDatumBytes} \\
+     & {}+ \mathrm{serializedReferenceScriptBytes}\bigr)
+\end{aligned}
 ```
 
-`250` and `74` are fixed pricing allowances. They are not measurements of the
-output's exact encoded size. Multiple assets sharing a policy ID and shorter
-asset names receive no reduction in the per-asset allowance. Changing quantities
-while preserving the set of identities leaves `N(o)` unchanged.
+The address size is required because bootstrap addresses can be significantly 
+larger than other address types, up to 4.7KB, most of which can come from 
+custom attributes. An attacker can specify up to 254, each of which costs up to 
+18 bytes if maximally padded; the ledger does have a 64-byte limit on 
+attributes, but it only counts the derivation path and custom attribute values,
+so none of these 18 bytes count toward it. So, this would offer exactly the kind 
+of attack surface `minutxo` exists to curb, if we were to omit the address size.
 
-The result is an exact non-negative integer amount in lovelace. Calculation must
-not overflow or round; implementations must use sufficient precision for the
-accepted inputs. Conversion into any bounded ledger representation remains
-subject to that representation's existing limits and must not truncate the result.
+See the following for some examples, with `coinsPerUTxOByte = 4310` as it 
+currently is on mainnet. Note that the current formula column shows ranges 
+because outputs with the same asset count can differ in size depending on the 
+lengths of the asset names, the encoded sizes of the quantities, and the number 
+of distinct policy IDs.
 
-The following illustrative Haskell function expresses V1 using the measurement
-and coin types of the reference implementation. It is adapted to return the
-minimum required `Coin` directly:
+| Address | Other output measurements | Pricing units | Required lovelace | Alternative formula (§4.1) | Current formula |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Base (57 bytes) | No native assets, datum or script | $`193 + 57`$ | 1,077,500 | 1,077,500 | 969,750 |
+| Base (57 bytes) | One native asset, no datum or script | $`193 + 57 + 74`$ | 1,396,440 | 1,396,440 | 1,120,600–1,297,310 |
+| Base (57 bytes) | Two native assets, no datum or script | $`193 + 57 + 74 \times 2`$ | 1,715,380 | 1,715,380 | 1,133,530–1,616,250 |
+| Base (57 bytes) | Ten native assets, no datum or script | $`193 + 57 + 74 \times 10`$ | 4,266,900 | 4,266,900 | 1,236,970–4,167,770 |
+| Base (57 bytes) | One native asset and a 32-byte datum hash | $`193 + 57 + 74 + 32`$ | 1,534,360 | 1,534,360 | 1,267,140–1,443,850 |
+| Base (57 bytes) | One native asset, a 100-byte serialised inline datum and a 200-byte serialised reference script | $`193 + 57 + 74 + 100 + 200`$ | 2,689,440 | 2,689,440 | 2,491,180–2,667,890 |
+| Enterprise (29 bytes) | No native assets, datum or script | $`193 + 29`$ | 956,820 | 1,077,500 | 849,070 |
+| Bootstrap, Icarus style (43 bytes) | No native assets, datum or script | $`193 + 43`$ | 1,017,160 | 1,017,160 | 909,410 |
+| Bootstrap, Daedalus style (76 bytes) | No native assets, datum or script | $`193 + 76`$ | 1,159,390 | 1,159,390 | 1,051,640 |
+| Bootstrap, padded (4,721 bytes) | No native assets, datum or script | $`193 + 4721`$ | 21,179,340 | 21,179,340 | 21,075,900 |
 
-```haskell
-utxoCostV1 ::
-  CoinPerByte ->
-  NativeAssetCount ->
-  DatumBytes ->
-  ReferenceScriptBytes ->
-  Coin
-utxoCostV1
-  (CoinPerByte (CompactCoin rate))
-  (NativeAssetCount assetCount)
-  (DatumBytes datumLength)
-  (ReferenceScriptBytes scriptLength) =
-    Coin $
-      toInteger rate * toInteger (250 + 74 * assetCount + datumLength + scriptLength)
-```
+### 3.2 Formula inputs
 
-The measurement wrappers use `Natural`; the coin calculation uses `Integer`.
-[Formula and measurement types](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/Deposit.hs)
+- `coinsPerUTxOByte`: the protocol parameter in effect for the transaction, in
+  lovelace per byte.
+- `numberOfNativeAssets`: the number of distinct pairs of policy ID and asset 
+  name in the output, excluding ADA.
+- `serializedAddressBytes`: the size of the address, in bytes: the bytes its
+  bech32 or base58 text encodes (57 for a base address).
+- `serializedDatumBytes`: the size of the datum, in bytes: 32 when the output 
+  carries a datum hash, and the length of the serialised datum itself when the 
+  output carries an inline datum; zero if absent.
+- `serializedReferenceScriptBytes`: the size of the reference script, in bytes,
+  as measured for the reference-script fee; zero if absent.
 
-### 3.3 Minimum-ADA admission
+Each size is measured on the bytes as they appear in the transaction.
 
-In the era activating V1, every newly created output must satisfy:
+### 3.3 Enforcement and compatibility
 
-```math
-\mathrm{coin}(o) \geq F_{1,p}(o).
-```
+The ledger applies the new formula to outputs created after activation.
 
-This bound also applies to a collateral return under the era's collateral
-validation rules. The output's entire ADA remains part of its ordinary value
-and follows its spending conditions.
+### 3.4 Versioning
 
-The formula returns a requirement even when `N(o)`, `D(o)` and `R(o)` are all zero:
-`250 × p`. An output with no native assets or payloads must therefore contain at
-least that much ADA. A zero rate produces a zero result; other output-validity
-rules still apply.
-
-The calculation changes no transaction or output data structures. Existing
-encodings remain applicable, so this CIP requires no new CDDL production.
-
-### 3.4 Calculation examples
-
-The following examples use `p = 4310` as an explicit illustrative input, not a
-parameter fixed by this CIP. The amount of ADA carried by the output does not
-affect these calculations.
-
-| Output measurements | Pricing units | Required lovelace |
-| --- | ---: | ---: |
-| No native assets, datum or script | `250` | 1,077,500 |
-| One native-asset identity, no datum or script | `250 + 74` | 1,396,440 |
-| Two native-asset identities, no datum or script | `250 + 74 × 2` | 1,715,380 |
-| One native-asset identity and a 32-byte datum hash | `250 + 74 + 32` | 1,534,360 |
-| One native-asset identity, 100-byte datum payload and 200-byte reference-script payload | `250 + 74 + 100 + 200` | 2,689,440 |
-
-For example, an output with one native-asset identity and no payloads must contain
-at least 1,396,440 lovelace at this rate. An output carrying 1,396,439 lovelace fails
-the minimum-ADA check. Adding ADA up to or beyond the minimum leaves the calculated
-requirement at 1,396,440 lovelace.
-
-### 3.5 Formula versioning and activation
-
-V1 is the initial formula specified by this CIP. Its activation changes output
-admission rules and requires an agreed protocol transition. Earlier eras keep
-their existing rules. The activating era uses its effective
-`coinsPerUTxOByte` parameter; subsequent parameter changes affect the cost of newly
-created outputs when they take effect.
-
-Changing a formula's coefficients or measurement rules defines a different
-version. Implementations must select the formula version specified by the
-validating era and evaluate it with the effective rate. Future formula versions
-require their own specification and activation decision.
-
-For testing formula evolution, the reference implementation includes this
-experimental V2:
-
-```math
-F_{2,p}(o) = p\left(260 + 80N(o) + D(o) + R(o)\right)
-```
-
-It uses the same measurements as V1. At `p = 4310`, the two-asset example costs
-1,810,200 lovelace under V2. This CIP does not activate V2.
-
-Changing the formula or rate leaves existing output values and spending conditions
-unchanged. Outputs created by later transactions, including successors to existing
-outputs, must meet the requirement effective when those transactions are validated.
+Any change to the formula's constants or inputs requires a new CIP that
+supersedes this one.
 
 ## 4. Rationale: How does this CIP achieve its goals?
 
-### 4.1 Predictable calculation and pricing precision
+We achieve the goal of avoiding recursive calculation by omitting ADA quantity 
+from the formula.
 
-V1 separates two improvements: independence from the ADA amount removes the
-funding fixed point, while fixed base and per-asset allowances remove the need to
-measure the complete serialized output. A change to the output's ADA alone
-therefore leaves the result unchanged, including across CBOR integer-width
-boundaries.
+We achieve this in balance with keeping overestimates close "enough" 
+to the current formula, and while keeping underestimates to a minimum.
 
-The trade-off is less byte-level pricing precision. Different addresses,
-asset-name lengths or policy-sharing arrangements can receive the same charge.
-Datum and reference-script payload lengths remain explicit terms because those
-payloads vary independently of the native-asset count. The formula does not
-eliminate serialization work for transaction fees or payload validation.
+The constant 193 consists of the existing 160, plus 33, which is the maximum 
+overhead not measured by the formula for an output without native assets (for 
+non-bootstrap addresses; bootstrap addresses can add an extra byte), composed of 
+the following:
 
-### 4.2 Resource protection
+| Component | Bytes (largest) |
+| --- | ---: |
+| Map header | 1 |
+| Field keys | 4 |
+| Address length header | 2 |
+| ADA amount | 9 |
+| Inline datum wrapper | 7 |
+| Reference script wrapper | 10 |
+| **Total** | **33** |
 
-A cost formula supports resource protection only with suitable coefficients and
-a suitable rate. The base and per-asset allowances must be evaluated against
-actual node storage, supported address and asset-name sizes, datum and script
-representations, and UTxO indexing overhead. The constants
-are not a proof that every representation is conservatively priced.
+The maximum overhead with native-assets is 36 (with the same bootstrap address 
+caveat as above): +1 byte for the value array header and +2 bytes for the policy 
+map header. We selected 33 over 36 as a judgement call. The cost of this is that 
+it's possible for `minutxo` to be lower than today for some outputs (although no 
+under-estimate was observed in any of the Conway data).
 
-The minimum-ADA rule provides the deterrence by requiring ADA to remain in each
-live output. This CIP supplies its calculation. Zero pricing is representable but
-does not provide the same economic deterrence as a positive requirement.
+To be clear: selecting 33 is still somewhat arbitrary, but it's structurally 
+justifiable (see the above table). We could have selected 29 because it's the 
+lowest value which doesn't underestimate any outputs from the Conway dataset, 
+or we could have selected 36 for the reasons described above.
 
-### 4.3 Compatibility and CPS scope
+Note that outputs can be constructed whose `minutxo`s are lower with this new 
+formula than today's formula. For example, both cases below assume at least 
+2^32 lovelace (~4295 ADA), an inline datum with a serialised size of at least 
+256 bytes, anda Plutus reference script with a payload of at least 256 bytes:
 
-Existing outputs retain their value and spending conditions. An
-application recreating an output after activation must meet the new requirement,
-which can be higher or lower than the previous size-based minimum. Builders must
-select the formula for the validating era instead of continuing to use the old
-whole-output size rule.
+* A base-address output with one native asset, whose name is 32 bytes and whose 
+  quantity is at least 2^32. Its overhead is 35 bytes, exceeding the 33-byte 
+  allowance by two bytes.
+* A bootstrap-address output with no native assets, whose serialised address
+  is at least 256 bytes. Its overhead is 34 bytes, exceeding the 33-byte
+  allowance by one byte.
 
-For [CPS-0037](../CPS-0037/README.md), this proposal directly simplifies construction
-and change balancing. It also makes the calculation for high fan-out distributions
-and successor outputs more predictable. It does not remove the funding requirement
-for those outputs, guarantee a lower total commitment, enable token-only outputs
-at a positive rate, or change staking eligibility. Control over all output ADA
-continues to follow the output's spending conditions.
+The constant 74 is made up of: 
+- 30 for the policy ID (a 28-byte hash and a 2-byte header)
+- 1 for the header of that policy's asset map
+- 34 for the asset name (32 bytes and a 2-byte header)
+- 9 for the quantity (8 bytes and a 1-byte header)
 
-### 4.4 Alternatives considered
+We assume shortest valid, definite-length encoding for all of the 
+above, for analytical purposes.
 
-| Alternative | Trade-off |
-| --- | --- |
-| Retain the complete serialized output size | Preserves byte-sensitive pricing, including the funding dependency and serializer coupling. |
-| Exclude only the ADA encoding from the measured size | Removes the funding fixed point, while retaining the need to reproduce the remaining output serialization. |
-| Charge a constant for every output | Simplifies calculation further, but gives no additional charge for native assets, datum payloads or reference scripts. |
-| Use fixed allowances plus payload lengths | Gives a predictable calculation with explicit charges for the measured components, at the cost of less precise pricing for addresses and asset representations. |
+We tested this against the 85.7 million outputs created on mainnet in the
+Conway era, from its first block, at slot 133,660,855 with hash
+`9aa420cf998dbcceec1abaf83ab26294d278d25527e779050ab334c1fadab16c`
+(1 September 2024), to the block at slot 201,657,572 with hash
+`30c61172934757a8c210a110b7a4cbf657e53c2f9f60678d6325d80a04c56328`
+(28 October 2026). Note that this includes outputs that have already been spent. 
+Each output is compared with what the current formula required:
 
-### 4.5 Author TODOs
+| Name | Formula ($`\times \mathrm{coinsPerUTxOByte}`$) | Outputs below the current requirement | Median excess | 95th-percentile excess | Mean requirement | Largest shortfall | 6+ native assets (median / 95th-percentile excess) |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Current | $`160 + \mathrm{serializedOutputBytes}`$ | – | – | – | 1.43 ADA | – | 0.00% / 0.00% |
+| No address term | $`\begin{aligned} & 250 \\ & {}+ 74 \times \mathrm{numberOfNativeAssets} \\ & {}+ \mathrm{serializedDatumBytes} \\ & {}+ \mathrm{serializedReferenceScriptBytes} \end{aligned}`$ | 0 | 11.1% | 37.3% | 1.91 ADA | none | 80.70% / 245.93% |
+| Asset and policy counts with address, asset-name, datum and script sizes (§4.2) | $`\begin{aligned} & 175 \\ & {}+ \mathrm{serializedAddressFieldBytes} \\ & {}+ 12 \times \mathrm{numberOfNativeAssets} \\ & {}+ 30 \times \mathrm{numberOfMintingPolicies} \\ & {}+ \mathrm{totalAssetNameBytes} \\ & {}+ \mathrm{serializedDatumFieldBytes} \\ & {}+ \mathrm{serializedReferenceScriptFieldBytes} \end{aligned}`$ | 0 | 4.0% | 6.8% | 1.53 ADA | none | 17.14% / 42.33% |
+| Token count and datum size only (§4.2) | $`\begin{aligned} & 250 \\ & {}+ 74 \times \mathrm{numberOfNativeAssets} \\ & {}+ \mathrm{serializedDatumBytes} \end{aligned}`$ | 5,253 (0.006%) | 11.1% | 37.3% | 1.91 ADA | 69.24 ADA | 80.70% / 245.93% |
+| Byte-based formula with a fixed ADA encoding allowance (§4.2) | $`\begin{aligned} & 160 \\ & {}+ \mathrm{serializedOutputBytes} \\ & {}- \mathrm{serializedAdaAmountBytes} \\ & {}+ 9 \end{aligned}`$ | 0 | 1.5% | 2.0% | 1.45 ADA | none | 0.39% / 0.85% |
+| Primary alternative (§4.1) | $`\begin{aligned} & \mathrm{baseAllowance} \\ & {}+ 74 \times \mathrm{numberOfNativeAssets} \\ & {}+ \mathrm{serializedDatumBytes} \\ & {}+ \mathrm{serializedReferenceScriptBytes} \end{aligned}`$ | 0 | 11.1% | 37.3% | 1.91 ADA | none | 80.72% / 245.93% |
+| This CIP (§3.1) | $`\begin{aligned} & 193 \\ & {}+ 74 \times \mathrm{numberOfNativeAssets} \\ & {}+ \mathrm{serializedAddressBytes} \\ & {}+ \mathrm{serializedDatumBytes} \\ & {}+ \mathrm{serializedReferenceScriptBytes} \end{aligned}`$ | 0 | 11.1% | 30.8% | 1.89 ADA | none | 80.71% / 245.87% |
 
-> **TODO — Calibration:** Confirm V1's coefficients against measured resource
-> costs and document the calibration rationale, including adversarial outputs
-> and UTxO indexing overhead.
+These figures are for Conway-era outputs, but it should be noted that 
+Babbage-era outputs give higher excess figures: a 95th percentile of 79.3% for
+this CIP's formula. Additionally, while there are no under-estimates of 
+Conway-era outputs from this CIP's formula, 8,034 Babbage-era outputs are 
+under-estimated. Most of this is due to Babbage-era outputs being capable of 
+carrying asset entries with zero quantities, which the ledger now rejects.
 
-> **TODO — Activation:** Assign the activating protocol version, confirm the
-> effective rate and specify the mechanism selecting future formula versions.
+Method, full results and reproduction: [historical backtest](https://github.com/willjgould/cardano-minutxo-integration/blob/2abe34cabf72799d8c122f23c23f03da31c48415/docs/minutxo-calibration/history-formulas.md).
+
+### 4.1 Primary alternative for community consideration
+
+An alternative can be adopted if there is a community desire to avoid address
+serialisation in most cases. Its base allowance depends on the address type.
+
+```math
+\mathrm{baseAllowance} =
+\begin{cases}
+193 + \mathrm{serializedAddressBytes} & \text{for a bootstrap address} \\
+250 & \text{otherwise}
+\end{cases}
+```
+
+```math
+\begin{aligned}
+\mathrm{minimumAda}
+  ={}& \mathrm{coinsPerUTxOByte} \times \bigl( \\
+     & \mathrm{baseAllowance} \\
+     & {}+ 74 \times \mathrm{numberOfNativeAssets} \\
+     & {}+ \mathrm{serializedDatumBytes} \\
+     & {}+ \mathrm{serializedReferenceScriptBytes}\bigr)
+\end{aligned}
+```
+
+Here, we consider the address only if it's a bootstrap address. Remember: 
+bootstrap addresses can be up to 4.7KB, so a formula that doesn't consider 
+the address size is vulnerable to a potential attack.
+
+### 4.2 Alternative formulae considered
+
+| Alternative | Formula | Trade-off |
+| --- | --- | --- |
+| Asset and policy counts with address, asset-name, datum and script sizes | $`\begin{aligned} & \mathrm{coinsPerUTxOByte} \times \bigl( \\ & 175 \\ & {}+ \mathrm{serializedAddressFieldBytes} \\ & {}+ 12 \times \mathrm{numberOfNativeAssets} \\ & {}+ 30 \times \mathrm{numberOfMintingPolicies} \\ & {}+ \mathrm{totalAssetNameBytes} \\ & {}+ \mathrm{serializedDatumFieldBytes} \\ & {}+ \mathrm{serializedReferenceScriptFieldBytes}\bigr) \end{aligned}`$ | Close to the current formula results, but more complex |
+| Token count and datum size only | $`\begin{aligned} & \mathrm{coinsPerUTxOByte} \times \bigl( \\ & 250 \\ & {}+ 74 \times \mathrm{numberOfNativeAssets} \\ & {}+ \mathrm{serializedDatumBytes}\bigr) \end{aligned}`$ | Simple, but underestimates too much |
+| Byte-based formula with a fixed ADA encoding allowance | $`\begin{aligned} & \mathrm{coinsPerUTxOByte} \times \bigl( \\ & 160 \\ & {}+ \mathrm{serializedOutputBytes} \\ & {}- \mathrm{serializedAdaAmountBytes} \\ & {}+ 9\bigr) \end{aligned}`$ | Very close to the current formula, but depends on the whole output |
+
+### 4.3 Alternative implementation
+
+This CIP requires ledger changes, but ledger changes aren't necessary in order 
+to solve the recursive nature of the `minutxo` formula.
+
+Instead, we can simply disseminate the byte-based alternative formula with a 
+fixed ADA encoding allowance, which never underestimates, throughout tooling 
+only, thus leaving the ledger-enforced formula as it is today. This would give 
+users a straightforward way to calculate a sufficient ADA amount, while 
+preserving the option to calculate a tighter minimum if they want to commit less 
+ADA.
+
+The byte-based formula with a fixed ADA encoding allowance:
+
+$`\begin{aligned} & \mathrm{coinsPerUTxOByte} \times \bigl( \\ & 160 \\ & {}+ \mathrm{serializedOutputBytes} \\ & {}- \mathrm{serializedAdaAmountBytes} \\ & {}+ 9\bigr) \end{aligned}`$
+
+Subtracting the ADA amount's encoded size and replacing it with its maximum of 
+9 bytes makes the estimate independent of the amount. Adding ADA doesn't change 
+the estimate, and the estimate cannot fall below the ledger's requirement.
+
+As such, we can leave the ledger-enforced formula as it currently stands, and 
+provide people with the fixed ADA encoding allowance formula via tooling.
 
 ## 5. Path to Active
 
 ### 5.1 Acceptance Criteria
 
-- [ ] Complete review of the measurements, coefficients, activation rules and
-      compatibility effects for minimum-ADA outputs.
-- [ ] Validate the resource-cost calibration for supported representations and
-      document the resulting economic assumptions.
-- [ ] Demonstrate independent agreement on calculation vectors covering absent
-      payloads, datum hashes, inline data, native and Plutus reference scripts,
-      asset identities and preserved accepted payload bytes.
-- [ ] Demonstrate that changing ADA alone, including across encoding-width
-      boundaries, leaves the calculated requirement unchanged.
-- [ ] Verify minimum-ADA admission and collateral returns at the exact bound and
-      below it, with activation and protocol-parameter changes covered.
-- [ ] Integrate the formula into node implementations and transaction-building
-      interfaces, then activate it through the agreed protocol transition.
+- [ ] The specified minimum-ADA formula is implemented and activated on Cardano 
+mainnet.
 
 ### 5.2 Implementation Plan
 
-The Ledger reference implementation separates output measurement from pure formula
-evaluation. Its shared formula and measurement types and its Dijkstra output
-measurement adapter are linked below at revision
-`2298a008589d5a0a5ea70bd1ec87d8477e989422`.
+Implementation requires updating the ledger specification and minimum-ADA 
+validation to use the new formula, and updating transaction-building tools to 
+calculate the same requirement.
 
-Implementers must integrate the calculation into the target era's minimum-ADA
-validation and builder interfaces, including collateral-return construction.
-Integration must preserve accepted datum and script payload lengths and use exact
-integer arithmetic. Conformance checks must compare implementations with
-independent vectors rather than duplicate one implementation's calculation.
+The changes must be implemented, tested and included in a node release. 
+Activation requires a hard fork.
 
 ## 6. References
 
 - [CPS-0037: application and transaction friction in minUTxO implementation](../CPS-0037/README.md)
-- [Shared formula and measurement types](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/Deposit.hs)
-- [Output measurement adapter](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/UTxOs/Deposit/Formula.hs)
-- [Pricing specification and executable cases](https://github.com/nhenin/cardano-ledger-specs/blob/2298a008589d5a0a5ea70bd1ec87d8477e989422/docs/dijkstra-deposit-store-rules.md#ds-pricing)
-- [Ledger implementation discussion](https://github.com/nhenin/cardano-ledger-specs/pull/3)
+- [CIP-0055: Protocol Parameters (Babbage Era)](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0055), which defines the current formula
 
 ## 7. Copyright
 
