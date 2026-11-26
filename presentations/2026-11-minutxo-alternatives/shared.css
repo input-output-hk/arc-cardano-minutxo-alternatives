@@ -1,0 +1,303 @@
+/* Cardano PubSub site — shared brand tokens, base reset, navbar, and theme toggle. */
+
+:root {
+  /* IOG brand palette — identical in every theme */
+  --iog-infared: #E52321;
+  --iog-dawn: #EC641D;
+  --iog-acid-green: #06FF89;
+  --iog-electric-blue: #16E9D8;
+  --iog-volt-yellow: #F2FF58;
+  --iog-ember-orange: #FF532C;
+  --iog-cobalt-pulse: #2C4FFA;
+  --iog-ultraviolet: #A700FF;
+  --iog-hyper-pink: #FF79FC;
+
+  /* Light theme (default) */
+  --bg: #FFFFFF;
+  --bg-soft: #FAFAFA;
+  --bg-alt: #F4F4F2;
+  --bg-code: #F4F4F2;
+  --line: rgba(0,0,0,0.10);
+  --line-strong: rgba(0,0,0,0.22);
+  --text: #0A0A0A;
+  --text-mute: #4A4A4A;
+  --text-faint: #888888;
+
+  --card-fill: #FFFFFF;
+  --card-soft-fill: #FAFAFA;
+  --card-stroke: #0A0A0A;
+  --card-stroke-soft: #888888;
+  --card-stroke-faint: #E0E0E0;
+
+  --good: #00994A;
+  --good-soft: #E2F5EB;
+  --bad: #E52321;
+  --bad-soft: #FCEAE9;
+  --warn: #A88200;
+  --warn-soft: #FBF1CC;
+  --info: #2C4FFA;
+  --info-soft: #E7EBFE;
+  --accent: #E52321;
+
+  /* Height of the sticky navbar: 14px padding twice, a 36px icon button, 1px rule. */
+  --nav-height: 65px;
+
+  --font-display: 'Barlow', 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body: 'Barlow', 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+
+  /* Taken from the mark's own artwork: the inbound half's red and the outbound
+     half's black. The brand wordmark and the hero tagline both draw from these,
+     so the name is coloured identically wherever it appears. */
+  --mark-in: rgba(216, 44, 2, 0.7);
+  --mark-out: #1D1D1B;
+}
+
+html[data-theme="dark"] {
+  /* The outbound half is drawn white in the dark artwork; the red stays red. */
+  --mark-in: rgba(226, 52, 10, 0.82);
+  --mark-out: #FFFFFF;
+
+  --bg: #0A0A0A;
+  --bg-soft: #121212;
+  --bg-alt: #181818;
+  --bg-code: #1A1A1A;
+  --line: rgba(255,255,255,0.10);
+  --line-strong: rgba(255,255,255,0.22);
+  --text: #F4F4F2;
+  --text-mute: #B5B5B5;
+  --text-faint: #7A7A7A;
+
+  --card-fill: #181818;
+  --card-soft-fill: #121212;
+  --card-stroke: #F4F4F2;
+  --card-stroke-soft: #7A7A7A;
+  --card-stroke-faint: #2A2A2A;
+
+  --good: #06FF89;
+  --good-soft: #0C2A1C;
+  --bad: #FF5653;
+  --bad-soft: #2A0C0B;
+  --warn: #F2FF58;
+  --warn-soft: #2B2A0B;
+  --info: #8FA3FF;
+  --info-soft: #0E1638;
+}
+
+/* Base reset */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+/* Subscripts (k_in, k_out) must not stretch the line they sit on. */
+sub, sup { line-height: 0; }
+/* Anchored sections land with their top edge flush under the sticky navbar — no
+   extra offset, or a sliver of the previous section stays on screen. Each
+   section's own top padding supplies the breathing room above its title. */
+html { scroll-behavior: smooth; scroll-padding-top: var(--nav-height); }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  transition: background .2s ease, color .2s ease;
+}
+
+/* Logo swap: POS on light backgrounds, NEG on dark */
+.logo-light { display: block; }
+.logo-dark { display: none; }
+html[data-theme="dark"] .logo-light { display: none; }
+html[data-theme="dark"] .logo-dark { display: block; }
+
+/* Top navbar */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 14px clamp(24px, 5vw, 80px);
+  padding-right: clamp(80px, 8vw, 120px); /* leave room for the fixed theme toggle */
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+.navbar-brand {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: color .12s ease;
+}
+.navbar-brand:hover { color: var(--iog-infared); }
+.navbar-brand .brand-tag {
+  color: var(--text-faint);
+  font-weight: 500;
+  margin-left: 6px;
+}
+.navbar-links {
+  display: flex;
+  gap: clamp(14px, 2.5vw, 28px);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.navbar-links a {
+  color: var(--text-mute);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  padding: 4px 0;
+  position: relative;
+  transition: color .12s ease;
+}
+.navbar-links a:hover { color: var(--iog-infared); }
+.navbar-links a.active { color: var(--iog-infared); }
+.navbar-links a.active::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  bottom: -2px;
+  height: 2px;
+  background: var(--iog-infared);
+}
+
+/* Theme toggle — Light · Dark */
+.theme-toggle {
+  position: fixed;
+  top: 20px; right: 20px;
+  z-index: 50;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .15s ease, color .15s ease;
+}
+.theme-toggle:hover { border-color: var(--iog-infared); color: var(--iog-infared); }
+.theme-toggle svg { width: 16px; height: 16px; display: block; }
+.theme-toggle .icon-sun { display: none; }
+.theme-toggle .icon-moon { display: block; }
+html[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+html[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+
+/* Shared section furniture */
+.container {
+  max-width: clamp(820px, 76vw, 1280px);
+  margin: 0 auto;
+  padding: 0 clamp(24px, 5vw, 80px);
+  width: 100%;
+}
+.section-kind {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--iog-infared);
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* ---------- Brand lockup ----------
+   The two halves of the Input Output mark flank the name: the inbound fan on the
+   left, the outbound fan on the right — publish in, deliver out. The words take
+   their colour from the half beside them. Deliberately no `display` on
+   .brand-half: .logo-light/.logo-dark above own that, and overriding it would
+   show both themes' artwork at once. */
+.navbar-brand { display: inline-flex; align-items: center; gap: 9px; }
+.brand-half { height: 21px; width: auto; flex-shrink: 0; }
+.brand-name { letter-spacing: 0.14em; color: var(--mark-out); }
+.brand-scope {
+  color: var(--mark-in);
+  font-weight: 500;
+  margin-right: 0.5em;
+}
+.navbar-brand:hover .brand-scope { color: rgba(216, 44, 2, 1); }
+
+/* ---------- Footer ---------- */
+footer { border-top: 1px solid var(--line); padding: 30px 0 36px; }
+.footer-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 28px;
+  padding-bottom: 30px;
+}
+.footer-col { display: flex; flex-direction: column; align-items: flex-start; gap: 9px; }
+.footer-col-title {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--iog-infared);
+  margin-bottom: 2px;
+}
+.footer-col a {
+  font-size: 0.9rem;
+  color: var(--text-mute);
+  text-decoration: none;
+  transition: color .12s ease;
+}
+.footer-col a:hover { color: var(--iog-infared); }
+.footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--line);
+  padding-top: 22px;
+}
+.footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+/* The attribution uses the wordmark artwork, so "Input Output" appears in the
+   typeface of the logo itself rather than an approximation of it. */
+.footer-credit { display: inline-flex; align-items: center; gap: 10px; }
+.footer-wordmark { height: 13px; width: auto; }
+footer p {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  letter-spacing: 0.06em;
+}
+
+/* An Experiments subpage is still "under" the section, so the parent keeps its mark. */
+.navbar-links .nav-item--experiments.is-current > a { color: var(--iog-infared); }
+.navbar-links .nav-item--experiments.is-current > a::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 2px;
+  background: var(--iog-infared);
+}
+
+
+/* ---- glossary tooltips ----
+   A term carries a dashed underline and opens one floating definition box.
+   Three ways in, deliberately: hover for a mouse, focus for the keyboard (every
+   term is given a tabindex), and tap for touch, where there is no hover at all.
+   The tool pages inline this same block; keeping it here lets any page opt in
+   by adding the #tip element and the small engine that drives it. */
+.term { border-bottom: 1px dashed var(--line-strong); cursor: help; }
+.term:hover, .term[aria-expanded="true"] { border-bottom-color: var(--iog-infared); color: var(--iog-infared); }
+summary .term, .hint .term, figcaption .term { border-bottom-style: dotted; }
+#tip { position: fixed; pointer-events: none; background: var(--card-fill);
+       border: 1px solid var(--line-strong); border-radius: 6px; padding: 9px 12px;
+       color: var(--text); box-shadow: 0 4px 14px rgba(0,0,0,.18); display: none; z-index: 60;
+       max-width: min(340px, calc(100vw - 24px)); font-size: 0.82rem; line-height: 1.5; }
+/* No text-transform on the key: it would turn the Greek letters into their capitals. */
+#tip .tip-key { font-family: var(--font-mono, monospace); font-size: 0.7rem; font-weight: 600;
+                letter-spacing: 0.12em; color: var(--iog-infared);
+                display: block; margin-bottom: 5px; text-transform: none; }
+#tip b { font-weight: 600; }

@@ -1,0 +1,946 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>minUTxO Alternatives · November 2026</title>
+  <link rel="icon" href="./assets/favicon.ico">
+  <link rel="stylesheet" href="./assets/fonts/fonts.css">
+  <link rel="stylesheet" href="./shared.css">
+  <link rel="stylesheet" href="./deck.css">
+  <link rel="stylesheet" href="./presentation.css">
+</head>
+<body>
+  <main class="deck" aria-label="minUTxO Alternatives presentation">
+    <section class="slide title-slide" aria-labelledby="s1">
+      <div class="title-header">
+        <img class="title-logo logo-light" src="./assets/io-logo-pos.png" alt="Input Output">
+        <img class="title-logo logo-dark" src="./assets/io-logo-neg.png" alt="Input Output">
+        <p class="slide-kicker">Research &amp; Development · November 2026</p>
+      </div>
+      <h1 id="s1">minUTxO <span class="accent">Alternatives</span></h1>
+      <ul class="title-deliverables" aria-label="Workstream publications">
+        <li>
+          <span class="title-deliverable-status">CPS-0037 · Published</span>
+          <span class="title-deliverable-name">Application and transaction <br>friction in minUTxO <br>implementation</span>
+        </li>
+        <li>
+          <span class="title-deliverable-status">CIP · November</span>
+          <span class="title-deliverable-name">UTxO Storage <br>Cost Formula</span>
+        </li>
+        <li>
+          <span class="title-deliverable-status">CIP · December</span>
+          <span class="title-deliverable-name">UTxO Deposit <br><span class="title-versus">versus</span> <br>UTxO Minimum ADA</span>
+        </li>
+      </ul>
+      <div class="title-team">
+        <p class="title-team-label">Workstream</p>
+        <div class="title-team-row">
+          <div class="title-team-member"><img src="./assets/nicolas-henin.png" alt=""><div><span>Nicolas Henin</span><span class="team-role">Presenter</span></div></div>
+          <div class="title-team-member"><img src="./assets/will-gould.png" alt=""><div><span>Will Gould</span></div></div>
+          <div class="title-team-member"><img src="./assets/polina-vinogradova-portrait.png" alt=""><div><span>Polina Vinogradova</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide transaction-intro-slide" aria-labelledby="s2">
+      <p class="slide-kicker">Cardano’s ledger</p>
+      <h2 id="s2">Transactions in Cardano’s ledger</h2>
+      <p class="lede">Nodes apply transactions from blocks to update ledger state.</p>
+      <div class="transaction-lifecycle" aria-label="Transaction c references and spends outputs a zero and b one, then creates outputs c zero and c one">
+        <div class="ledger-outputs">
+          <h3>Unspent TxOuts</h3>
+          <div class="ledger-output"><code>a#0</code><span>TxOut</span></div>
+          <div class="ledger-output"><code>b#1</code><span>TxOut</span></div>
+          <p>Consumed by the transaction</p>
+        </div>
+        <span class="transaction-arrow" aria-hidden="true">→</span>
+        <div class="transaction-structure">
+          <h3>Transaction <code>c</code></h3>
+          <div><span>Inputs · TxIn references</span><code>{ a#0, b#1 }</code></div>
+          <div><span>Outputs · TxOuts</span><code>[ output 0, output 1 ]</code></div>
+        </div>
+        <span class="transaction-arrow" aria-hidden="true">→</span>
+        <div class="ledger-outputs created-outputs">
+          <h3>New unspent TxOuts</h3>
+          <div class="ledger-output"><code>c#0</code><span>output 0</span></div>
+          <div class="ledger-output"><code>c#1</code><span>output 1</span></div>
+          <p>Retained until spent</p>
+        </div>
+      </div>
+      <div class="txout-anatomy">
+        <h3>Inside each TxOut</h3>
+        <dl>
+          <div><dt>Address</dt><dd>Spending credential</dd></div>
+          <div class="txout-value-field"><dt>Value</dt><dd>ADA + native assets</dd></div>
+          <div><dt>Datum</dt><dd>Optional hash or data</dd></div>
+          <div><dt>Reference script</dt><dd>Optional script bytes</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="slide live-resource-slide" aria-labelledby="s3">
+      <p class="slide-kicker">Node resources</p>
+      <h2 id="s3">How the live UTxO set grows</h2>
+      <p class="lede"><strong>10,880,960</strong> live UTxOs · <strong>1.88 GB</strong> serialized · 28 Oct 2026</p>
+      <pre class="resource-code"><code>newtype UTxO era = UTxO
+  { unUTxO :: Map.Map TxIn (TxOut era) }</code></pre>
+      <div class="resource-impact">
+        <div class="resource-entry-count">
+          <h3>More outputs → more map entries</h3>
+          <p class="resource-impact-caption">Spend one output and create three</p>
+          <div class="resource-map-comparison" aria-label="Transaction d spends a zero, retains c zero and creates d zero, d one and d two. The live UTxO map grows from two to four entries.">
+            <div class="resource-map">
+              <p class="resource-diagram-label">Before · 2 entries</p>
+              <div class="resource-map-row resource-spent"><code>a#0 → TxOut</code></div>
+              <div class="resource-map-row"><code>c#0 → TxOut</code></div>
+            </div>
+            <div class="resource-map-operation"><code>Tx d</code><span aria-hidden="true">→</span></div>
+            <div class="resource-map">
+              <p class="resource-diagram-label">After · 4 entries</p>
+              <div class="resource-map-row"><code>c#0 → TxOut</code></div>
+              <div class="resource-map-row resource-created"><code>d#0 → TxOut</code></div>
+              <div class="resource-map-row resource-created"><code>d#1 → TxOut</code></div>
+              <div class="resource-map-row resource-created"><code>d#2 → TxOut</code></div>
+            </div>
+          </div>
+        </div>
+        <div class="resource-entry-size">
+          <h3>Larger TxOuts → more bytes per entry</h3>
+          <p class="resource-impact-caption">Choose a larger inline datum for a new output</p>
+          <div class="resource-output-comparison" aria-label="Two possible TxOuts have an address, a value, an inline datum and an optional reference script. The output with the larger datum requires more storage.">
+            <div>
+              <p class="resource-diagram-label">Smaller datum</p>
+              <div class="resource-txout">
+                <div>Address</div>
+                <div>Value</div>
+                <div class="resource-datum resource-datum-small">Inline datum</div>
+                <div>Reference script <span>(optional)</span></div>
+              </div>
+            </div>
+            <div>
+              <p class="resource-diagram-label">Larger datum</p>
+              <div class="resource-txout">
+                <div>Address</div>
+                <div>Value</div>
+                <div class="resource-datum resource-datum-large">Inline datum</div>
+                <div>Reference script <span>(optional)</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide minimum-ada-slide" aria-labelledby="s4">
+      <p class="slide-kicker">The current rule</p>
+      <h2 id="s4">What is minimum ADA?</h2>
+      <p class="lede">Every new output must carry a minimum amount of ADA in its Value.</p>
+      <div class="minimum-mechanism">
+        <div class="minimum-output-example">
+          <h3>The output we want to create</h3>
+          <div class="minimum-txout">
+            <div class="minimum-address"><code>Address</code><span>Alice</span></div>
+            <div class="minimum-output-value">
+              <code>Value</code>
+              <strong>2 ADA <span>+ 100 Token A</span></strong>
+            </div>
+            <div class="minimum-optional-field"><code>Datum</code><span>None</span></div>
+            <div class="minimum-optional-field"><code>Reference script</code><span>None</span></div>
+          </div>
+          <p class="minimum-owner">Alice controls the full value<br>through the output’s spending conditions.</p>
+        </div>
+        <div class="minimum-validation" role="img" aria-label="Illustrative minimum of 1.6 ADA for this output. An ADA amount of 1 is below the threshold. An amount of 2 meets the minimum-ADA requirement.">
+          <h3>The ledger checks the ADA amount</h3>
+          <p class="minimum-example">Illustrative minimum for this output</p>
+          <div class="minimum-threshold-chart">
+            <div class="minimum-threshold"><strong>1.6 ADA</strong></div>
+            <div class="minimum-amount-case minimum-below">
+              <p><strong>1 ADA</strong><span>Below minimum</span></p>
+              <div class="minimum-amount-track"><div class="minimum-amount-bar"></div></div>
+            </div>
+            <div class="minimum-amount-case minimum-enough">
+              <p><strong>2 ADA</strong><span>Meets this requirement</span></p>
+              <div class="minimum-amount-track"><div class="minimum-amount-bar"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide minimum-calculation-slide" aria-labelledby="s5">
+      <p class="slide-kicker">The current calculation</p>
+      <h2 id="s5">How minimum ADA is calculated</h2>
+      <p class="lede">Price the serialized output size plus a fixed allowance for each entry.</p>
+      <pre class="minimum-calculation-code"><code class="language-haskell"><span class="minimum-calculation-constant">utxoEntryOverheadBytes = 160</span>
+
+<span class="formula-function-name">minAda</span> coinsPerUTxOByte txOut =
+  coinsPerUTxOByte *
+    (utxoEntryOverheadBytes + <span class="formula-measure">sizeBytes</span> (<span class="formula-measure">serialized</span> txOut))</code></pre>
+      <div class="minimum-calculation-example">
+        <p>Illustrative example</p>
+        <div class="minimum-calculation-result" role="img" aria-label="Add a 160-byte entry allowance to a 210-byte serialized output, then multiply by 4,310 lovelace per byte. The minimum is 1.5947 ADA.">
+          <div class="minimum-example-sum">
+            <span class="minimum-example-bracket" aria-hidden="true">(</span>
+            <div class="minimum-example-term"><span>Entry allowance</span><strong>160</strong><small>bytes</small></div>
+            <span class="minimum-example-operator" aria-hidden="true">+</span>
+            <div class="minimum-example-term"><span>Output size</span><strong>210</strong><small>bytes</small></div>
+            <span class="minimum-example-bracket" aria-hidden="true">)</span>
+          </div>
+          <span class="minimum-example-operator" aria-hidden="true">×</span>
+          <div class="minimum-example-term"><span>Price per byte</span><strong>4,310</strong><small>lovelace / byte</small></div>
+          <span class="minimum-example-operator" aria-hidden="true">=</span>
+          <div class="minimum-example-term minimum-example-total"><span>Minimum ADA</span><strong>1.5947</strong><small>ADA</small></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide resource-growth-slide" aria-labelledby="s6">
+      <p class="slide-kicker">Minimum ADA</p>
+      <h2 id="s6">The deterrence mechanism</h2>
+      <p class="lede">The map’s memory footprint grows with both entry count and output size.</p>
+      <div class="resource-growth-examples">
+        <div class="resource-growth-example">
+          <h3>More live outputs</h3>
+          <p class="growth-condition">Same serialized size per output</p>
+          <div class="growth-comparison" aria-label="One live output requires at least 1.6 ADA. Three equal-sized live outputs require at least 4.8 ADA in total.">
+            <div class="growth-case">
+              <p class="growth-case-label">1 live output</p>
+              <div class="growth-map-entries">
+                <div class="growth-map-entry"><code>a#0 → TxOut</code></div>
+              </div>
+              <p class="growth-ada">≥ 1.6 <span>ADA</span></p>
+            </div>
+            <span class="growth-arrow" aria-hidden="true">→</span>
+            <div class="growth-case">
+              <p class="growth-case-label">3 live outputs</p>
+              <div class="growth-map-entries">
+                <div class="growth-map-entry"><code>a#0 → TxOut</code></div>
+                <div class="growth-map-entry"><code>b#0 → TxOut</code></div>
+                <div class="growth-map-entry"><code>c#0 → TxOut</code></div>
+              </div>
+              <p class="growth-ada">≥ 4.8 <span>ADA total</span></p>
+            </div>
+          </div>
+        </div>
+        <div class="resource-growth-example">
+          <h3>Larger outputs</h3>
+          <p class="growth-condition">One entry with more data</p>
+          <div class="growth-comparison" aria-label="One compact output requires at least 1.6 ADA. One larger output with an inline datum requires at least 3.2 ADA.">
+            <div class="growth-case">
+              <p class="growth-case-label">Compact TxOut</p>
+              <div class="growth-output-space">
+                <div class="growth-output"><code>Address · Value</code></div>
+              </div>
+              <p class="growth-ada">≥ 1.6 <span>ADA</span></p>
+            </div>
+            <span class="growth-arrow" aria-hidden="true">→</span>
+            <div class="growth-case">
+              <p class="growth-case-label">Larger TxOut</p>
+              <div class="growth-output-space">
+                <div class="growth-output"><code>Address · Value</code><div class="growth-datum">+ inline datum</div></div>
+              </div>
+              <p class="growth-ada">≥ 3.2 <span>ADA</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="growth-cost-label">Minimum ADA required in the live outputs</p>
+      <div class="resource-incentive">
+        <strong>Keeping more state live requires more ADA to stay committed.</strong>
+        <p>This economic deterrent discourages excessive growth of the UTxO map.</p>
+      </div>
+    </section>
+
+    <section class="slide cps-friction-slide" aria-labelledby="s7">
+      <p class="slide-kicker">Community feedback</p>
+      <div class="cps-heading">
+        <h2 id="s7">CPS-0037</h2>
+        <p>Application and transaction friction<br>in minUTxO implementation</p>
+      </div>
+      <div class="cps-workstreams">
+        <div class="cps-workstream">
+          <h3>Calculation</h3>
+          <p class="cps-workstream-problem">Funding fixed point and<br>whole-output serialization.</p>
+          <span class="cps-proposal-arrow" aria-hidden="true">↓</span>
+          <p class="cps-proposal-schedule">1st CIP · November</p>
+          <div class="cps-formula-proposal">
+            <h4>UTxO Storage<br>Cost Formula</h4>
+            <div class="cps-dependency" role="img" aria-label="The UTxO Storage Cost Formula CIP provides the formula required by the UTxO Deposit CIP.">
+              <span class="cps-dependency-label">Provides the formula</span>
+              <span class="cps-dependency-line" aria-hidden="true"></span>
+            </div>
+          </div>
+          <p class="cps-proposal-goal">Simplify calculation and balancing.</p>
+        </div>
+        <div class="cps-workstream">
+          <h3>Application flows</h3>
+          <p class="cps-workstream-problem">Resource funding is embedded in application transfers,<br>complicating some workflows.</p>
+          <span class="cps-proposal-arrow" aria-hidden="true">↓</span>
+          <p class="cps-proposal-schedule">2nd CIP · December</p>
+          <h4>UTxO Deposit versus<br>UTxO Minimum ADA</h4>
+          <p class="cps-proposal-goal">Separate deposits from application assets.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide formula-cip-slide" aria-labelledby="s8">
+      <p class="slide-kicker">1st CIP · November</p>
+      <h2 id="s8">UTxO Storage Cost Formula</h2>
+      <div class="formula-comparison">
+        <div class="formula-column-heading">
+          <h3>Current</h3>
+          <p>Whole output encoding</p>
+        </div>
+        <div class="formula-column-heading formula-column-heading-proposed">
+          <h3>Proposed</h3>
+          <p>Fixed allowances + payload sizes</p>
+        </div>
+        <pre class="formula-expression"><code class="language-haskell"><span class="formula-function-name">minAda</span> coinsPerUTxOByte txOut =
+  coinsPerUTxOByte *
+    ( utxoEntryOverheadBytes
+    + <span class="formula-measure">sizeBytes</span> (<span class="formula-measure">serialized</span> txOut)
+    )</code></pre>
+        <pre class="formula-expression formula-expression-proposed"><code class="language-haskell"><span class="formula-function-name">minAda</span> coinsPerUTxOByte txOut =
+  coinsPerUTxOByte *
+    ( baseOutputAllowance
+    + perAssetAllowance
+        * <span class="formula-measure">count</span> (<span class="formula-measure">nativeAssets</span> txOut)
+    + <span class="formula-measure">sizeBytes</span> (<span class="formula-measure">datum</span> txOut)
+    + <span class="formula-measure">sizeBytes</span> (<span class="formula-measure">referenceScript</span> txOut)
+    )</code></pre>
+        <dl class="formula-allowances">
+          <div><dt>UTxO entry<br>overhead</dt><dd>160</dd></div>
+        </dl>
+        <dl class="formula-allowances formula-allowances-proposed">
+          <div><dt>Base output<br>allowance</dt><dd>250</dd></div>
+          <div><dt>Allowance per<br>native asset</dt><dd>74</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="slide fixed-point-slide" aria-labelledby="s9">
+      <p class="slide-kicker">UTxO Storage Cost Formula</p>
+      <h2 id="s9">Calculating minimum ADA</h2>
+      <div class="funding-comparison">
+        <div class="funding-before" role="group" aria-labelledby="funding-before-heading">
+          <h3 class="funding-flow-label" id="funding-before-heading"><span>Before</span>Current formula</h3>
+          <div class="funding-current-cycle">
+            <div class="funding-loop-steps">
+              <div class="funding-loop-step">
+                <h4>ADA amount</h4>
+                <p>A larger amount can need more bytes</p>
+              </div>
+              <span class="funding-loop-arrow" aria-hidden="true">↓</span>
+              <div class="funding-loop-step">
+                <h4>TxOut size</h4>
+                <p>Includes the ADA encoding</p>
+              </div>
+              <span class="funding-loop-arrow" aria-hidden="true">↓</span>
+              <div class="funding-loop-step">
+                <h4>Minimum ADA</h4>
+                <p>More bytes raise the minimum</p>
+              </div>
+            </div>
+            <div class="funding-return-route"><span aria-hidden="true">→</span><p class="funding-recalculate">Adjust ADA<br>and recalculate</p></div>
+          </div>
+        </div>
+        <div class="funding-after" role="group" aria-labelledby="funding-after-heading">
+          <h3 class="funding-flow-label" id="funding-after-heading"><span>After</span>Proposed formula</h3>
+          <div class="funding-calculation">
+            <ul class="funding-calculation-inputs">
+              <li>Native asset count</li>
+              <li>Datum bytes</li>
+              <li>Reference-script bytes</li>
+            </ul>
+            <span class="funding-loop-arrow" aria-hidden="true">↓</span>
+            <h4>Calculated minimum</h4>
+          </div>
+          <div class="funding-amount-rule">
+            <p>Then fund the output</p>
+            <div>ADA in TxOut <span>≥</span> calculated minimum</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide serialization-slide" aria-labelledby="s10">
+      <p class="slide-kicker">UTxO Storage Cost Formula</p>
+      <h2 id="s10">Minimum ADA calculation outside the node</h2>
+      <div class="builder-validation-flow" role="group" aria-label="Off-chain code that builds transactions calculates minimum ADA before submission. The node validates the same requirement.">
+        <div>
+          <h3>Off-chain software</h3>
+          <p>Calculate before submission</p>
+          <span class="builder-software-examples">Wallets, SDKs, applications,<br>services and scripts</span>
+        </div>
+        <div class="builder-submission"><span>Transaction</span><span aria-hidden="true">→</span></div>
+        <div>
+          <h3>Node</h3>
+          <p>Validate the same minimum</p>
+        </div>
+      </div>
+      <div class="builder-sizing-comparison">
+        <div class="builder-sizing-current">
+          <h3>Current calculation</h3>
+          <h4>Exact CBOR size<br>of the complete TxOut</h4>
+          <p>Address, amounts, asset maps<br>and encoding wrappers</p>
+          <p class="builder-sizing-result">Every implementation must reproduce<br>the ledger’s sizing precisely.</p>
+        </div>
+        <div class="builder-sizing-proposed">
+          <h3>Proposed calculation</h3>
+          <h4>Fixed allowances<br>+ counts and payload lengths</h4>
+          <p>Native asset count<br>Datum bytes + reference-script bytes</p>
+          <p class="builder-sizing-result">A simpler calculation to implement<br>across languages and tools.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide deposit-friction-intro-slide" aria-labelledby="s11">
+      <p class="slide-kicker">2nd CIP · UTxO Deposit versus UTxO Minimum ADA</p>
+      <h2 id="s11">Minimum ADA in application flows</h2>
+      <div class="deposit-value-roles" role="group" aria-label="The ADA in TxOut.Value can serve an application payment and must also satisfy the minimum-ADA requirement.">
+        <div class="deposit-application-role">
+          <h3>Application payment</h3>
+          <p>When the workflow uses ADA</p>
+        </div>
+        <span class="deposit-application-link" aria-hidden="true">←</span>
+        <div class="deposit-value-card">
+          <code>TxOut.Value</code>
+          <strong>ADA</strong>
+          <span>Native assets</span>
+        </div>
+        <span class="deposit-resource-link" aria-hidden="true">→</span>
+        <div class="deposit-resource-role">
+          <h3>Resource requirement</h3>
+          <p>ADA ≥ minimum</p>
+        </div>
+      </div>
+      <p class="deposit-friction-premise">Depending on the transfer, the application has to manage extra ADA.</p>
+      <p class="deposit-friction-question">Can we account for resource funding separately?</p>
+    </section>
+
+    <section class="slide ada-payment-slide" aria-labelledby="s12">
+      <p class="slide-kicker">Transfer use cases · ADA</p>
+      <h2 id="s12">Pure ADA transfers</h2>
+      <p class="lede">Above the minimum, the constraint goes unnoticed.</p>
+      <div class="payment-flow">
+        <div class="payment-intent"><p class="diagram-label">ADA transfer</p><strong class="token-amount">100 ADA</strong></div>
+        <span class="flow-arrow" aria-hidden="true">→</span>
+        <div class="output-example">
+          <p class="diagram-label">Output at a script address</p>
+          <div class="ada-payment-output">
+            <strong>100 ADA</strong>
+            <div class="ada-output-payloads"><p>Inline datum + reference script</p><span>Serialized TxOut · 12,000 bytes</span></div>
+            <div class="ada-payment-bar" aria-label="100 ADA exceeds the illustrative minimum of 52.4096 ADA"><span class="ada-minimum-marker"></span></div>
+            <p class="ada-threshold-label">52.4096 ADA minimum<span>Illustrative example</span></p>
+          </div>
+        </div>
+      </div>
+      <div class="ada-payment-experience">
+        <div><h3>Developers</h3><p>No extra ADA to manage</p></div>
+        <div><h3>Users</h3><p>The payment works as expected</p></div>
+      </div>
+    </section>
+
+    <section class="slide token-payment-slide" aria-labelledby="s13">
+      <p class="slide-kicker">Transfer use cases · Token-only transfers</p>
+      <h2 id="s13">The constraint becomes visible</h2>
+      <p class="lede">The application now has ADA funding to manage.</p>
+      <div class="payment-flow">
+        <div class="payment-intent">
+          <p class="diagram-label">Application payment</p>
+          <strong class="token-amount">1 token</strong>
+          <p class="caption">0 ADA in the intended payment</p>
+        </div>
+        <span class="flow-arrow" aria-hidden="true">→</span>
+        <div class="token-required-output">
+          <p class="diagram-label">Recorded TxOut.Value</p>
+          <div class="token-output-value"><strong>1 token<br><span>+ 1.6 ADA</span></strong></div>
+          <p class="caption">Illustrative minimum · 1.6 ADA</p>
+        </div>
+      </div>
+      <div class="token-intent-question">
+        <p>Reading this Value later</p>
+        <h3>Token-only payment or token + ADA payment?</h3>
+      </div>
+    </section>
+
+    <section class="slide mixed-payment-slide" aria-labelledby="s14">
+      <p class="slide-kicker">Transfer use cases · Tokens + application ADA</p>
+      <h2 id="s14">The application flow becomes hidden</h2>
+      <p class="lede">The same Value can represent different payment intentions.</p>
+      <div class="mixed-intent-reading">
+        <div class="mixed-ledger-output">
+          <p class="diagram-label">Recorded TxOut.Value</p>
+          <div class="output-value">
+            <strong>1,000 tokens<br>+ 32 ADA</strong>
+            <div class="mixed-output-payloads"><p>Script address<br>Inline datum + reference script</p><span>Illustrative minimum · 32 ADA</span></div>
+          </div>
+        </div>
+        <div class="mixed-intent-alternatives">
+          <h3>What was the ADA intended for?</h3>
+          <table aria-label="Different application intentions can produce the same 32 ADA total">
+            <thead><tr><th scope="col">Payment</th><th scope="col">Top-up</th></tr></thead>
+            <tbody>
+              <tr><td>20 ADA</td><td>12 ADA</td></tr>
+              <tr><td>0 ADA</td><td>32 ADA</td></tr>
+            </tbody>
+          </table>
+          <p>Recovering the payment requires<br>application context beyond Value.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide nested-friction-slide" aria-labelledby="s15">
+      <p class="slide-kicker">Nested transactions · CIP-118 proposal</p>
+      <h2 id="s15">Nested transactions amplify the friction</h2>
+      <p class="lede">More operations bring more funding and application context to coordinate.</p>
+      <div class="nested-batch">
+        <div class="nested-batch-heading"><h3>TopTx</h3><p>Token-output minimum · 32 ADA, illustrative</p></div>
+        <table aria-label="3 SubTxs grouped by a TopTx, with intended payments, ADA top-ups and recorded output values">
+          <thead><tr><th scope="col">SubTx</th><th scope="col">Intended payment</th><th scope="col">ADA top-up</th><th scope="col">Recorded TxOut.Value</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">A</th><td>100 ADA</td><td class="nested-zero-topup">0 ADA</td><td>100 ADA</td></tr>
+            <tr><th scope="row">B</th><td>1,000 tokens<br>+ 0 ADA</td><td class="nested-topup">32 ADA</td><td class="nested-matching-value">1,000 tokens<br>+ 32 ADA</td></tr>
+            <tr><th scope="row">C</th><td>1,000 tokens<br>+ 20 ADA</td><td class="nested-topup">12 ADA</td><td class="nested-matching-value">1,000 tokens<br>+ 32 ADA</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="nested-accounting-summary">
+        <p><strong>44 ADA</strong><span>Funding to coordinate</span></p>
+        <p><strong>Same recorded Value</strong><span>Different payment intentions in B and C</span></p>
+      </div>
+    </section>
+
+    <section class="slide workflow-objective-slide" aria-labelledby="s16">
+      <p class="slide-kicker">Towards the deposit CIP</p>
+      <h2 id="s16">Simpler workflows</h2>
+      <p class="lede">Preserve the economic deterrent protecting the UTxO live set.</p>
+      <div class="workflow-goals">
+        <div><h3>Application value</h3><p>Make the intended transfer explicit.</p></div>
+        <div><h3>Resource funding</h3><p>Account for the ADA backing the live set.</p></div>
+      </div>
+    </section>
+
+    <section class="slide deposit-proposal-slide" aria-labelledby="s17">
+      <p class="slide-kicker">2nd CIP · Deposit-backed outputs</p>
+      <h2 id="s17">UTxO Deposit versus UTxO Minimum ADA</h2>
+      <p class="lede">Give application value and resource backing their own accounting.</p>
+      <div class="deposit-analogy">
+        <div class="deposit-analogy-example">
+          <h3>A banknote</h3>
+          <div class="banknote-illustration"><strong>€20</strong><span>Face value</span></div>
+          <div class="deposit-analogy-link" aria-hidden="true"></div>
+          <div class="banknote-production"><strong>Production cost</strong><span>What it takes to produce the note</span></div>
+        </div>
+        <div class="deposit-analogy-output">
+          <h3>A deposit-backed output</h3>
+          <div class="deposit-application-value"><span>TxOut.Value</span><strong>1,000 tokens + 20 ADA</strong><p>The application’s transfer</p></div>
+          <div class="deposit-analogy-link" aria-hidden="true"></div>
+          <div class="deposit-explicit-backing"><strong>32 ADA deposit</strong><span>Held separately by the ledger while unspent<br>Released when the output is spent</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide builder-experience-slide builder-deposits-overview" aria-labelledby="s18">
+      <p class="slide-kicker">Deposit-backed outputs</p>
+      <h2 id="s18">A transaction and its deposits</h2>
+      <p class="lede">Spending releases the input deposits. Creating outputs allocates new deposits.</p>
+      <div class="builder-netting-flow" role="group" aria-label="3 token inputs are consolidated into 1 application output. Each input releases a 1.6 ADA deposit, and each new output requires a separate 1.6 ADA deposit.">
+        <div class="builder-netting-inputs">
+          <h3>Inputs</h3>
+          <div><strong>3 B</strong><span class="builder-deposit-sticker">Deposit <b>1.6 ADA</b></span></div>
+          <div><strong>3 B</strong><span class="builder-deposit-sticker">Deposit <b>1.6 ADA</b></span></div>
+          <div><strong>3 C</strong><span class="builder-deposit-sticker">Deposit <b>1.6 ADA</b></span></div>
+        </div>
+        <div class="builder-netting-arrows" aria-hidden="true"><span>→</span><span>→</span><span>→</span></div>
+        <div class="builder-netting-transaction"><h3>Transaction</h3></div>
+        <div class="builder-netting-arrows builder-netting-output-arrows" aria-hidden="true"><span>→</span><span>→</span></div>
+        <div class="builder-netting-outputs">
+          <h3>Outputs</h3>
+          <div><span>Output 1 · Application</span><strong>6 B + 3 C</strong><span class="builder-deposit-sticker">Deposit <b>1.6 ADA</b></span></div>
+          <div><span>Output 0 · Receives release</span><strong>1.6 ADA</strong><span class="builder-deposit-sticker">Deposit <b>1.6 ADA</b></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide builder-experience-slide builder-netting-summary" aria-labelledby="s19">
+      <p class="slide-kicker">Deposit-backed outputs · Transaction netting</p>
+      <h2 id="s19">A new Tx Builder experience</h2>
+      <p class="lede">Build the application flow and declare the net deposit change.</p>
+      <div class="builder-netting-flow" role="group" aria-label="3 token inputs are consolidated into 1 application output. The transaction declares a net deposit release of 1.6 ADA to output 0. Deposits are released and allocated when the ledger applies the transaction.">
+        <div class="builder-netting-inputs">
+          <h3>Application inputs</h3>
+          <div><strong>3 B</strong></div>
+          <div><strong>3 B</strong></div>
+          <div><strong>3 C</strong></div>
+        </div>
+        <div class="builder-netting-arrows" aria-hidden="true"><span>→</span><span>→</span><span>→</span></div>
+        <div class="builder-netting-transaction">
+          <h3>Transaction</h3>
+          <div class="builder-netting-declaration"><span>Net deposit release</span><strong>1.6 ADA</strong><span>To output 0</span></div>
+        </div>
+        <div class="builder-netting-arrows builder-netting-output-arrows" aria-hidden="true"><span>→</span><span>→</span></div>
+        <div class="builder-netting-outputs">
+          <h3>Outputs</h3>
+          <div><span>Output 1 · Application</span><strong>6 B + 3 C</strong></div>
+          <div class="builder-netting-refund"><span>Output 0 · Receives release</span><strong>1.6 ADA</strong></div>
+        </div>
+      </div>
+      <div class="builder-netting-helper"><strong>Construction · net declaration</strong><span aria-hidden="true">→</span><p>Ledger application · deposit allocation</p></div>
+    </section>
+
+    <section class="slide reserve-slide builder-policy-slide" aria-labelledby="s20">
+      <p class="slide-kicker">A DSL for Tx Builders</p>
+      <h2 id="s20">Choose the funding and refund</h2>
+      <p class="lede">Transaction builders choose the inputs and outputs. Helpers prepare the net declaration.</p>
+      <div class="reserve-transfer" role="group" aria-label="The application splits 3 C tokens into 3 outputs with 1 C each. The developer supplies a top-up input and a refund output as conditional choices. Deposit helpers compute the net change and fill the declaration and settlement destination.">
+        <div class="reserve-application-flow">
+          <div class="reserve-application-input"><p>Application input</p><div class="reserve-token">3 C</div></div>
+          <span class="reserve-application-arrow" aria-hidden="true">→</span>
+          <div class="reserve-application-builder"><h3>Transaction</h3><div><strong>Net declaration</strong><span>Net amount + refund destination</span></div></div>
+          <span class="reserve-application-arrow" aria-hidden="true">→</span>
+          <div class="reserve-application-outputs"><p>Application outputs</p><div class="reserve-output-tokens"><div class="reserve-token">1 C</div><div class="reserve-token">1 C</div><div class="reserve-token">1 C</div></div></div>
+        </div>
+        <div class="builder-policy-arrow"><span><strong>Helper functions</strong><span>Calculate and fill</span></span></div>
+        <div class="builder-policy-choices" role="group" aria-label="The Tx Builder chooses the funding input and refund output and passes them to the helper functions">
+          <div><h3>Top-up input</h3><p>Use if more ADA is needed</p></div>
+          <div><h3>Refund output</h3><p>Receive ADA if deposits are released</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide nested-choice-slide" aria-labelledby="s21">
+      <p class="slide-kicker">Nested transactions</p>
+      <h2 id="s21">2 ways to handle a SubTx’s net</h2>
+      <div class="nested-choices">
+        <div class="nested-choice">
+          <h3>Handle locally</h3>
+          <p>Same approach as TopTx</p>
+          <div class="nested-choice-top" role="group" aria-label="TopTx contains a SubTx with its own funding input or refund output">
+            <span class="nested-choice-body-name">TopTx</span>
+            <div class="nested-choice-sub nested-choice-local">
+              <span class="nested-choice-body-name">SubTx</span>
+              <div class="nested-choice-net">Net deposit change</div>
+              <div class="nested-choice-settlement">
+                <div><span>Top-up</span><strong>Funding input</strong></div>
+                <div><span>Release</span><strong>Refund output</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="nested-choice">
+          <h3>Delegate to TopTx</h3>
+          <p>TopTx combines the delegated contributions</p>
+          <div class="nested-choice-top" role="group" aria-label="SubTx delegates its net contribution to TopTx, which handles any remaining funding or refund">
+            <span class="nested-choice-body-name">TopTx</span>
+            <div class="nested-choice-settlement nested-choice-parent">
+              <div><span>Top-up</span><strong>Funding input</strong></div>
+              <div><span>Release</span><strong>Refund output</strong></div>
+            </div>
+            <div class="nested-choice-delegation"><span>Delegate</span></div>
+            <div class="nested-choice-sub">
+              <span class="nested-choice-body-name">SubTx</span>
+              <div class="nested-choice-net">Net deposit change</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide delegated-ada-slide" aria-labelledby="s22">
+      <p class="slide-kicker">Nested transactions · Delegation</p>
+      <h2 id="s22">Token-only SubTxs</h2>
+      <p class="lede">TopTx already handles fees. Our proposal adds deposit top-ups and refunds.</p>
+      <div class="delegated-ada-top" role="group" aria-label="TopTx manages the ADA funding and refund around a token-only SubTx">
+        <h3>TopTx</h3>
+        <div class="delegated-ada-flow">
+          <div class="delegated-ada-endpoint"><span>Funding input</span><strong>ADA</strong></div>
+          <span class="delegated-ada-arrow" aria-hidden="true">→</span>
+          <div class="delegated-ada-services">
+            <div><span>Already handled by TopTx</span><strong>Transaction fees</strong></div>
+            <div><span>With our proposal</span><strong>Deposit top-ups &amp; refunds</strong></div>
+          </div>
+          <span class="delegated-ada-arrow" aria-hidden="true">→</span>
+          <div class="delegated-ada-endpoint"><span>Change / refund output</span><strong>ADA</strong></div>
+        </div>
+        <div class="delegated-ada-link"><span>Delegate the deposit net</span></div>
+        <div class="delegated-token-subtx">
+          <div class="delegated-token-heading"><h3>SubTx</h3><p>Application transfer · 0 ADA</p></div>
+          <div class="delegated-token-flow" role="group" aria-label="Token-only input of 100 Token A split into outputs of 60 and 40 Token A">
+            <div class="delegated-token-value">100 Token A</div>
+            <span class="delegated-ada-arrow" aria-hidden="true">→</span>
+            <div class="delegated-token-operation">Transfer tokens</div>
+            <span class="delegated-ada-arrow" aria-hidden="true">→</span>
+            <div class="delegated-token-outputs"><div class="delegated-token-value">60 Token A</div><div class="delegated-token-value">40 Token A</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide portable-net-slide" aria-labelledby="s23">
+      <p class="slide-kicker">From the experience to implementation</p>
+      <h2 id="s23">Making this work outside the node</h2>
+      <p class="lede">Recover the original deposit deterministically, with minimal information.</p>
+      <div class="portable-net-flow" role="group" aria-label="Transaction-building code computes the net declaration outside the node. The node verifies the declared net.">
+        <div class="portable-net-client">
+          <h3>Outside the node</h3>
+          <p class="portable-net-languages">TypeScript · Rust · Haskell · …</p>
+          <div class="portable-net-data">Transaction body + input deposit context + pricing</div>
+          <div class="portable-net-function">Compute the net declaration</div>
+        </div>
+        <div class="portable-net-submit"><span>Submit Tx</span><span aria-hidden="true">→</span></div>
+        <div class="portable-net-node">
+          <h3>Inside the node</h3>
+          <p>Ledger validation</p>
+          <div>Verify the declared net</div>
+        </div>
+      </div>
+      <div class="portable-net-dependency" role="group" aria-label="The UTxO deposit proposal depends on the UTxO Storage Cost Formula for simple output pricing">
+        <div><span>First CIP</span><h3>UTxO Storage Cost Formula</h3><p>Asset counts + datum and script payload sizes</p></div>
+        <div class="portable-net-dependency-arrow"><span>Provides simple pricing</span><span aria-hidden="true">→</span></div>
+        <div><span>Second CIP</span><h3>UTxO deposits</h3><p>Use that pricing to calculate the net</p></div>
+      </div>
+    </section>
+
+    <section class="slide pricing-history-slide" aria-labelledby="s24">
+      <p class="slide-kicker">Formula and parameter changes</p>
+      <h2 id="s24">Pricing can evolve over time</h2>
+      <p class="lede">Formulas and parameter values can change. Original deposits must remain recoverable.</p>
+      <div class="pricing-timeline" role="group" aria-label="A deposit-backed output is created under pricing A. The formula or parameters change to pricing B. When the original output is spent, its original deposit must be released.">
+        <div class="pricing-events">
+          <div><h3>Create the output</h3><p>Deposit allocated using A</p></div>
+          <div><h3>Pricing changes</h3><p>Formula version or parameters</p></div>
+          <div><h3>Spend the output</h3><p>Release its original deposit</p></div>
+        </div>
+        <div class="pricing-axis" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="pricing-periods">
+          <div class="pricing-period-original"><strong>Pricing A</strong><span>Used for the original deposit</span></div>
+          <div><strong>Pricing B</strong><span>Applies to newly created outputs</span></div>
+        </div>
+      </div>
+      <p class="pricing-challenge">How can we recover the original deposit<br>after pricing changes?</p>
+    </section>
+
+    <section class="slide unspent-code-slide" aria-labelledby="s25">
+      <p class="slide-kicker">Recording the allocation origin</p>
+      <h2 id="s25">The Unspent representation</h2>
+      <p class="lede">Each live entry keeps its TxOut and allocation origin. Pricing history is shared.</p>
+      <div class="unspent-code-layout">
+        <div class="unspent-code-view">
+          <h3>For each selected input</h3>
+          <pre class="unspent-definition"><code>data Unspent output = Unspent
+  { output :: !output
+  , <span class="unspent-slot-type">allocatedAt</span> :: !AllocatedAt
+  }
+
+data AllocatedAt
+  = <span class="unspent-migration-origin">AtStoreMigration</span>
+  | <span class="unspent-slot-type">AtSlot !SlotNo</span></code></pre>
+        </div>
+        <div class="unspent-recovery-view">
+          <h3>Recover from shared history</h3>
+          <div class="unspent-recovery" role="group" aria-label="allocatedAt records the slot of the block that added the output to the live UTxO set. The slot selects the formula and parameter values active at allocation from shared history. Applying that pricing to the original TxOut recovers its original deposit.">
+            <div class="unspent-recovery-origin"><code>allocatedAt</code><span>AtSlot blockSlot</span></div>
+            <span class="unspent-recovery-right" aria-hidden="true">→</span>
+            <div class="unspent-recovery-formula"><strong>Historical pricing</strong><span>Formula + parameters<br>active at allocation</span></div>
+            <span class="unspent-recovery-down" aria-hidden="true">↓</span>
+            <div class="unspent-recovery-output"><code>output</code><span>Original TxOut</span></div>
+            <span class="unspent-recovery-right unspent-recovery-output-arrow" aria-hidden="true">→</span>
+            <div class="unspent-recovery-amount">Original<br>deposit</div>
+          </div>
+          <div class="unspent-pure-function">
+            <h3>Inside and outside the node</h3>
+            <code>computeExternalDeposit history unspent</code>
+            <p>Read input entries and history from the same ledger snapshot.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide explicit-accounting-slide" aria-labelledby="s26">
+      <p class="slide-kicker">Application accounting</p>
+      <h2 id="s26">Accounting for a 5 ADA payment</h2>
+      <p class="lede">Assume the same 2 ADA storage requirement for each output.</p>
+      <div class="accounting-comparison" role="group" aria-label="The application intends to pay 5 ADA. With an illustrative storage requirement of 2 ADA, a minimum-ADA output holds 5 ADA in its value, satisfying the minimum. A deposit-backed output holds 5 ADA in its value and has a separate 2 ADA deposit. Total ADA associated with the output is 5 ADA or 7 ADA respectively.">
+        <div class="accounting-output-model">
+          <h3>Minimum-ADA output</h3>
+          <div class="accounting-value"><code>TxOut value · application payment</code><strong>5 ADA</strong></div>
+          <p class="accounting-minimum">Already covers the 2 ADA minimum</p>
+          <div class="accounting-total"><span>Total ADA for this output</span><strong>5 ADA</strong></div>
+        </div>
+        <div class="accounting-output-model">
+          <h3>Deposit-backed output</h3>
+          <div class="accounting-value"><code>TxOut value · application payment</code><strong>5 ADA</strong></div>
+          <div class="accounting-deposit"><span>Separate deposit</span><strong>+ 2 ADA</strong></div>
+          <div class="accounting-total accounting-total-deposit"><span>Total ADA for this output</span><strong>7 ADA</strong></div>
+        </div>
+      </div>
+      <div class="accounting-use-cases" role="group" aria-label="Both output forms remain available. Minimum-ADA outputs preserve existing contract value semantics and suit ADA payment flows. Deposit-backed outputs support token flows and explicit separation of application value and deposits.">
+        <h3>Both output forms remain available</h3>
+        <div><p>Existing contracts and ADA payments</p><p>Token flows and separate deposit accounting</p></div>
+      </div>
+    </section>
+
+    <section class="slide txout-representation-slide" aria-labelledby="s27">
+      <p class="slide-kicker">Ledger representation · Haskell</p>
+      <h2 id="s27">TxOut era gains an explicit choice</h2>
+      <div class="txout-code-comparison">
+        <div>
+          <h3>Before · EraTxOut and Dijkstra</h3>
+          <pre><code>type TxOut era = (r :: Type) | r -&gt; era
+
+type TxOut DijkstraEra = BabbageTxOut DijkstraEra</code></pre>
+        </div>
+        <div>
+          <h3>After</h3>
+          <pre class="txout-choice-code"><code>data TxOut era
+  = <span class="txout-minada-constructor">MinAdaTxOut</span> !(MinAdaTxOut era)
+  | <span class="txout-deposit-constructor">DepositBackedTxOut</span> !(DepositBackedTxOut era)</code></pre>
+        </div>
+      </div>
+      <table class="txout-field-comparison" aria-label="Fields and accounting of the 2 output forms">
+        <thead><tr><th scope="col">Component</th><th scope="col"><code>MinAdaTxOut</code></th><th scope="col"><code>DepositBackedTxOut</code></th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Address</th><td><code>Addr</code></td><td><code>Addr</code></td></tr>
+          <tr class="txout-assets-row"><th scope="row">Assets</th><td><code>Value era</code></td><td><code>ApplicationAssets era</code></td></tr>
+          <tr><th scope="row">Datum</th><td><code>Datum era</code></td><td><code>Datum era</code></td></tr>
+          <tr><th scope="row">Reference script</th><td><code>StrictMaybe (Script era)</code></td><td><code>StrictMaybe (Script era)</code></td></tr>
+          <tr><th scope="row">Resource backing</th><td>ADA in Value covers the minimum</td><td>Full external deposit, recovered via Unspent</td></tr>
+        </tbody>
+      </table>
+      <pre class="txout-application-assets"><code>newtype ApplicationAssets era =
+  ApplicationAssets {unApplicationAssets :: Value era}</code></pre>
+    </section>
+
+    <section class="slide txout-choice-flow-slide" aria-labelledby="s28">
+      <p class="slide-kicker">Tx Builder experience · Output choice</p>
+      <h2 id="s28">Choose the form of each new output</h2>
+      <p class="lede">Mix minimum-ADA and deposit-backed outputs. The net declaration follows your choices.</p>
+      <div class="builder-netting-flow txout-generic-flow" role="group" aria-label="Selected inputs retain their recorded output form. At activation, the existing live set contains minimum-ADA outputs. The transaction builder chooses the form of each new output. Minimum-ADA outputs contribute 0 external deposit. Deposit-backed outputs require a full external deposit. The net declaration accounts for new external deposits minus original external deposits released by spent inputs.">
+        <div class="builder-netting-inputs">
+          <h3>Selected inputs</h3>
+          <div><span>Existing TxOut</span><strong>ADA + assets</strong></div>
+          <div><span>Existing TxOut</span><strong>ADA + assets</strong></div>
+          <div><span>Existing TxOut</span><strong>ADA + assets</strong></div>
+        </div>
+        <div class="builder-netting-arrows" aria-hidden="true"><span>→</span><span>→</span><span>→</span></div>
+        <div class="builder-netting-transaction">
+          <h3>Transaction</h3>
+          <div class="builder-netting-declaration">
+            <span>Net deposit change</span>
+            <div class="txout-net-formula"><strong>New external deposits</strong><span>−</span><strong>Released external deposits</strong></div>
+          </div>
+          <p class="txout-net-settlement">Funding input · Refund output</p>
+        </div>
+        <div class="builder-netting-arrows builder-netting-output-arrows" aria-hidden="true"><span>→</span><span>→</span></div>
+        <div class="builder-netting-outputs">
+          <h3>Choose each new output</h3>
+          <div>
+            <span>Minimum-ADA TxOut</span>
+            <strong>ADA + assets</strong>
+            <p>Value covers the minimum</p>
+            <p class="txout-external-deposit">0 external deposit</p>
+          </div>
+          <div class="txout-generic-deposit-output">
+            <span>Deposit-backed TxOut</span>
+            <strong>Application assets</strong>
+            <p>ADA and/or native assets</p>
+            <p class="txout-external-deposit">Full external deposit</p>
+          </div>
+        </div>
+      </div>
+      <p class="txout-initial-forms">Live set at activation · minimum-ADA outputs</p>
+      <div class="builder-netting-helper"><strong>Construction · net declaration</strong><span aria-hidden="true">→</span><p>Ledger application · deposit accounting</p></div>
+    </section>
+
+    <section class="slide legacy-deposit-slide" aria-labelledby="s29">
+      <p class="slide-kicker">Legacy outputs · Migration accounting</p>
+      <h2 id="s29">Legacy outputs below the new minimum</h2>
+      <p class="lede">An older output may hold less ADA than the migration formula requires.</p>
+      <div class="legacy-deposit-example" role="group" aria-label="Illustrative migration requirement of 3 ADA. An existing minimum-ADA output contains 2 ADA and 100 tokens. Its recovered deposit is capped at 2 ADA, leaving 0 application ADA and 100 tokens in the application-assets view.">
+        <div class="legacy-deposit-input">
+          <h3>Existing minimum-ADA TxOut</h3>
+          <div class="legacy-deposit-value"><span>Value</span><strong>2 ADA</strong><p>+ 100 tokens</p></div>
+          <p class="legacy-baseline">Migration requirement <strong>3 ADA</strong><span>Illustrative amount</span></p>
+        </div>
+        <span class="legacy-deposit-arrow" aria-hidden="true">→</span>
+        <div class="legacy-deposit-view">
+          <h3>Recovered accounting view</h3>
+          <div class="legacy-deposit-split">
+            <div class="legacy-deposit-reserve"><span>Deposit · reserve in Value</span><strong>2 ADA</strong><p>All available ADA</p></div>
+            <div class="legacy-application-assets"><span>Application assets</span><strong>0 ADA</strong><p>+ 100 tokens</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="legacy-deposit-rule">
+        <h3>Cap the deposit at the ADA available</h3>
+        <pre><code>depositAda     = min adaInOutput migrationRequirement
+applicationAda = adaInOutput - depositAda</code></pre>
+      </div>
+    </section>
+
+    <section class="slide delivery-status-slide" aria-labelledby="s30">
+      <p class="slide-kicker">Workstream progress</p>
+      <h2 id="s30">Delivery status</h2>
+      <div class="delivery-status-list" role="list" aria-label="CPS published, formula CIP nearing submission, deposit CIP at an advanced stage">
+        <div class="delivery-status-row" role="listitem">
+          <p class="delivery-artifact">CPS-0037</p>
+          <h3>Application and transaction friction<br>in minUTxO implementation</h3>
+          <div class="delivery-stage delivery-published"><strong>Published</strong><span>27 October 2026</span></div>
+        </div>
+        <div class="delivery-status-row" role="listitem">
+          <p class="delivery-artifact">1st CIP</p>
+          <h3>UTxO Storage Cost Formula</h3>
+          <div class="delivery-stage"><strong>Final polish</strong><span>Submission next</span></div>
+        </div>
+        <div class="delivery-status-row" role="listitem">
+          <p class="delivery-artifact">2nd CIP</p>
+          <h3>UTxO Deposit versus<br>UTxO Minimum ADA</h3>
+          <div class="delivery-stage"><strong>Advanced draft</strong><span>Integration review continues</span></div>
+        </div>
+      </div>
+      <div class="delivery-prototype"><h3>Ledger prototype</h3><p>Fully implemented and working</p></div>
+    </section>
+
+    <section class="slide integration-review-slide" aria-labelledby="s31">
+      <p class="slide-kicker">Deposit CIP · Remaining work</p>
+      <h2 id="s31">Open integration questions</h2>
+      <p class="integration-hardfork"><strong>Hard-fork migration</strong><span>Working in the prototype</span></p>
+      <div class="integration-review-topics">
+        <div class="integration-plutus">
+          <h3>Plutus scripts</h3>
+          <p class="integration-question">How does the model affect<br>existing scripts?</p>
+          <ul><li>Values exposed in the script context</li><li>Compatibility with existing validators</li></ul>
+        </div>
+        <div class="integration-parameters">
+          <h3>Parameter changes</h3>
+          <div class="parameter-boundary-flow" role="group" aria-label="A transaction is built using one set of parameters and submitted after new parameters activate. The remaining question is the friction this creates for transaction builders.">
+            <div><strong>Build Tx</strong><span>Current parameters</span></div>
+            <div class="parameter-activation"><span>Parameters change</span><strong aria-hidden="true">→</strong></div>
+            <div><strong>Submit Tx</strong><span>Updated parameters</span></div>
+          </div>
+          <p class="integration-question">What must be recalculated,<br>and what friction does that create?</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide conclusion-slide" aria-labelledby="s32">
+      <p class="slide-kicker">Conclusion</p>
+      <h2 id="s32">Simpler transaction building</h2>
+      <div class="conclusion-proposals">
+        <div><span>1st CIP · Cost formula</span><h3>Direct UTxO<br>cost calculation</h3></div>
+        <div><span>2nd CIP · UTxO deposits</span><h3>Deposit accounting<br>at transaction level</h3></div>
+      </div>
+      <p class="conclusion-backing">Economic backing for the UTxO live set</p>
+    </section>
+  </main>
+  <div class="progress" id="progress"></div>
+  <footer class="chrome">
+    <a class="btn-close home-link" href="#1" aria-label="Back to the first slide">minUTxO <span>· November 2026</span></a>
+    <div class="deck-tools"><button class="theme-toggle" type="button" aria-label="Toggle color theme">◐</button></div>
+    <nav class="pager" aria-label="Slide controls"><button type="button" data-step="-1" aria-label="Previous slide">←</button><span id="counter" aria-live="polite">1 / 32</span><button type="button" data-step="1" aria-label="Next slide">→</button></nav>
+  </footer>
+  <script src="./deck.js"></script>
+</body>
+</html>

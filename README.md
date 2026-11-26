@@ -11,6 +11,7 @@ ARC workstream on the min-UTxO mechanism.
   for calculating the requirement from asset counts and datum/script payloads.
   It can apply to minimum-ADA outputs independently of deposit-backed outputs.
   Both CIPs are working drafts for discussion, not yet submissions.
+- [November 2026 presentation · minUTxO Alternatives](presentations/2026-11-minutxo-alternatives/) — slides from the engineering walkthrough of the two proposals.
 - [`backlog/`](backlog/README.md) -- delivery milestones, epics, and work items for
   the ARC min-UTxO stream.
 - [`biweekly-reports/`](biweekly-reports/) -- bi-weekly progress reports and the
