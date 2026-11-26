@@ -77,11 +77,10 @@ License: CC-BY-4.0
   - [5 Resource protection and implementation costs](#5-resource-protection-and-implementation-costs)
   - [6 Author TODOs](#6-author-todos)
     - [6.1 Plutus compatibility](#61-plutus-compatibility)
-    - [6.2 Local release guarantees](#62-local-release-guarantees)
-    - [6.3 Pricing and activation](#63-pricing-and-activation)
-    - [6.4 Declarations](#64-declarations)
-    - [6.5 Stake and voting](#65-stake-and-voting)
-    - [6.6 Integration and validation](#66-integration-and-validation)
+    - [6.2 Pricing and activation](#62-pricing-and-activation)
+    - [6.3 Declarations](#63-declarations)
+    - [6.4 Stake and voting](#64-stake-and-voting)
+    - [6.5 Integration and validation](#65-integration-and-validation)
 - [Path to Active](#path-to-active)
   - [1 Acceptance Criteria](#1-acceptance-criteria)
   - [2 Implementation Plan](#2-implementation-plan)
@@ -600,8 +599,9 @@ They also choose **who funds a shortfall or receives a surplus**.
 
 ![For Allocate or Release, the SubTx can arrange its own funding or refund, or declare the amount and delegate it to TopTx.](images/05-dsl-subtx-delegation.png?v=338a5eb4)
 
-If a SubTx releases and reallocates equal deposits, it declares **No deposit
-change**. There is no top-up or refund to delegate.
+When the new outputs require exactly the reserve recovered from the inputs, a
+SubTx that declares its net signs **No deposit change**. There is no top-up or
+refund to delegate.
 
 <a id="315-an-ada-free-subtx-under-formula-v1"></a>
 <a id="323-an-ada-free-subtx-under-formula-v1"></a>
@@ -1166,8 +1166,8 @@ its declaration must specify the full amount.
   wants to send. The operator can fund the top-up from its reserve or from
   another SubTx’s delegated release.
 - **`Release(1.6 ADA, output 1)`** — Alice’s inputs release 1.6 ADA more
-  reserve than her new outputs require. She includes the surplus in the value
-  of **her SubTx’s output 1**. That output’s recipient gets the refund.
+  reserve than her new outputs require. Alice selects **her SubTx’s output 1**
+  and signs its final value. That output must contain at least 1.6 ADA.
 - **`Release(1.6 ADA, delegate to TopTx)`** — Alice hands the same surplus
   to TopTx for settlement. Her SubTx names no refund output. The operator can
   use the release to cover another SubTx’s top-up or put the remaining refund
@@ -1322,6 +1322,14 @@ collateral are excluded from the ordinary reserve calculation.
 | **Release authority** | Spending an input authorises recovery of its reserve under that input’s spending conditions. Paying the original deposit gives the funder no separate claim. |
 | **Refund destination and amount** | A local refund index must select an ordinary output of the declaring body. Its value must cover the assigned refund, excluding any external deposit. Delegation transfers responsibility to TopTx, which selects its own output when it declares a batch release and has a share to refund. |
 | **Conservation of value** | On ordinary success, the complete batch must balance in ADA and in each native asset under the existing ledger rules. Embedded minimum ADA is already in the input and output values. The balance includes the **change in external deposits** exactly once. |
+
+<a id="462-local-release-guarantees"></a>
+<a id="62-local-release-guarantees"></a>
+
+For a local release, the SubTx author signs the destination output and its final
+value. The ledger requires that output to contain at least the declared release
+in ADA. Any remaining ADA surplus may fund other parts of the batch, including
+TopTx fees. [Local settlement rule](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/transaction-rules.md#ds-tx-settlement-output-coin)
 
 The output, declaration and settlement checks also apply on an accepted phase-2
 failure. If any body has redeemers, the ledger independently checks collateral
@@ -1625,9 +1633,11 @@ and outputs already include their embedded ADA. The check accounts for the
 change in TopTx’s own **external deposits** and the **signed amounts delegated
 by SubTxs**. A child’s embedded ADA travels in that child’s inputs and outputs.
 
-> **TODO — Plutus compatibility.** Define what each script version sees,
-> complete the deposit-backed output translation paths, and verify contracts
-> that depend on exact output ADA.
+The prototype exposes a deposit-backed output’s application value to Plutus V4.
+The V1–V3 translation paths still need to handle this output form.
+
+> **TODO — Plutus compatibility.** Specify what each supported script version
+> sees and verify contracts that depend on exact output ADA.
 
 <a id="332-stake-voting-and-monetary-conservation"></a>
 <a id="374-stake-voting-and-monetary-conservation"></a>
@@ -1774,29 +1784,16 @@ of the validation and compatibility contract.
 
 > **TODO:** Specify the context projection for each supported Plutus version,
 > including application value, backing, transaction-level deposit information and
-> validators that check exact ADA amounts. Resolve the `DepositBackedTxOut` translation
-> paths. Use the V4 integration fixture as supporting evidence, without treating
-> it as a contract for other versions.
+> validators that check exact ADA amounts. Complete the `DepositBackedTxOut`
+> translations for V1–V3 and verify the agreed contract for each version.
 >
 > Sources: [Ledger context work](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/appendices.md#ds-plutus-compatibility) · [V4 integration fixture](https://github.com/willjgould/cardano-minutxo-integration/commit/d2300267436d4cc6a4cb2dbc7898b9f98787192b)
 
-<a id="462-local-release-guarantees"></a>
-
-#### 6.2 Local release guarantees
-
-> **TODO:** Decide whether the destination-and-amount checks need an additional
-> guarantee about the source or permitted use of released ADA. Define how the
-> signed body expresses that guarantee while allowing intentional cross-body
-> funding. Cover the case where a SubTx consumes 10 application ADA and releases
-> 2 ADA: either 12 ADA goes to its own output, or 10 ADA goes there and 2 ADA is
-> intentionally contributed to TopTx fees. Incorporate the decision into the
-> release authority and settlement rules.
->
-> Source: [Settlement analysis](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/appendices.md#ds-tx-settlement-refinement)
-
 <a id="463-pricing-and-activation"></a>
 
-#### 6.3 Pricing and activation
+<a id="63-pricing-and-activation"></a>
+
+#### 6.2 Pricing and activation
 
 > **TODO:** Record the assigned number of the required UTxO Storage Cost Formula CIP and
 > coordinate the two proposals' activation versions. Confirm that its calibration
@@ -1818,7 +1815,9 @@ of the validation and compatibility contract.
 
 <a id="464-declarations"></a>
 
-#### 6.4 Declarations
+<a id="64-declarations"></a>
+
+#### 6.3 Declarations
 
 - [ ] Confirm backward compatibility for minimum-ADA-only bodies that omit
       key `28`, including when another body in the batch declares a change.
@@ -1829,7 +1828,9 @@ of the validation and compatibility contract.
 
 <a id="465-stake-and-voting"></a>
 
-#### 6.5 Stake and voting
+<a id="65-stake-and-voting"></a>
+
+#### 6.4 Stake and voting
 
 > **TODO:** Confirm the external-deposit exclusion, document its implications for
 > capital efficiency and migration, and record verification of the distributions
@@ -1837,7 +1838,9 @@ of the validation and compatibility contract.
 
 <a id="466-integration-and-validation"></a>
 
-#### 6.6 Integration and validation
+<a id="66-integration-and-validation"></a>
+
+#### 6.5 Integration and validation
 
 - [ ] Verify mixed-form declaration and settlement checks on accepted phase-2
       failure against the independent collateral balance.
