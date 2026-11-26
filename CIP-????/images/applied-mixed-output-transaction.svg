@@ -1,39 +1,60 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="285" viewBox="0 0 960 285" role="img" aria-labelledby="title desc">
-  <title id="title">Live UTxO entries before and after inclusion</title>
-  <desc id="desc">At slot 120 the ledger removes old#0, which held 7.2 ADA and 1 token B, including 1.6 ADA of reserve. It inserts tx#0 with 5 ADA and the same token and records slot 120 as its allocation origin. External deposits increase by 2 ADA and fees increase by 0.2 ADA. Other live entries keep their allocation origins.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="296" viewBox="0 0 960 296" role="img" aria-labelledby="title desc">
+  <title id="title">Two live entries, two possible outcomes</title>
+  <desc id="desc">Read from the centre towards either side. Before inclusion, old#0 holds the token payment and col#0 provides collateral. On ordinary success old#0 is replaced by tx#0 and col#0 stays live. On accepted script failure old#0 stays live and col#0 is replaced by the collateral return at tx#1.</desc>
+  <defs>
+    <marker id="replace" viewBox="0 0 10 10" markerWidth="5" markerHeight="5" refX="9" refY="5" orient="auto-start-reverse"><path d="M0 0l10 5-10 5z" fill="#126859"/></marker>
+    <marker id="keep" viewBox="0 0 10 10" markerWidth="5" markerHeight="5" refX="9" refY="5" orient="auto-start-reverse"><path d="M0 0l10 5-10 5z" fill="#687984"/></marker>
+  </defs>
   <style>
     text { font-family: Barlow, "Helvetica Neue", Arial, sans-serif; fill: #20303b; }
-    .heading { font-size: 22px; font-weight: 600; }
-    .reference { font-family: "SFMono-Regular", Consolas, monospace; font-size: 18px; font-weight: 600; }
-    .body { font-size: 18px; }
-    .amount { font-size: 26px; font-weight: 600; }
-    .detail { font-size: 17px; fill: #465d6d; }
-    .credit { font-size: 22px; font-weight: 600; }
-    .rule { stroke: #c6d1d7; }
+    .head { font-size: 20px; font-weight: 600; }
+    .ref { font: 600 24px "SFMono-Regular", Consolas, monospace; }
+    .role { font-size: 16px; fill: #425561; }
+    .value { font-size: 17px; }
+    .new { fill: #126859; }
+    .action { font-size: 16px; font-weight: 500; text-anchor: middle; }
+    .stays { fill: #536771; }
+    .spent-line { stroke: #126859; stroke-width: 2.4; marker-end: url(#replace); }
+    .kept-line { stroke: #687984; stroke-width: 2; stroke-dasharray: 3 5; marker-end: url(#keep); }
   </style>
-  <rect width="960" height="285" fill="white"/>
-  <g transform="translate(12 0)">
-    <text class="heading" y="30">Before inclusion</text>
-    <rect y="48" width="413" height="150" rx="5" fill="#fafbfc" stroke="#b9c9d1"/>
-    <text class="reference" x="18" y="79">old#0</text>
-    <text class="body" x="395" y="79" text-anchor="end">Minimum-ADA output</text>
-    <path class="rule" d="M0 96h413"/>
-    <text class="amount" x="18" y="135">7.2 ADA + 1 token B</text>
-    <text class="detail" x="18" y="171">Includes 1.6 ADA of reserve</text>
+  <rect width="960" height="296" fill="white"/>
+  <rect x="354" y="5" width="252" height="284" rx="8" fill="#eef3f5"/>
+  <path d="M18 54h302m320 0h302M18 168h302m320 0h302" stroke="#d4dde1" fill="none"/>
+  <path d="M372 54h216m-216 114h216" stroke="#ccd8dd" fill="none"/>
+  <text class="head" x="18" y="37">Ordinary success</text>
+  <text class="head" x="480" y="37" text-anchor="middle">Before inclusion</text>
+  <text class="head" x="942" y="37" text-anchor="end">Accepted phase-2 failure</text>
+
+  <g text-anchor="middle">
+    <text class="ref" x="480" y="99">old#0</text>
+    <text class="role" x="480" y="125">Payment input</text>
+    <text class="value" x="480" y="150">7.2 ADA + 1 token B</text>
+    <text class="ref" x="480" y="213">col#0</text>
+    <text class="role" x="480" y="239">Collateral input</text>
+    <text class="value" x="480" y="264">5 ADA</text>
   </g>
-  <path d="M446 122h63m-10-9 10 9-10 9" fill="none" stroke="#627e8d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <g transform="translate(535 0)">
-    <text class="heading" y="30">After inclusion</text>
-    <rect y="48" width="413" height="150" rx="5" fill="#f2f5f7" stroke="#b9c9d1"/>
-    <text class="reference" x="18" y="79">tx#0</text>
-    <text class="body" x="395" y="79" text-anchor="end">Deposit-backed output</text>
-    <path class="rule" d="M0 96h413"/>
-    <text class="amount" x="18" y="135">5 ADA + 1 token B</text>
-    <text class="detail" x="18" y="171">Allocation origin · slot 120</text>
-  </g>
-  <path class="rule" d="M12 224h936m-468 17v33"/>
-  <text class="body" x="12" y="264">External deposit total</text>
-  <text class="credit" x="425" y="265" text-anchor="end">+2 ADA</text>
-  <text class="body" x="535" y="264">Fee pot</text>
-  <text class="credit" x="948" y="265" text-anchor="end">+0.2 ADA</text>
+
+  <path class="spent-line" d="M354 106H213"/>
+  <text class="action new" x="282" y="94">spend</text>
+  <text class="ref new" x="193" y="99" text-anchor="end">tx#0</text>
+  <text class="role" x="193" y="125" text-anchor="end">Payment output</text>
+  <text class="value" x="193" y="150" text-anchor="end">5 ADA + 1 token B</text>
+
+  <path class="kept-line" d="M354 220H213"/>
+  <text class="action stays" x="282" y="208">keep</text>
+  <text class="ref" x="193" y="213" text-anchor="end">col#0</text>
+  <text class="role" x="193" y="239" text-anchor="end">Collateral still live</text>
+  <text class="value" x="193" y="264" text-anchor="end">5 ADA</text>
+
+  <path class="kept-line" d="M606 106H747"/>
+  <text class="action stays" x="677" y="94">keep</text>
+  <text class="ref" x="763" y="99">old#0</text>
+  <text class="role" x="763" y="125">Payment input still live</text>
+  <text class="value" x="763" y="150">7.2 ADA + 1 token B</text>
+
+  <path class="spent-line" d="M606 220H747"/>
+  <text class="action new" x="677" y="208">spend</text>
+  <text class="ref new" x="763" y="213">tx#1</text>
+  <text class="role" x="763" y="239">Collateral return</text>
+  <text class="value" x="763" y="264">4 ADA</text>
 </svg>

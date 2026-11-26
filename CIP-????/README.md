@@ -55,15 +55,15 @@ License: CC-BY-4.0
       - [3.3.1 TopTx deposit declaration](#331-toptx-deposit-declaration)
       - [3.3.2 SubTx deposit declaration](#332-subtx-deposit-declaration)
     - [3.4 Building transactions outside the node](#34-building-transactions-outside-the-node)
-  - [4 Applying a transaction to the ledger state](#4-applying-a-transaction-to-the-ledger-state)
-    - [4.1 Checking the transaction against the current state](#41-checking-the-transaction-against-the-current-state)
-    - [4.2 Applying the outcome](#42-applying-the-outcome)
+  - [4 From submission to the recorded outcome](#4-from-submission-to-the-recorded-outcome)
+    - [4.1 What the ledger checks at inclusion](#41-what-the-ledger-checks-at-inclusion)
+    - [4.2 How execution changes the live UTxO set](#42-how-execution-changes-the-live-utxo-set)
       - [4.2.1 Ordinary success](#421-ordinary-success)
       - [4.2.2 Accepted phase-2 failure](#422-accepted-phase-2-failure)
-  - [5 Deposit accounting across blocks](#5-deposit-accounting-across-blocks)
-    - [5.1 The external deposit balance](#51-the-external-deposit-balance)
-    - [5.2 Activating a pricing change](#52-activating-a-pricing-change)
-    - [5.3 Persistence, rollback and replay](#53-persistence-rollback-and-replay)
+  - [5 Tracking a deposit across blocks](#5-tracking-a-deposit-across-blocks)
+    - [5.1 Reading a live output and its deposit](#51-reading-a-live-output-and-its-deposit)
+    - [5.2 Spending an output after a price change](#52-spending-an-output-after-a-price-change)
+    - [5.3 Restoring a consistent view after rollback](#53-restoring-a-consistent-view-after-rollback)
   - [6 Activation and compatibility](#6-activation-and-compatibility)
     - [6.1 Activation and the migration baseline](#61-activation-and-the-migration-baseline)
     - [6.2 Legacy outputs below the new minimum](#62-legacy-outputs-below-the-new-minimum)
@@ -257,26 +257,22 @@ its output is spent, including after pricing changes.
 
 ## Specification
 
-The specification introduces the two **output forms** and shows how to calculate
-the backing for a new output or recover it from a spent input. The
-**transaction-building workflow** uses those amounts to calculate the net,
-choose funding and refund policies, and compose SubTxs.
+This CIP starts with the choice between **minimum-ADA and deposit-backed
+outputs**. It follows that choice through transaction construction, from
+calculating the net and choosing who funds or receives it to signing a
+standalone transaction or a batch of SubTxs.
 
-The **ledger’s transaction interface** defines what the builder signs and what an
-application needs to calculate the declaration [outside the node](#34-building-transactions-outside-the-node).
-The specification then follows a signed transaction through its checks and effects
-on the live UTxO set, and describes how the ledger preserves **deposit accounting
-across blocks**. **Activation and compatibility** covers migration and the
-interaction with existing outputs and contracts.
+The **ledger’s transaction interface** sets out what a builder signs and which
+data a wallet or SDK needs to reproduce the calculation. A payment example then
+shows what appears on chain after submission and how to track the deposit
+through a pricing change or rollback. **Activation and compatibility** covers
+the transition for existing outputs and contracts.
 
-> **Detailed ledger specification**
->
-> This CIP follows a deposit from the transaction builder’s choice of output form
-> to the resulting change in ledger state. The detailed specification lives
-> alongside the Dijkstra implementation on the `v2-minutxo` ledger branch. It defines how
-> the ledger checks each declaration, which inputs and outputs it applies on
-> ordinary success or phase-2 failure, and how it preserves deposits across
-> pricing changes. [Dijkstra ledger rules for minimum-ADA and deposit-backed outputs](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/README.md)
+> **Ledger specification.** The companion document in `cardano-ledger` defines
+> the validation rules, state transitions and accounting invariants for this
+> feature. It lives alongside the Dijkstra prototype. Links throughout this CIP
+> point to the rule or implementation behind each behaviour.
+> [Ledger specification for minimum-ADA and deposit-backed outputs](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/README.md)
 
 <a id="31-application-value-and-resource-backing"></a>
 
@@ -315,7 +311,7 @@ the output releases that deposit through the transaction balance.
 
 #### 1.2 Minimum-ADA vs deposit-backed outputs
 
-The transaction builder chooses the form of each new output. In a **minimum-ADA
+The transaction builder chooses the form of each new ordinary output. In a **minimum-ADA
 output**, the ADA in `Value` also satisfies the resource requirement. In a
 **deposit-backed output**, `Value` records the application assets and the full
 storage deposit is accounted for outside the `TxOut`.
@@ -436,7 +432,7 @@ This workflow runs in transaction-construction software. The ledger validates it
 An application wants to consolidate **3 units of token C in a single output**.
 The transaction builder selects 3 deposit-backed inputs, each with 1 token and
 zero ADA in its `Value`. The inputs retain their recorded form. For each new
-output, the builder chooses between the **minimum-ADA** and **deposit-backed**
+ordinary output, the builder chooses between the **minimum-ADA** and **deposit-backed**
 forms. Here, the builder chooses a deposit-backed output for the application
 transfer so that **output 1** carries all 3 tokens and zero ADA.
 
@@ -743,7 +739,7 @@ This works for either form of successor. [Migration rule](#62-legacy-outputs-bel
 
 The [transaction-building experience](#2-transaction-building-experience)
 gives the builder two choices to express in the **signed transaction**:
-which form to use for each new `TxOut`, and how to fund or settle the net
+which form to use for each new ordinary `TxOut`, and how to fund or settle the net
 reserve change declared in the `TxBody`.
 
 On the input side, the builder signs a `TxIn` reference. To check the
@@ -764,7 +760,7 @@ inputs to check the signed net. [Allocation records and reserve recovery](https:
 
 #### 3.1 TxOut forms and encoding
 
-The builder chooses a form **for each output** in the signed `TxBody`. In the
+The builder chooses a form **for each ordinary output** in the signed `TxBody`. In the
 split payment below, the same transaction pays Bob in ADA and sends Carol a
 token. [Choosing the form of each payment](#261-choosing-the-form-of-each-payment)
 
@@ -776,9 +772,8 @@ token. [Choosing the form of each payment](#261-choosing-the-form-of-each-paymen
   separately, even when the application ADA exceeds the required deposit.
 
 When either output is spent, the `TxIn` identifies it by transaction ID and
-output index. The ledger reads its form from that live entry. The same
-admission rules apply when creating a collateral return. Other output-validity
-rules still apply.
+output index. The ledger reads its form from that live entry. A collateral
+return follows a fixed rule for its output form. [Collateral returns on accepted phase-2 failure](#422-accepted-phase-2-failure)
 
 **How the ledger recognises the form.** In a CBOR output map, exactly one
 value key is present. Key `1` identifies the minimum-ADA form and key `4`
@@ -1048,7 +1043,7 @@ declaration before signing**.
 
 The declaration includes the historical backing of every selected input and
 the active backing of every new output, including funding inputs and refund
-outputs. [Checking the transaction against the current state](#41-checking-the-transaction-against-the-current-state)
+outputs. [What the ledger checks at inclusion](#41-what-the-ledger-checks-at-inclusion)
 
 For a **SubTx**, the corresponding calls are `computeSubTxNetBalance` and
 `updateSubTxBodyWithNetBalance`.\
@@ -1061,7 +1056,7 @@ to TopTx. [SubTx functions](https://github.com/nhenin/cardano-ledger-specs/blob/
 
 - `Allocate(1.6 ADA)` declares the size of a top-up. Its funding input appears among the ordinary spending inputs as a `TxIn`.
 - In `Release(1.6 ADA, output 1)`, the index selects the **second ordinary output of the declaring body**. Its value already includes the refund.
-- An explicit **No deposit change** declares that input and output reserves balance. Omitting key `28` makes no declaration. [When a declaration is required](#41-checking-the-transaction-against-the-current-state)
+- An explicit **No deposit change** declares that input and output reserves balance. Omitting key `28` makes no declaration. [When a declaration is required](#41-what-the-ledger-checks-at-inclusion)
 
 <a id="33121-toptx-deposit-declaration"></a>
 
@@ -1278,16 +1273,18 @@ origins and pricing history stay outside it.
 <a id="332-applying-a-transaction-to-the-ledger-state"></a>
 
 <a id="34-applying-a-transaction-to-the-ledger-state"></a>
+<a id="4-applying-a-transaction-to-the-ledger-state"></a>
 
-### 4 Applying a transaction to the ledger state
+### 4 From submission to the recorded outcome
 
-Consider a transaction that spends a minimum-ADA output and creates a
-deposit-backed one. The builder signs the input reference, the new output and
-the expected change in backing. At inclusion, the ledger resolves the input in
-its **live UTxO set** and uses its **pricing history** to check the amounts.
-The execution outcome determines which entries the ledger consumes and creates.
-The detailed specification follows those entries through the Store update and
-shows how they affect stake on each execution path. [How a transaction updates ledger state](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#ds-state-representation)
+A wallet submits a payment of **5 ADA and 1 token B** in a deposit-backed
+output. It spends a minimum-ADA input holding the token and 7.2 ADA, of
+which 1.6 ADA already backs the input. The new output requires a **2 ADA external
+deposit**, so the wallet signs **Allocate 0.4 ADA**. At inclusion, the ledger
+checks both amounts. The declaration must match the change in backing, and
+the input must fund the payment, the full external deposit and the 0.2 ADA fee.
+
+![The declaration is Allocate 0.4 ADA because 2 ADA of new backing replaces 1.6 ADA of embedded backing. The 7.2 ADA input funds the 5 ADA output value, the full 2 ADA external deposit and the 0.2 ADA fee.](images/ledger-reserve-and-store.svg)
 
 <a id="331-declaration-meaning-and-presence"></a>
 <a id="341-declaration-meaning-and-presence"></a>
@@ -1296,13 +1293,17 @@ shows how they affect stake on each execution path. [How a transaction updates l
 <a id="3321-checking-the-transaction-against-the-current-state"></a>
 
 <a id="341-checking-the-transaction-against-the-current-state"></a>
+<a id="41-checking-the-transaction-against-the-current-state"></a>
 
-#### 4.1 Checking the transaction against the current state
+#### 4.1 What the ledger checks at inclusion
 
-The ledger resolves ordinary spending inputs in the **UTxO set before the batch**.
-Each input supplies its historical reserve, capped at the ADA it holds for a
-minimum-ADA input. New outputs are priced at inclusion. Reference inputs and
-collateral are excluded from the ordinary reserve calculation.
+If the wallet signed **Allocate 2 ADA**, the payment would still balance, but
+the ledger would reject it. To check the declaration, the ledger resolves the
+ordinary spending inputs against the **UTxO set before the batch**. Each input
+contributes its historical reserve, capped at the ADA in its value for a
+minimum-ADA input. Each new ordinary output contributes the reserve required
+**at inclusion**. Reference-only and collateral-only inputs contribute nothing
+to this calculation.
 
 <a id="34-transaction-accounting-and-validation"></a>
 <a id="35-transaction-accounting-and-validation"></a>
@@ -1317,40 +1318,30 @@ collateral are excluded from the ordinary reserve calculation.
 <a id="334-release-authority-and-settlement"></a>
 <a id="3323-release-authority-and-settlement"></a>
 
-| Property | What the ledger checks |
-| --- | --- |
-| **Output backing** | Each new minimum-ADA output contains at least its full active minimum. A deposit-backed output may contain zero ADA in its value and requires the full external deposit. |
-| **Declaration presence and form** | A body that spends or creates a deposit-backed output on the ordinary path must declare, even at zero net. A minimum-ADA-only body may omit its declaration. If any SubTx declares, TopTx must also declare. A minimum-ADA-only sibling may still omit its own declaration. `Allocate` and `Release` carry a positive amount. `No deposit change` explicitly asserts zero. |
-| **Exact net** | A SubTx declaration must equal its new output reserves minus its spent input reserves, to the lovelace. A TopTx declaration must equal the whole batch’s net, counting each body once. Two incorrect SubTx amounts still fail if their errors cancel in the total. |
-| **Release authority** | Spending an input authorises recovery of its reserve under that input’s spending conditions. Paying the original deposit gives the funder no separate claim. |
-| **Refund destination and amount** | A local refund index must select an ordinary output of the declaring body. Its value must cover the assigned refund, excluding any external deposit. Delegation transfers responsibility to TopTx, which selects its own output when it declares a batch release and has a share to refund. |
-| **Conservation of value** | On ordinary success, the complete batch must balance in ADA and in each native asset under the existing ledger rules. Embedded minimum ADA is already in the input and output values. The balance includes the **change in external deposits** exactly once. |
-
 <a id="462-local-release-guarantees"></a>
 <a id="62-local-release-guarantees"></a>
 
-For a local release, the SubTx author signs the destination output and its final
-value. The ledger requires that output to contain at least the declared release
-in ADA. Any remaining ADA surplus may fund other parts of the batch, including
-TopTx fees. [Local settlement rule](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/transaction-rules.md#ds-tx-settlement-output-coin)
+- **What must be signed?** Spending or creating a deposit-backed output on the
+  ordinary path requires a declaration, even when the net is zero. A body using
+  only minimum-ADA outputs may omit it, except that TopTx must declare whenever
+  any SubTx declares. Each declaring SubTx signs its own exact net. TopTx signs
+  the exact batch net. Two incorrect SubTx declarations still fail if their
+  errors cancel. [Declaration rules](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/transaction-rules.md#ds-tx-declarations)
+- **Who can recover the reserve?** The input’s spending conditions authorise
+  recovery, including when someone else funded the deposit. If a body names a
+  refund output, the index must select one of its own ordinary outputs and its
+  signed value must contain enough ADA for the assigned refund. A SubTx can
+  delegate settlement to TopTx. [Settlement rules](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/transaction-rules.md#ds-tx-settlement)
+- **What must be funded?** A minimum-ADA output carries its minimum in its
+  value. A deposit-backed output requires its full external deposit even when
+  its value contains ADA. On ordinary success, the batch must balance in ADA
+  and each native asset. Embedded backing already counts in the values. Only
+  the change in external deposits enters the balance separately. [Transaction accounting](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/transaction-rules.md#ds-tx-accounting)
 
-The ledger checks ordinary outputs, declarations and settlement even on an
-accepted phase-2 failure. If TopTx or any SubTx has redeemers, the ledger also
-checks collateral funding, any supplied total, key-locked eligibility and the
-identity and quantity of returned native assets. [Validation on each execution path](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/transaction-rules.md#ds-tx) · [When collateral checks apply](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/transaction-rules.md#ds-collateral-existing-rules)
-
-![A 7.2 ADA input with 1.6 ADA of embedded reserve funds an output carrying 5 ADA and 1 token B, a 2 ADA external deposit and a 0.2 ADA fee. The transaction balances. Its exact declaration is Allocate 0.4 ADA.](images/ledger-reserve-and-store.svg)
-
-The transaction must declare **Allocate 0.4 ADA** because the input already
-contributes 1.6 ADA of reserve. It must fund the full **2 ADA** moving into the
-external deposit. The same distinction applies in reverse. Replacing a 2 ADA
-external deposit with 2 ADA of embedded backing gives **No deposit change**,
-and the released 2 ADA funds the minimum in the new output, assuming the
-other reserves cancel.
-
-The ledger tests exercise both conversions and check the signed amount, the
-change in external deposits and total ADA before and after the transaction.
-[Net-change rule](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/transaction-rules.md#ds-tx-accounting-net-change) · [Mixed-output test results](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/verification.md#signed-backing-change-for-mixed-output-forms--24-november-2026)
+The ledger checks declarations, settlement and output minimums on either script
+outcome. When any body supplies a redeemer, collateral must also meet its own
+funding and eligibility rules, match any declared total and preserve the native
+assets in the return. [Ledger specification — checks by execution path](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/transaction-rules.md#ds-tx)
 
 <a id="316-script-outcomes-and-collateral"></a>
 <a id="343-script-outcomes-and-collateral"></a>
@@ -1363,85 +1354,94 @@ change in external deposits and total ADA before and after the transaction.
 <a id="3322-applying-the-outcome"></a>
 
 <a id="342-applying-the-outcome"></a>
+<a id="42-applying-the-outcome"></a>
+<a id="42-what-appears-on-chain"></a>
 
-#### 4.2 Applying the outcome
+#### 4.2 How execution changes the live UTxO set
 
-An accepted transaction updates the **live UTxO set**, the **external deposit
-balance** and the **fee pot** using one of two sets of inputs and outputs.
-Ordinary success applies the signed transfer. An accepted phase-2 script
-failure applies the collateral inputs and any collateral return. If the
-transaction is rejected, for example because its deposit declaration is
-incorrect, the ledger keeps the preceding state and collects no collateral.
-[Inputs and outputs applied on each execution path](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#applied-inputs-and-outputs)
+The resource the deposit protects is the **live UTxO set**. Every node must
+keep each unspent output available for future transactions, including any
+inline datum or reference script it carries. Creating more outputs or giving
+them larger payloads can tie up more ADA for as long as the node must retain
+them. In the prototype, both output forms share one map,
+`TxIn → Unspent (TxOut era)`. Each entry records the output and its allocation
+origin so the node can recover its original backing on spend.
+[Ledger specification — where the node keeps an output](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#state-layout)
+
+An accepted transaction removes the entries it actually spends and inserts
+the outputs it actually creates, recording the inclusion slot for each new
+entry. These same entries determine the change in **total external deposits**.
+The distinction matters for a script payment because its body can describe
+both a payment and a collateral return. Suppose `old#0` in the example above
+is locked by a Plutus validator and the wallet pledges a separate input,
+`col#0`, as collateral. Starting with those two live inputs in the centre,
+follow the left branch for success or the right branch for an accepted failure.
+
+![The same two live inputs have two possible outcomes. On success old#0 is spent to create tx#0 and col#0 stays live. On accepted script failure old#0 stays live and col#0 is spent to create the return at tx#1.](images/applied-mixed-output-transaction.svg?v=fa20685c)
 
 <a id="3421-ordinary-success"></a>
 
 ##### 4.2.1 Ordinary success
 
-- **Live UTxO set.** Remove the ordinary spending inputs of TopTx and its SubTxs.
-  Insert each signed ordinary output under its body’s transaction ID and output
-  index, recording the block slot as its allocation origin. Reference-only and
-  collateral-only inputs stay live. [Live UTxO update](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#ds-state-utxo)
-- **Deposits and fees.** Subtract the original external deposits on spent entries
-  and add the external deposits required on new ones at inclusion. Credit the
-  signed transaction fee to the fee pot. Any refund is already included in its
-  signed output value. [External deposit balance](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#ds-state-balance) · [Ordinary fee credit](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#ds-state-fees-p01)
+When the validator accepts the spend, the node removes **`old#0`** and
+inserts **`tx#0`** at slot 120. The recipient can now spend its **5 ADA and
+1 token B**. The collateral input `col#0` stays live with its original deposit.
 
-In the transfer above, **`Allocate 0.4 ADA`** is the signed change in backing.
-When the ledger inserts `tx#0` at slot 120, it records the new output with its
-allocation origin, adds **2 ADA** to the external deposit balance and collects
-the **0.2 ADA** fee.
+Replacing one entry with another leaves the **number of live outputs**
+unchanged. The old entry carried 1.6 ADA of backing inside its value. Its
+replacement requires an external deposit of 2 ADA. The wallet therefore signs
+**Allocate 0.4 ADA**, while the node adds the full **2 ADA** to the external
+deposit balance and credits **0.2 ADA** to fees.
 
-![On success at slot 120 the ledger removes old#0, inserts tx#0 carrying 5 ADA and 1 token B, and records the allocation origin. External deposits increase by 2 ADA and fees by 0.2 ADA.](images/applied-mixed-output-transaction.svg)
+In a batch, the node applies the ordinary inputs and outputs of each SubTx
+and then those of TopTx. Each new output takes its own body’s transaction ID
+and output index. Any refund is already in its signed value. A reference input
+used only to read an output leaves that entry and its backing in place.
+[Ledger specification — applying the selected entries](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#applied-inputs-and-outputs)
 
 <a id="3422-accepted-phase-2-failure"></a>
 
 ##### 4.2.2 Accepted phase-2 failure
 
-- **Live UTxO set.** Remove the collateral inputs. If the signed body supplies
-  a collateral return, insert it with the block slot as its allocation origin.
-  Ordinary-only inputs stay live, and none of the ordinary TopTx or SubTx
-  outputs is created. An input named in both spending roles is consumed once.
-- **Deposits and fees.** Release any historical external deposits on the consumed
-  collateral and use them first to cover the return’s external deposit. After
-  funding the signed return and any deposit shortfall, the remaining collateral
-  coin must itself cover the minimum collateral fee. Credit that coin and any
-  surplus released deposit to the fee pot. [Collateral funding](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/transaction-rules.md#ds-collateral-funding) · [Fee credit](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#ds-state-fees)
+**How can a balanced payment fail?** Phase 2 runs the Plutus validators.
+Suppose the datum on `old#0` identifies order 17 and its validator requires
+the redeemer to identify the same order. A redeemer for order 18 fails that
+check even though the payment balances and its deposit declaration is exact.
+The ledger can accept this outcome when the transaction is marked
+**phase-2 invalid** and all other applicable checks pass. A mismatch between
+the validity tag and script execution, or a wrong deposit declaration in
+phase 1, rejects the transaction entirely. Both inputs then stay live and no
+fee or collateral is collected. [Ledger specification — a balanced payment with a failing script](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/transaction-rules.md#ds-tx-accounting-balance-n08)
 
-Suppose the same transfer has a separate collateral input with **5 ADA** in its
-value and a **2 ADA external deposit**. Its signed minimum-ADA collateral return
-carries **4 ADA**. The remaining **1 ADA** covers the required collateral fee
-in this example. The return holds its backing in its value, so the entire
-**2 ADA** deposit is released to fees. The fee pot gains **3 ADA** in total.
-The token stays in `old#0`.
+**Which entries change on an accepted failure?** The node consumes
+**`col#0`**. The token and the 1.6 ADA embedded reserve stay in **`old#0`**, and the
+proposed payment `tx#0` never enters the map. The optional collateral return
+is indexed immediately after TopTx’s ordinary outputs, so **`tx#1`** is the
+only new entry here. Without a return, the node would insert no entry. A
+failure in a batch selects the shared collateral for the whole batch. None
+of its ordinary SubTx outputs is created, and an input used in both spending
+roles is consumed once. [Ledger specification — collateral and the live UTxO set](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#ds-state-utxo-n03)
 
-![On accepted script failure at slot 120, col#0 is spent and the 4 ADA collateral return is created. The external deposit balance falls by 2 ADA and the fee pot grows by 3 ADA. The ordinary payment is not applied.](images/applied-collateral-outcome.svg)
+**One form for every collateral return.** The protocol fixes the form once
+for all collateral returns. The prototype design uses a **deposit-backed
+output** whenever TopTx includes a return. Transaction-building software
+applies that rule automatically when preparing the body for signing. The
+caller has no return-form setting.
 
-<details>
-<summary>Collateral balance and fee on accepted phase-2 failure</summary>
+Here `col#0` holds **5 ADA** in its value and releases a **2 ADA external
+deposit**. On accepted failure, **4 ADA** goes into the value of `tx#1` and
+**1 ADA** covers the collateral fee. The new return also requires a **2 ADA
+deposit** at the active price, which the released deposit covers exactly.
 
-Let $C$ be the ADA in collateral input values, $Q$ the ADA in the return value
-and $D$ the external deposit required on the return minus the historical
-external deposits on those inputs. An absent return contributes zero ADA and
-zero deposit. A minimum-ADA return contributes zero external deposit.
+**Design alternative.** The protocol could instead require **every collateral
+return to be a minimum-ADA output**. If 4 ADA covers the active minimum,
+the same return would tie up **4 ADA** in total instead of **6 ADA**. The
+trade-off in this example is what happens to the released deposit. All **2 ADA**
+would go to fees, bringing the fee credit to **3 ADA**. Under the prototype’s
+rule, those 2 ADA remain recoverable when `tx#1` is spent.
+[Ledger specification — collateral funding](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/transaction-rules.md#ds-collateral-funding) · [Fee credit on failure](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#ds-state-fees-p02)
 
-```math
-\begin{aligned}
-\mathrm{coinFee} &= C - Q - \max(0,D) \\
-\mathrm{feeCredit} &= \mathrm{coinFee} + \max(0,-D) .
-\end{aligned}
-```
-
-Where collateral is required, the coin-funded amount must cover
-$\lceil \mathrm{txFee}\times\mathrm{collateralPercentage}/100\rceil$.
-On accepted failure the fee pot receives any surplus external deposit in addition
-to that coin-funded amount. The surplus cannot fund the minimum fee or enlarge
-the signed return. The external deposit balance changes by $D$. An explicit
-total-collateral field must equal $C-Q$ when checked. The return must preserve
-every collateral native asset’s identity and quantity. Existing eligibility,
-witness and input-count rules apply. [Collateral accounting and checks](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/transaction-rules.md#ds-collateral)
-
-</details>
+![Comparison of two fixed protocol rules for a 4 ADA return. The prototype design always creates a deposit-backed return: 2 ADA backs the return and fees total 1 ADA. Requiring minimum-ADA returns instead would direct the released 2 ADA to fees, for a total of 3 ADA in this example.](images/applied-collateral-outcome.svg?v=00176c2e)
 
 <a id="32-deposit-model"></a>
 <a id="35-output-representation-and-ledger-application"></a>
@@ -1455,12 +1455,13 @@ witness and input-count rules apply. [Collateral accounting and checks](https://
 
 <a id="35-deposit-accounting-across-blocks"></a>
 
-### 5 Deposit accounting across blocks
+<a id="5-deposit-accounting-across-blocks"></a>
 
-An ordinary output and a collateral return can each remain live through many
-blocks. Across price changes, rollback and snapshot restoration, the ledger
-must preserve both the **original reserve of each surviving entry** and the
-**total external ADA** held for those entries.
+### 5 Tracking a deposit across blocks
+
+Follow `tx#0`, the payment output created at slot 120 on ordinary success.
+Its **allocation slot** identifies which pricing rules to apply to its payload
+when a later transaction spends it.
 
 <a id="324-allocation-history-and-the-store-invariant"></a>
 <a id="362-formula-history-and-the-store-invariant"></a>
@@ -1474,30 +1475,21 @@ must preserve both the **original reserve of each surviving entry** and the
 
 <a id="351-the-external-deposit-balance"></a>
 
-#### 5.1 The external deposit balance
+<a id="51-the-external-deposit-balance"></a>
 
-After every accepted transition, the **external deposit balance** must equal
-the sum of the original deposits on all **live deposit-backed outputs**.
-Minimum-ADA reserves are already part of their outputs’ values. [External balance invariant](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#ds-state-balance-n02)
+#### 5.1 Reading a live output and its deposit
 
-```math
-S = \sum_{u \in \mathrm{liveDepositBackedOutputs}} \mathrm{originalDeposit}(u)
-```
+A wallet can show **5 ADA and 1 token B** as the payment and **2 ADA** as
+the deposit recoverable on spend. It reads the payment from the value of
+`tx#0` and calculates the deposit using that output and the rules in force at
+slot 120. The output’s spending conditions govern who can release the deposit.
+[Release authority](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/transaction-rules.md#ds-tx-authorization)
 
-<details>
-<summary>Annotated Haskell · <strong>UTxOStore</strong></summary>
-
-```haskell
-data UTxOStore era = UTxOStore
-  { depositFormulaHistory :: !DepositFormulaHistory  -- Dated pricing rules for all entries.
-  , totalDepositAmount :: !DepositAmount             -- ADA held in live external deposits.
-  , allocations :: !(IndexedUTxOs era)               -- TxIn to output and allocation origin.
-  }
-```
-
-[Store type](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/Store/Internals.hs#L68-L72)
-
-</details>
+For an indexer tracking the **external deposit balance**, `tx#0` contributes
+2 ADA for as long as it is live. The balance at any chain point equals the
+sum of the original deposits on all live deposit-backed outputs. For a
+minimum-ADA output, an indexer counts the embedded reserve in the output
+value alone. [Ledger specification — external deposit balance](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#ds-state-balance-n02)
 
 <a id="373-formula-and-parameter-changes"></a>
 <a id="383-formula-and-parameter-changes"></a>
@@ -1509,17 +1501,30 @@ data UTxOStore era = UTxOStore
 
 <a id="352-activating-a-pricing-change"></a>
 
-#### 5.2 Activating a pricing change
+<a id="52-activating-a-pricing-change"></a>
 
-A new formula version or parameter set appends an interval to the shared
-history at its **effective slot**. For a rate change at an epoch boundary,
-use the first slot of the epoch even if its first transaction arrives later.
-Activation moves no ADA and preserves the external total. Keep the history
-even when the live map is empty. [Pricing history](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/domain-model.md#ds-pricing-history) · [Epoch-boundary activation](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#ds-state-epoch)
+#### 5.2 Spending an output after a price change
 
-Rates may rise or fall. Reapplying the current context has no effect. Reject
-a version downgrade, an out-of-order activation or a change that would reprice
-an existing allocation. [Formula activation in Haskell](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/Store.hs#L75-L98)
+Suppose a pricing change raises the deposit for an identical output from
+**2 ADA to 2.4 ADA**. At activation, no ADA moves. The new price applies to
+outputs created from the effective slot onwards. For an epoch-boundary
+parameter change, that is the first slot of the epoch, even if its first
+transaction arrives later. [Ledger specification — pricing history](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/domain-model.md#ds-pricing-history) · [Epoch-boundary activation](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#ds-state-epoch)
+
+| Later transaction | External deposit |
+| --- | ---: |
+| Spend `tx#0` | 2 ADA released at its original price |
+| Create an identical successor | 2.4 ADA required at inclusion |
+| **Net to fund** | **Allocate 0.4 ADA** |
+
+The successor still carries **5 ADA and 1 token B**. A separate minimum-ADA
+input funds the **0.4 ADA** top-up and the fee. Its change output carries the
+same embedded reserve, so the funding adds no further reserve change.
+
+A draft signed before activation with **No deposit change** would now fail
+the exactness check. To submit that payment at the new price, the builder
+must update the declaration, rebalance and collect signatures for the revised
+body.
 
 <a id="333-encoding-validation-and-versioning"></a>
 <a id="375-encoding-validation-and-persistence"></a>
@@ -1532,17 +1537,21 @@ an existing allocation. [Formula activation in Haskell](https://github.com/nheni
 
 <a id="353-persistence-rollback-and-replay"></a>
 
-#### 5.3 Persistence, rollback and replay
+<a id="53-persistence-rollback-and-replay"></a>
 
-Restoring a snapshot must recover the output payloads, allocation origins,
-pricing history and external total at that chain point. Implementations may
-choose their storage layout. The prototype uses MemPack for input references
-and output payloads and checks the stored total against the restored entries.
-[Snapshot codec](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/libs/cardano-ledger-core/src/Cardano/Ledger/State/Accounting/UTxOs/Store/Internals.hs#L214-L265) · [Snapshot restoration tests](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#ds-state-recovery)
+#### 5.3 Restoring a consistent view after rollback
 
-Consensus rollback must restore that same state after either execution outcome.
-Replaying the blocks must reproduce the same deposits and state transitions.
-This requires a separate consensus integration test. [Rollback and replay requirement](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#ds-state-recovery-n02)
+If a rollback undoes the later spend, the successor disappears and `tx#0`
+is live again with its original payload, allocation slot 120 and **2 ADA**
+deposit. An indexer must also reverse the **0.4 ADA** increase in external
+deposits. The price for creating the same output stays at **2.4 ADA** if
+the rollback stops after activation. A rollback to before activation also
+restores the previous price.
+
+A restored snapshot must put the **live outputs, allocation origins, pricing
+history and external balance at the same chain point**. Replaying the same
+blocks must reproduce the same results on both the ordinary and collateral
+paths. [Ledger specification — snapshot restoration tests](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#ds-state-recovery) · [Consensus rollback and replay requirement](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#ds-state-recovery-n02)
 
 <a id="33-lifecycle-and-compatibility"></a>
 <a id="37-migration-and-compatibility"></a>
@@ -1659,15 +1668,9 @@ The V1–V3 translation paths still need to handle this output form.
 
 #### 6.4 Stake, voting and monetary conservation
 
-The ledger applies existing staking eligibility and delegation rules to the
-full ADA of min-ADA outputs and to the application ADA of `DepositBackedTxOut` outputs.
-External deposits add no stake or voting weight. Store ADA remains part of total
-ADA conservation and is counted once, alongside output ADA and the existing fees,
-deposits, rewards, treasury, reserves and donation pots. [ADA conservation](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#ds-state-conservation)
+**The prototype excludes external deposits from stake and voting weight.** It applies existing eligibility and delegation rules to the ADA in an output’s value. For example, an eligible minimum-ADA output carrying 10 ADA contributes 10 ADA. An eligible deposit-backed output carrying 8 ADA with a separate 2 ADA deposit contributes 8 ADA. [Stake contribution by output form](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/derived-distributions.md#ds-stake) · [Voting weight](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/derived-distributions.md#ds-voting)
 
-For example, an eligible min-ADA output containing 10 ADA contributes 10 ADA. An
-eligible `DepositBackedTxOut` containing 8 application ADA with a 2 ADA external
-deposit contributes 8 ADA. [Stake contribution by output form](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/derived-distributions.md#ds-stake) · [Voting weight](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/derived-distributions.md#ds-voting)
+The protocol could instead attribute each live external deposit to its output’s staking credential for either distribution. All nodes must apply the same policy for each distribution. Under either policy, the ledger counts the ADA held in external deposits exactly once in the monetary supply. [ADA conservation](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/ledger-effects.md#ds-state-conservation)
 
 <a id="4-rationale-how-does-this-cip-achieve-its-goals"></a>
 
@@ -1680,7 +1683,7 @@ deposit contributes 8 ADA. [Stake contribution by output form](https://github.co
 The two output forms offer different accounting and capital trade-offs. For a
 payment of `C` application ADA and requirement `F`, a deposit-backed output commits
 `C + F`. A minimum-ADA output commits at least `max(C, F)`, allowing the same ADA
-to satisfy both purposes. Builders can choose the form appropriate to each output.
+to satisfy both purposes. Builders can choose the form appropriate to each ordinary output.
 
 The full external deposit makes application value explicit, including token-only
 and asset-free outputs. The existing value representation supports applications
@@ -1701,7 +1704,7 @@ fees, change and all other applicable ledger effects.
 | Frozen wallet | Released backing can fund replacement deposits. TopTx can sponsor a SubTx's fee and additional deposit funding. | An equally priced replacement frees no spare ADA for the fee. A sponsor or another ADA source is still needed. |
 | Payment below minUTxO | A `DepositBackedTxOut` can contain an exact small ADA payment or tokens with zero application ADA. | The full external deposit and transaction fees require funding. |
 | Funding recipient-controlled ADA | Funding may be consolidated or delegated to TopTx. The deposit is held outside the application's value. | Release authority still follows the output. The original funder gains no separate claim. |
-| Non-staking application state | Application value is represented independently of backing. | Deposits remain locked and excluded from stake and voting. Moving otherwise eligible backing to an external deposit also removes that eligibility. |
+| Non-staking application state | Application value is represented independently of backing. | Under the prototype policy, ADA moved from an eligible output value into an external deposit ceases to carry stake or voting weight while held there. |
 | Construction and change balancing | The formula CIP removes the dependency on the output’s ADA amount. The builder reviews one net change in backing for the batch. | Funding inputs and change outputs can affect that net. Builders also balance fees and the ADA moving into or out of the external Store. |
 | High fan-out distribution | The batch funds the net sum, with optional sponsorship. | Each new output still incurs its full requirement. More outputs can require more capital. |
 | Successor-output top-up | The old historical deposit is available toward the new active-price requirement. | Any shortfall needs funding. A decrease releases value through the spending transaction's settlement rules. |
@@ -1837,8 +1840,7 @@ of the validation and compatibility contract.
 
 #### 6.4 Stake and voting
 
-> **TODO:** Explain the effect on capital efficiency when a wallet moves ADA
-> from a stake-eligible minimum-ADA output into an external deposit.
+> **TODO:** Compare the effect on a wallet’s capital efficiency when an external deposit is excluded from stake or attributed to its output’s staking credential.
 
 <a id="466-integration-and-validation"></a>
 
@@ -1876,9 +1878,9 @@ of the validation and compatibility contract.
       costs against the pricing supplied by the formula CIP.
 - [ ] Demonstrate interoperable encoding, validation, migration, snapshots and
       rollback/replay against independent expectations.
-- [ ] Verify that stake and voting distributions count eligible output ADA and
-      exclude external deposits after ordinary execution, collateral processing
-      and at snapshot boundaries. Record results against the final implementation
+- [ ] Verify the adopted treatment of external deposits for stake and voting after
+      ordinary execution, collateral processing and at snapshot boundaries. Check
+      that eligible ADA receives its weight once. Record results against the final implementation
       revision. [Distribution rules](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/derived-distributions.md) · [Verification record](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/verification.md#current-implementation-status)
 - [ ] Complete the dedicated collateral verification against the final implementation revision.
 - [ ] Demonstrate native-token transfers, small ADA payments, continuing-script
@@ -1997,7 +1999,7 @@ to the body can require another calculation.
 - [CIP-0001 and the CIP process](https://cips.cardano.org/cip/CIP-0001)
 - [CPS-0037 and its cited prior work](https://github.com/cardano-foundation/CIPs/tree/master/CPS-0037)
 - [UTxO Storage Cost Formula — required companion CIP](../CIP-????-utxo-cost-formula/README.md)
-- [Dijkstra ledger rules for minimum-ADA and deposit-backed outputs](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/README.md)
+- [Ledger specification for minimum-ADA and deposit-backed outputs](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/README.md)
 - [TopTx and SubTx deposit declarations](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/chapters/transaction-rules.md#ds-tx-declarations)
 - [Verification record for the Dijkstra UTxO deposit rules](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/docs/dijkstra-utxo-deposit-rules/verification.md)
 - [Formula implementation](https://github.com/nhenin/cardano-ledger-specs/blob/v2-minutxo/eras/dijkstra/impl/src/Cardano/Ledger/Dijkstra/UTxOs/Deposit/Formula.hs)
