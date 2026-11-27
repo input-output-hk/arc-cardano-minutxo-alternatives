@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="244" viewBox="0 0 880 244" role="img" aria-labelledby="title description">
+  <title id="title">Two outcomes for the same signed transaction at a byte-price change</title>
+  <desc id="description">The signed transaction declares no deposit change. Before the update the input and successor each require 1.71538 ADA, and that declaration is valid. From the update the input still releases 1.71538 ADA and the successor needs 1.99 ADA. The old transaction is rejected and the input remains unspent. The wallet can fund the difference, declare Allocate 0.27462 ADA and sign again.</desc>
+  <style>
+    text { font-family: Barlow, "Helvetica Neue", Arial, sans-serif; fill: #20323d; }
+    .body { font-size: 17px; }
+    .muted { font-size: 16px; fill: #526772; }
+    .declaration { font-size: 20px; font-weight: 650; }
+    .branch { font-size: 18px; font-weight: 600; }
+    .valid { font-size: 20px; font-weight: 650; fill: #205b51; }
+    .rejected { font-size: 20px; font-weight: 650; fill: #953d31; }
+  </style>
+  <rect width="880" height="244" fill="#fff"/>
+  <rect x="10" y="63" width="224" height="96" rx="6" fill="#f2f5f7" stroke="#b9c8d1"/>
+  <text class="muted" x="25" y="90">Signed draft</text>
+  <text class="declaration" x="25" y="119">No deposit change</text>
+  <text class="muted" x="25" y="145">1.71538 ADA released</text>
+
+  <g fill="none" stroke="#8499a4" stroke-width="1.5">
+    <path d="M234 111h21m0-59v105m0-105h18m-5-4 5 4-5 4m-13 101h18m-5-4 5 4-5 4"/>
+    <path d="M473 52h30m-6-4 6 4-6 4m-24 101h30m-6-4 6 4-6 4"/>
+  </g>
+  <text class="branch" x="284" y="44">Before the rate update</text>
+  <text class="muted" x="284" y="69">New output · 1.71538 ADA</text>
+  <text class="branch" x="284" y="148">From the effective slot</text>
+  <text class="muted" x="284" y="174">New output · 1.99 ADA</text>
+
+  <rect x="513" y="15" width="356" height="75" rx="6" fill="#edf5f2" stroke="#b1ccc3"/>
+  <text class="valid" x="528" y="46">Declaration matches</text>
+  <text class="body" x="528" y="72">The successor reuses the full release.</text>
+
+  <rect x="513" y="118" width="356" height="113" rx="6" fill="#fcf2ef" stroke="#e0bcb4"/>
+  <text class="rejected" x="528" y="147">Rejected · input still unspent</text>
+  <path d="M528 161h325" stroke="#ead3cd"/>
+  <text class="body" x="528" y="187">Fund the difference. Sign a new body</text>
+  <text class="body" x="528" y="212">declaring <tspan font-weight="650">Allocate 0.27462 ADA</tspan>.</text>
+</svg>
