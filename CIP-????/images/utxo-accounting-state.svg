@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="872" height="298" viewBox="0 0 872 298" role="img" aria-labelledby="title description">
+  <title id="title">What the Dijkstra accounting state persists</title>
+  <desc id="description">AccountingState contains a UTxOStore with three fields. Allocations map each live input reference to its accepted output and allocation origin. Shared deposit formula history stores the baseline and subsequent formula versions and rates by effective slot. The stored total counts external deposits on live outputs. Certificate and governance deposits, fees, instant stake and donations are separate fields of AccountingState.</desc>
+  <style>
+    text { font-family: Barlow, "Helvetica Neue", Arial, sans-serif; fill: #20323d; }
+    .type { font: 600 21px "SFMono-Regular", Consolas, monospace; }
+    .field { font: 17px "SFMono-Regular", Consolas, monospace; fill: #225b54; }
+    .meaning { font-size: 18px; }
+    .other { font-size: 17px; fill: #495f6a; }
+  </style>
+  <rect width="872" height="298" fill="white"/>
+  <text class="type" x="14" y="30">AccountingState</text>
+  <path d="M27 42V265H55 M27 78H55" fill="none" stroke="#92a6ae" stroke-width="1.5"/>
+
+  <rect x="55" y="50" width="801" height="185" rx="7" fill="#f2f8f7" stroke="#b5ccc8"/>
+  <text class="type" x="72" y="84">UTxOStore</text>
+  <path d="M72 98h765 M72 143h765 M72 188h765" fill="none" stroke="#d4e3e0"/>
+
+  <text class="field" x="72" y="127">allocations</text>
+  <text class="meaning" x="320" y="127">TxIn → accepted TxOut and its allocation origin</text>
+
+  <text class="field" x="72" y="172">depositFormulaHistory</text>
+  <text class="meaning" x="320" y="172">Baseline, then formula versions and rates by effective slot</text>
+
+  <text class="field" x="72" y="217">totalDepositAmount</text>
+  <text class="meaning" x="320" y="217">Sum of the external deposits backing live outputs</text>
+
+  <text class="other" x="69" y="271">Certificate and governance deposits</text>
+  <circle cx="353" cy="265" r="2" fill="#9babb2"/>
+  <text class="other" x="368" y="271">Fees</text>
+  <circle cx="418" cy="265" r="2" fill="#9babb2"/>
+  <text class="other" x="433" y="271">Instant stake</text>
+  <circle cx="545" cy="265" r="2" fill="#9babb2"/>
+  <text class="other" x="560" y="271">Donations</text>
+</svg>

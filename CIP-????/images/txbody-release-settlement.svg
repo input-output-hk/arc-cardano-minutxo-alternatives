@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="454" viewBox="0 0 960 454" role="img" aria-labelledby="title desc">
+  <title id="title">Preparing a TopTx body with updateTxBodyWithNetBalance</title>
+  <desc id="desc">The four arguments are the pricing history, available UTxO entries from the same snapshot, the TopTx funding and settlement strategy, and the draft TopTx body. The function returns Left with a NetBalanceError or Right with the prepared body. Two alternative successful drafts each start with one ordinary output. In the first, TopUpFromInput adds the offered reserve input and field 28 declares a 0.4 ADA allocation. In the second, TopTxRefundToNewOutput appends the supplied refund output at index 1 and field 28 declares a 1.6 ADA release to that output.</desc>
+  <style>
+    text { font-family: Barlow, "Helvetica Neue", Arial, sans-serif; fill: #20303b; }
+    .label { font-size: 17px; fill: #526774; }
+    .body { font-size: 19px; }
+    .mono { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 19px; }
+    .choice { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 17px; }
+    .result { font-size: 24px; font-weight: 600; }
+    .line { fill: none; stroke: #8b9ca6; stroke-width: 1.7; }
+    .rule { stroke: #c9d3d9; }
+  </style>
+  <rect width="960" height="454" fill="#fff"/>
+
+  <rect x="10" y="8" width="940" height="85" rx="6" fill="#f3f6f7" stroke="#c9d3d9"/>
+  <path class="rule" d="M225 23v54 M442 23v54 M719 23v54"/>
+  <text x="27" y="36" class="mono">history</text>
+  <text x="27" y="68" class="label">Dated pricing rules</text>
+  <text x="243" y="36" class="mono">utxos</text>
+  <text x="243" y="68" class="label">Live entries by TxIn</text>
+  <text x="460" y="36" class="mono">strategy</text>
+  <text x="460" y="68" class="label">Funding and refund choices</text>
+  <text x="737" y="36" class="mono">body</text>
+  <text x="737" y="68" class="label">TopTx with 1 output</text>
+
+  <path class="line" d="M480 93v20"/>
+  <rect x="135" y="113" width="690" height="49" rx="6" fill="#263e4d"/>
+  <text x="480" y="144" text-anchor="middle" class="mono" style="fill:#fff">updateTxBodyWithNetBalance history utxos strategy body</text>
+
+  <path class="line" d="M480 162v39M240 217v-14q0-2 2-2h476q2 0 2 2v14"/>
+  <rect x="309" y="185" width="342" height="32" fill="#fff"/>
+  <text x="480" y="207" text-anchor="middle" class="body">On success · <tspan class="mono">Right preparedBody</tspan></text>
+  <path d="m235 213 5 8 5-8m470 0 5 8 5-8" fill="#8b9ca6"/>
+
+  <g transform="translate(10,225)">
+    <rect width="459" height="217" rx="6" fill="#fff" stroke="#c9d3d9"/>
+    <text x="19" y="34" class="result">If TopTx needs a top-up</text>
+    <text x="19" y="72" class="choice">TopUpFromInput reserveInput</text>
+    <text x="19" y="105" class="body">Add reserveTxId#0 to the spending inputs.</text>
+    <path class="rule" d="M19 143h421"/>
+    <text x="19" y="170" class="label">Deposit declaration · field 28</text>
+    <text x="19" y="200" class="result">Allocate 0.4 ADA</text>
+  </g>
+
+  <g transform="translate(491,225)">
+    <rect width="459" height="217" rx="6" fill="#fff" stroke="#c9d3d9"/>
+    <text x="19" y="34" class="result">If TopTx receives a refund</text>
+    <text x="19" y="72" class="choice">TopTxRefundToNewOutput refundTxOut</text>
+    <text x="19" y="103" class="body">Append the supplied output at index 1.</text>
+    <text x="19" y="128" class="label">The reserve input stays unspent.</text>
+    <path class="rule" d="M19 143h421"/>
+    <text x="19" y="170" class="label">Deposit declaration · field 28</text>
+    <text x="19" y="200" class="result">Release 1.6 ADA to output <tspan fill="#a4352d">1</tspan></text>
+  </g>
+</svg>

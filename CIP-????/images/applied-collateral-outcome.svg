@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="322" viewBox="0 0 940 322" role="img" aria-labelledby="title description">
+  <title id="title">Collateral accounting under two fixed protocol rules</title>
+  <desc id="description">The rows compare protocol designs. In the prototype design every collateral return is deposit-backed. The 4 ADA return reuses the 2 ADA external deposit and 1 ADA goes to fees. If the protocol required every return to use minimum ADA instead, the 4 ADA value would cover its minimum and the released deposit would bring fees to 3 ADA. Both rows use the same 5 ADA input value and 2 ADA external deposit.</desc>
+  <style>
+    text { font-family: Barlow, "Helvetica Neue", Arial, sans-serif; fill: #20323d; }
+    .head { font-size: 20px; font-weight: 600; }
+    .case { font-size: 21px; font-weight: 600; }
+    .label { font-size: 18px; }
+    .note { font-size: 17px; fill: #4e616c; }
+    .bar { font-size: 18px; font-weight: 600; text-anchor: middle; }
+    .ref { font-family: "SFMono-Regular", Consolas, monospace; font-size: 19px; }
+  </style>
+  <rect width="940" height="322" fill="white"/>
+  <rect x="12" y="9" width="916" height="58" rx="5" fill="#f2f5f6"/>
+  <text class="head" x="24" y="45">Collateral input <tspan class="ref">col#0</tspan></text>
+  <rect x="294" y="29" width="18" height="18" fill="#b9d7d3" stroke="#487a73"/>
+  <text class="label" x="324" y="45">5 ADA in output value</text>
+  <rect x="605" y="29" width="18" height="18" fill="#ecd2b7" stroke="#a16940"/>
+  <text class="label" x="635" y="45">2 ADA in external deposit</text>
+
+  <text class="head" x="18" y="109">Protocol rule</text>
+  <text class="head" x="290" y="109">Collateral return <tspan class="ref">tx#1</tspan></text>
+  <text class="head" x="711" y="109">Fee pot</text>
+  <path d="M18 122h904 M18 220h904" fill="none" stroke="#d5dee2"/>
+
+  <!-- Each 56 horizontal units of bar represents 1 ADA. Both design rules
+       are illustrated with the same collateral and collateral fee minimum. -->
+  <g>
+    <text class="case" x="18" y="165">Always deposit-backed</text>
+    <text class="note" x="18" y="193">Prototype design</text>
+    <rect x="290" y="140" width="224" height="36" fill="#b9d7d3"/>
+    <rect x="514" y="140" width="112" height="36" fill="#ecd2b7"/>
+    <path d="M514 140v36" stroke="#fff" stroke-width="2"/>
+    <text class="bar" x="402" y="165">4 ADA</text>
+    <text class="bar" x="570" y="165">2 ADA</text>
+    <text class="note" x="290" y="199">Output value</text>
+    <text class="note" x="514" y="199">New deposit</text>
+
+    <rect x="711" y="140" width="56" height="36" fill="#b9d7d3"/>
+    <text class="bar" x="739" y="165">1</text>
+    <text class="note" x="711" y="199">1 ADA in fees</text>
+  </g>
+  <g>
+    <text class="case" x="18" y="263">Always minimum-ADA</text>
+    <text class="note" x="18" y="291">Design alternative</text>
+    <rect x="290" y="238" width="224" height="36" fill="#b9d7d3"/>
+    <text class="bar" x="402" y="263">4 ADA</text>
+    <text class="note" x="290" y="297">Output value</text>
+    <rect x="711" y="238" width="56" height="36" fill="#b9d7d3"/>
+    <rect x="767" y="238" width="112" height="36" fill="#ecd2b7"/>
+    <path d="M767 238v36" stroke="#fff" stroke-width="2"/>
+    <text class="bar" x="739" y="263">1</text>
+    <text class="bar" x="823" y="263">2</text>
+    <text class="note" x="711" y="297">3 ADA in fees</text>
+  </g>
+</svg>

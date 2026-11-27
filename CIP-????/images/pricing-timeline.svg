@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="279" viewBox="0 0 880 279" role="img" aria-labelledby="title description">
+  <title id="title">An in-era parameter update and a hard fork introducing a new formula</title>
+  <desc id="description">The initial hard fork introduces V1 at 4,310 lovelace per byte. At the first slot of a new epoch in the same era, a parameter update raises the rate to 5,000. V1 continues to apply. In this example, the next hard fork introduces V2 with the rate still at 5,000. Spending an output created in the first period recovers its deposit using V1 at 4,310.</desc>
+  <style>
+    text { font-family: Barlow, "Helvetica Neue", Arial, sans-serif; fill: #20323d; }
+    .event { font-size: 20px; font-weight: 650; }
+    .when, .unit { font-size: 16px; fill: #526772; }
+    .label { font-size: 18px; font-weight: 600; }
+    .version, .rate { font-size: 21px; font-weight: 650; }
+    .version { fill: #224964; }
+    .rate { fill: #205b51; }
+    .action { font-size: 16px; fill: #526772; }
+    .historical { font-size: 17px; font-weight: 600; }
+  </style>
+  <rect width="880" height="279" fill="#fff"/>
+
+  <g class="event">
+    <text x="175" y="27">Initial hard fork</text>
+    <text x="405" y="27">Parameter update</text>
+    <text x="635" y="27">Next hard fork</text>
+  </g>
+  <g class="when">
+    <text x="175" y="51">Era begins with V1</text>
+    <text x="405" y="51">Epoch start, same era</text>
+    <text x="635" y="51">New era introduces V2</text>
+  </g>
+  <path d="M175 70H866m-7-5 7 5-7 5" stroke="#8c9fa9" stroke-width="1.5" fill="none"/>
+  <path d="M175 74v15m230-15v65m230-65v15" stroke="#9eafb7" stroke-width="1.25" stroke-dasharray="3 3"/>
+  <g fill="#fff" stroke="#576f7d" stroke-width="2">
+    <circle cx="175" cy="70" r="4"/><circle cx="405" cy="70" r="4"/><circle cx="635" cy="70" r="4"/>
+  </g>
+
+  <text class="label" x="12" y="116">Formula version</text>
+  <g fill="#eef3f7" stroke="#b7cbd8">
+    <rect x="175" y="88" width="453" height="40" rx="5"/>
+    <rect x="635" y="88" width="230" height="40" rx="5"/>
+  </g>
+  <g class="version"><text x="191" y="115">V1</text><text x="651" y="115">V2</text></g>
+
+  <text class="label" x="12" y="157">Price per byte</text>
+  <text class="unit" x="12" y="178">lovelace</text>
+  <g fill="#eaf4f1" stroke="#a8c9bf">
+    <rect x="175" y="139" width="223" height="40" rx="5"/>
+    <rect x="405" y="139" width="460" height="40" rx="5"/>
+  </g>
+  <g class="rate"><text x="191" y="166">4,310</text><text x="421" y="166">5,000</text></g>
+
+  <path d="M12 201H865" stroke="#d7e0e4"/>
+  <text class="label" x="12" y="242">One live output</text>
+  <text class="action" x="175" y="230">Created with</text>
+  <text class="historical" x="175" y="254">V1 at 4,310</text>
+  <path d="M308 242H609m-7-5 7 5-7 5" stroke="#627c88" stroke-width="1.5" fill="none"/>
+  <text class="action" x="635" y="230">Deposit recovered using</text>
+  <text class="historical" x="635" y="254">V1 at 4,310</text>
+</svg>

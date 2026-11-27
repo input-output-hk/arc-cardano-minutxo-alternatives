@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="300" viewBox="0 0 960 300" role="img" aria-labelledby="title desc">
+  <title id="title">Two output forms in one signed transaction body</title>
+  <desc id="desc">The TxBody creates two outputs. Output 0 is a MinAdaTxOut for Bob containing 5 ADA, of which 1.6 ADA covers the minimum. Output 1 is a DepositBackedTxOut for Carol containing 1 token B and zero ADA. A separate 2 ADA deposit backs output 1 while it is unspent.</desc>
+  <style>
+    text { font-family: Barlow, "Helvetica Neue", Arial, sans-serif; fill: #20303b; }
+    .body { font-size: 21px; font-weight: 600; }
+    .label { font-size: 16px; fill: #526774; }
+    .type { font: 20px "SFMono-Regular", Consolas, monospace; }
+    .amount { font-size: 24px; font-weight: 600; }
+    .note { font-size: 17px; }
+    .deposit { fill: #99372f; }
+  </style>
+  <rect width="960" height="300" fill="#fff"/>
+  <rect x="365" y="8" width="230" height="42" rx="6" fill="#f0f4f6" stroke="#bccbd3"/>
+  <text x="480" y="36" text-anchor="middle" class="body">TxBody outputs</text>
+  <path d="M480 50v13 M238 82V63h484v19" fill="none" stroke="#748995" stroke-width="1.6"/>
+
+  <g transform="translate(8 82)">
+    <rect width="460" height="145" rx="6" fill="#fff" stroke="#bccbd3"/>
+    <text x="19" y="28" class="label">Output 0 · Bob</text>
+    <text x="19" y="56" class="type">MinAdaTxOut</text>
+    <path d="M0 71h460" stroke="#ccd5da"/>
+    <text x="19" y="101" class="amount">5 ADA</text>
+    <text x="19" y="128" class="note">Includes the 1.6 ADA minimum.</text>
+  </g>
+  <g transform="translate(492 82)">
+    <rect width="460" height="145" rx="6" fill="#fff" stroke="#bccbd3"/>
+    <text x="19" y="28" class="label">Output 1 · Carol</text>
+    <text x="19" y="56" class="type">DepositBackedTxOut</text>
+    <path d="M0 71h460" stroke="#ccd5da"/>
+    <text x="19" y="101" class="amount">1 token B</text>
+    <text x="19" y="128" class="note">0 ADA in the output’s value.</text>
+  </g>
+  <path d="M511 227v33h20" fill="none" stroke="#ae4439" stroke-width="1.6"/>
+  <text x="541" y="266" class="note deposit"><tspan font-weight="600">2 ADA deposit</tspan> backing output 1 while unspent</text>
+</svg>

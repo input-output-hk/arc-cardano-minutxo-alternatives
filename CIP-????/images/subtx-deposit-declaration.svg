@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="330" viewBox="0 0 960 330" role="img" aria-labelledby="title desc">
+  <title id="title">SubTx deposit declaration examples</title>
+  <desc id="desc">The SubTx allocates 1.6 ADA locally or asks TopTx to fund it. It releases 1.6 ADA to its own output 1 or delegates the release to TopTx. Equal reserves give No deposit change.</desc>
+  <style>
+    text { font-family: Barlow, "Helvetica Neue", Arial, sans-serif; fill: #20303b; }
+    .label { font-size: 17px; fill: #526774; }
+    .operation { font-size: 21px; font-weight: 600; }
+    .choice { font-size: 19px; }
+    .example { font: 18px "SFMono-Regular", Consolas, monospace; fill: #99372f; }
+  </style>
+  <rect width="960" height="330" fill="#fff"/>
+  <rect x="8" y="8" width="944" height="314" rx="6" fill="#fff" stroke="#bccbd3"/>
+  <rect x="530" y="9" width="421" height="312" rx="5" fill="#fbf0ee"/>
+  <text x="27" y="40" class="label">SubTx reserve change</text>
+  <text x="228" y="40" class="label">Funding or refund</text>
+  <text x="550" y="40" class="label">Example declaration (pseudocode)</text>
+  <g transform="translate(0 58)">
+    <path d="M8 0h944" stroke="#ccd5da"/>
+    <text x="27" y="35" class="operation">Allocate</text>
+    <path d="M207 28h7m-7 0v48h7" stroke="#9dafb9" fill="none" stroke-width="1.4"/>
+    <text x="228" y="35" class="choice">Fund within this SubTx</text>
+    <text x="550" y="35" class="example">Allocate(1.6 ADA)</text>
+    <text x="228" y="83" class="choice">Ask TopTx to fund it</text>
+    <text x="550" y="83" class="example">Allocate(1.6 ADA, funding = TopTx)</text>
+  </g>
+  <g transform="translate(0 162)">
+    <path d="M8 0h944" stroke="#ccd5da"/>
+    <text x="27" y="35" class="operation">Release</text>
+    <path d="M207 28h7m-7 0v48h7" stroke="#9dafb9" fill="none" stroke-width="1.4"/>
+    <text x="228" y="35" class="choice">Refund in SubTx output 1</text>
+    <text x="550" y="35" class="example">Release(1.6 ADA, output 1)</text>
+    <text x="228" y="83" class="choice">Delegate the refund to TopTx</text>
+    <text x="550" y="83" class="example">Release(1.6 ADA, delegate to TopTx)</text>
+  </g>
+  <g transform="translate(0 266)">
+    <path d="M8 0h944" stroke="#ccd5da"/>
+    <text x="27" y="35" class="operation">No deposit change</text>
+    <text x="228" y="35" class="choice">SubTx reserves balance</text>
+    <text x="550" y="35" class="example">No deposit change</text>
+  </g>
+</svg>
